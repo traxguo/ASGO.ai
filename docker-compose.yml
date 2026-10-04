@@ -14,3 +14,18 @@ services:
         required: false
     entrypoint: ["freqtrade"]
     command: ["--help"]
+
+  # Telegram bot: answers only the owner's personal chat. Start: docker compose up -d telegram-bot
+  telegram-bot:
+    image: asgo-freqtrade:local
+    build: .
+    container_name: asgo-telegram-bot
+    volumes:
+      - ./:/freqtrade/repo
+    working_dir: /freqtrade/repo
+    env_file:
+      - path: .env
+        required: true
+    entrypoint: ["python", "-m", "signals.dispatcher.bot"]
+    command: ["run"]
+    restart: unless-stopped
