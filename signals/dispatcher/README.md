@@ -1,6 +1,6 @@
 # signals/dispatcher — Telegram botu
 
-Bot sadece **senin kişisel Telegram sohbetine** yazar ve sadece sana cevap verir. Başka biri botu bulup yazsa bile cevap almaz. Grup veya kanal desteği yoktur.
+Bot sadece **senin kişisel Telegram sohbetine** ve istersen **senin seçtiğin tek bir gruba** yazar. Başka biri botu bulup yazsa ya da botu başka bir gruba eklese bile cevap almaz.
 
 ## Bot şu an ne yapar?
 | Yazdığın | Bot ne der |
@@ -56,7 +56,16 @@ Bot dışarıya port açmaz; Telegram'a kendisi sorar ("bana mesaj var mı?"). E
 5. **Dene:** `python -m signals.dispatcher.bot test` → Telegram'a deneme mesajı gelir.
 6. **Çalıştır:** `python -m signals.dispatcher.bot run` → pencere açık kaldıkça bot cevap verir. Kapatmak için pencereyi kapat.
 
-## Nerede çalışmalı?
+## Grup kurulumu (isteğe bağlı, tek grup)
+1. Bot çalışıyorsa önce durdur (`run` penceresini kapat).
+2. Telegram'da arkadaşınla bir grup aç (ya da mevcut grubu kullan) ve botu gruba **üye olarak ekle**.
+3. Grupta `/start` yaz.
+4. Bilgisayarda şunu çalıştır: `py -m signals.dispatcher.bot chatid`. Ekranda `grup: ...` yazan satırdaki eksi işaretli sayıyı kopyala.
+5. `.env` dosyasına yeni bir satır ekle: `TELEGRAM_GROUP_ID=-100...` (o sayı).
+6. `py -m signals.dispatcher.bot test` → deneme mesajı hem sana hem gruba gelir. Sonra `run` ile çalıştır.
+
+Grupta bot sadece `/` ile başlayan komutlara cevap verir: `/btc`, `/eth`, `/durum`, `/yardim`. Normal sohbete karışmaz.
+
 Bot, açık kaldığı sürece çalışır. Seçenekler:
 1. **Küçük bir sanal sunucu (VPS)** — önerilen. Aylık birkaç dolar/euro. 7/24 açık; Seviye 3'te Freqtrade dry-run da zaten 7/24 çalışmak zorunda, ikisi aynı yerde durur.
 2. **Kendi bilgisayarın** — denemek için en kolayı, ama bilgisayar kapanınca bot da susar.

@@ -4,7 +4,7 @@ import pytest
 
 from signals.dispatcher import commands
 from signals.dispatcher.bot import process_update
-from signals.dispatcher.telegram_client import ConfigError, TelegramClient, parse_chat_id
+from signals.dispatcher.telegram_client import ConfigError, TelegramClient, parse_chat_id, parse_group_id
 
 OWNER = 123456789
 
@@ -15,9 +15,12 @@ def sample_signal_dict():
     return make_signal().to_dict()
 
 
+GROUP = -1001234567890
+
+
 class FakeClient(TelegramClient):
-    def __init__(self):
-        super().__init__("1:abc", OWNER)
+    def __init__(self, group_id=None):
+        super().__init__("1:abc", OWNER, group_id=group_id)
         self.sent = []
 
     def _call(self, method, params):
@@ -95,3 +98,35 @@ def test_env_file_with_bom(tmp_path, monkeypatch):
     load_env(env)
     import os
     assert os.environ["TELEGRAM_CHAT_ID"] == "123"
+
+
+def test_configured_group_is_answered_others_are_not():
+    c = FakeClient(group_id=GROUP)
+    grp = {"message": {"chat": {"id": GROUP, "type": "supergroup"}, "text": "/btc@asgo_bot"}}
+    other = {"message": {"chat": {"id": -100999, "type": "group"}, "text": "/btc"}}
+    assert process_update(c, grp, responder=lambda t: "hi")
+    assert not process_update(c, other, responder=lambda t: "hi")
+    chatter = {"message": {"chat": {"id": GROUP, "type": "supergroup"}, "text": "btc düştü mü?"}}
+    assert not process_update(c, chatter, responder=lambda t: "hi")
+    assert [p["chat_id"] for _, p in c.sent] == [GROUP]
+    with pytest.raises(PermissionError):
+        c.send_message("x", chat_id=-100999)
+
+
+def test_no_group_by_default():
+    c = FakeClient()
+    grp = {"message": {"chat": {"id": GROUP, "type": "supergroup"}, "text": "/btc"}}
+    assert not process_update(c, grp, responder=lambda t: "hi")
+    assert c.allowed_chats == (OWNER,)
+
+
+def test_group_id_parsing():
+    assert parse_group_id("") is None
+    assert parse_group_id(str(GROUP)) == GROUP
+    with pytest.raises(ConfigError):
+        parse_group_id("12345")
+
+
+def test_command_with_bot_suffix():
+    assert commands.find_symbol("/eth@asgo_bot") == "ETH"
+    assert "Seviye" in commands.handle("/durum@asgo_bot")
