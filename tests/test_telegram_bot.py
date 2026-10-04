@@ -85,3 +85,13 @@ def test_other_chats_are_ignored():
 def test_chat_id_must_be_personal(raw):
     with pytest.raises(ConfigError):
         parse_chat_id(raw)
+
+
+def test_env_file_with_bom(tmp_path, monkeypatch):
+    from signals.dispatcher.telegram_client import load_env
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    env = tmp_path / ".env"
+    env.write_bytes("﻿TELEGRAM_CHAT_ID=123\n".encode("utf-8"))
+    load_env(env)
+    import os
+    assert os.environ["TELEGRAM_CHAT_ID"] == "123"

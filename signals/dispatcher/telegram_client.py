@@ -27,7 +27,8 @@ def load_env(path: Path = REPO / ".env") -> None:
     """Reads KEY=value lines from .env into os.environ (existing values win)."""
     if not path.is_file():
         return
-    for line in path.read_text().splitlines():
+    # utf-8-sig: Notepad on Windows may add a BOM
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue

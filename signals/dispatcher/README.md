@@ -43,6 +43,19 @@ Telegram'a "ASGO botu bağlandı" mesajı gelmeli.
 
 Bot dışarıya port açmaz; Telegram'a kendisi sorar ("bana mesaj var mı?"). Ekstra kütüphane gerekmez.
 
+## Windows'ta (kendi bilgisayarında) çalıştırma
+1. **Python kur:** Microsoft Store'u aç, `Python 3.12` ara, **Yükle**'ye bas.
+2. **Projeyi indir:** GitHub'da repo sayfasında yeşil **Code** → **Download ZIP**. ZIP'i ör. `C:\asgo` klasörüne çıkar (içinde `signals`, `docs` gibi klasörler görünmeli).
+3. **`.env` dosyası:** Not Defteri'ni aç, şu iki satırı yaz (kendi bilgilerinle):
+   ```
+   TELEGRAM_BOT_TOKEN=buraya_token
+   TELEGRAM_CHAT_ID=buraya_chat_id
+   ```
+   **Farklı Kaydet** → klasör: `C:\asgo` → Dosya adı: `".env"` (tırnaklarla birlikte) → Kayıt türü: **Tüm Dosyalar** → Kaydet.
+4. **Komut penceresi:** `C:\asgo` klasörünü aç, üstteki adres çubuğuna tıkla, `cmd` yaz, Enter.
+5. **Dene:** `python -m signals.dispatcher.bot test` → Telegram'a deneme mesajı gelir.
+6. **Çalıştır:** `python -m signals.dispatcher.bot run` → pencere açık kaldıkça bot cevap verir. Kapatmak için pencereyi kapat.
+
 ## Nerede çalışmalı?
 Bot, açık kaldığı sürece çalışır. Seçenekler:
 1. **Küçük bir sanal sunucu (VPS)** — önerilen. Aylık birkaç dolar/euro. 7/24 açık; Seviye 3'te Freqtrade dry-run da zaten 7/24 çalışmak zorunda, ikisi aynı yerde durur.

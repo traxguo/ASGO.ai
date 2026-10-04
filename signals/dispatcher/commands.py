@@ -61,7 +61,7 @@ def binance_price(symbol: str) -> dict | None:
 
 def known_pairs() -> list[str]:
     try:
-        return json.loads(PAIRS_FILE.read_text())["exchange"]["pair_whitelist"]
+        return json.loads(PAIRS_FILE.read_text(encoding="utf-8"))["exchange"]["pair_whitelist"]
     except Exception:
         return []
 
@@ -74,7 +74,7 @@ def active_strategies() -> list[str]:
 
 def current_level() -> str:
     try:
-        m = re.search(r"Şu anki seviye:\s*([^*(]+)", ROADMAP.read_text())
+        m = re.search(r"Şu anki seviye:\s*([^*(]+)", ROADMAP.read_text(encoding="utf-8"))
         return m.group(1).strip() if m else "?"
     except Exception:
         return "?"
@@ -96,7 +96,7 @@ def last_signal(symbol: str, log_dir: Path = LOG_DIR) -> Signal | None:
     best = None
     for path in log_dir.glob("*.json"):
         try:
-            sig = Signal.from_dict(json.loads(path.read_text()))
+            sig = Signal.from_dict(json.loads(path.read_text(encoding="utf-8")))
         except Exception:
             continue
         if sig.pair.split("/")[0] == symbol and (best is None or sig.timestamp > best.timestamp):
