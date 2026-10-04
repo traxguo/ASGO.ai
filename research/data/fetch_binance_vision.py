@@ -33,6 +33,7 @@ from freqtrade.data.history import get_datahandler
 from freqtrade.enums import CandleType
 
 BASE = "https://data.binance.vision/data/futures/um/monthly"
+DAILY_BASE = "https://data.binance.vision/data/futures/um/daily"
 KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time",
               "quote_volume", "count", "taker_buy_volume", "taker_buy_quote_volume", "ignore"]
 
@@ -50,7 +51,7 @@ CACHE_DIR = Path("user_data/data/binance_vision_raw")  # raw zips, reused on re-
 
 
 def fetch_zip_csv(url: str) -> bytes | None:
-    cached = CACHE_DIR / url.split("/monthly/", 1)[-1]
+    cached = CACHE_DIR / url.split("/um/", 1)[-1].split("/", 1)[-1]
     missing = cached.with_suffix(".missing")
     if missing.exists():
         return None
@@ -108,6 +109,27 @@ def collect(urls: list[str], parser) -> pd.DataFrame:
     return df
 
 
+def missing_days(df: pd.DataFrame, timeframe: str) -> list[str]:
+    """Calendar days with at least one missing candle between first and last candle."""
+    if df.empty:
+        return []
+    full = pd.date_range(df["date"].min(), df["date"].max(), freq=pd.Timedelta(timeframe))
+    gaps = full.difference(pd.DatetimeIndex(df["date"]))
+    return sorted({d.strftime("%Y-%m-%d") for d in gaps})
+
+
+def fill_from_daily(df: pd.DataFrame, kind: str, sym: str, tf: str) -> pd.DataFrame:
+    """Some monthly archives are truncated (e.g. SOL/XRP Feb+Mar 2022); the daily
+    archives for the same days are complete. Top up only the missing days."""
+    days = missing_days(df, tf)
+    if not days:
+        return df
+    extra = collect([f"{DAILY_BASE}/{kind}/{sym}/{tf}/{sym}-{tf}-{d}.zip" for d in days], parse_klines)
+    if extra.empty:
+        return df
+    return pd.concat([df, extra]).drop_duplicates("date").sort_values("date").reset_index(drop=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pairs", nargs="+", required=True)
@@ -123,10 +145,12 @@ def main() -> None:
         sym = symbol_of(pair)
         for tf in a.timeframes:
             df = collect([f"{BASE}/klines/{sym}/{tf}/{sym}-{tf}-{m}.zip" for m in ms], parse_klines)
+            df = fill_from_daily(df, "klines", sym, tf)
             print(f"{pair} {tf} futures: {len(df)} candles")
             if not df.empty:
                 dh.ohlcv_store(pair, tf, df, CandleType.FUTURES)
         mark = collect([f"{BASE}/markPriceKlines/{sym}/1h/{sym}-1h-{m}.zip" for m in ms], parse_klines)
+        mark = fill_from_daily(mark, "markPriceKlines", sym, "1h")
         print(f"{pair} 1h mark: {len(mark)} candles")
         if not mark.empty:
             dh.ohlcv_store(pair, "1h", mark, CandleType.MARK)

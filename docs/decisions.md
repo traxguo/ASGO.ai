@@ -2,6 +2,21 @@
 
 Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
+## 2026-10-04 — trend_ma ilk backtest sonucu: emeklilik önerisi
+- **Karar (öneri, proje sahibinin onayı bekleniyor):** `trend_ma` emekliye ayrılsın, Seviye 1'deki diğer strateji ailelerine geçilsin.
+- **Gerekçe:** Geliştirme döneminde (2020-06 → 2024-12, 6 coin) iki TP modelinde de işlem başına -0.06R, profit factor 0.91-0.92, drawdown %43-47. Eşikler: PF ≥ 1.2, DD ≤ %25. Parametre veya yön ayarı geliştirme verisine uydurma olurdu. Rapor: `results/2026-10-04_trend_ma_ilk_backtest/rapor.md`.
+
+## 2026-10-04 — Geliştirme / doğrulama / kasa tarih sınırları
+- **Karar:** Geliştirme 2020-01-01 → 2024-12-31 (`--timerange 20200101-20250101`); doğrulama 2025-01-01 → 2026-03-31 (`20250101-20260401`); kasa (holdout) 2026-04-01 → 2026-09-30 (`20260401-20261001`).
+- **Gerekçe:** Veri 2020-01'den 2026-09 sonuna kadar (arşivde ay bitince eklenir). Kasa = son 6 ay (kural). Kalan ~5 yılın son 15 ayı doğrulama, öncesi geliştirme: geliştirmede hem yükseliş (2020-21, 2023-24) hem düşüş (2022) piyasası var. Sınırlar sabit kalır; yeni ay verisi eklense de kaydırılmaz (kasa ileride tekrar kullanılırsa ayrıca karar yazılır).
+
+## 2026-10-04 — Veri kaynağı: data.binance.vision arşivi
+- **Durum:** Ağ izni açıldı ama `fapi.binance.com` / `api.binance.com` bu sunucuya HTTP 451 veriyor (Binance'in ülke engeli). `data.binance.vision` çalışıyor.
+- **Karar:** Seviye 1 verisi (1h/4h futures OHLCV, 1h mark, funding) aylık arşivden indiriliyor (`FT_LOCAL=1 FT_OFFLINE=1 ./scripts/download_data.sh`). Aylık arşivde eksik günler (SOL ve XRP: 2022-02-26 → 28 ve 2022-04-01 → 02) günlük arşivden tamamlanıyor. Freqtrade market listesini API'den alamadığı için `scripts/offline_freqtrade.py` sabit liste veriyor (Binance tick/lot değerleri, 2026-10 itibarıyla, API'den doğrulanamadı; sadece yuvarlamayı etkiler).
+- **Veri doğrulama düzeltmesi:** `validate.py` daha önce eksik mumları göremiyordu, çünkü Freqtrade okurken boşlukları sıfır hacimli mumla dolduruyor. Artık `fill_missing=False` ile okuyor.
+- **Kalan uyarılar (gerçek piyasa olayları, düzeltilmedi):** her coinde 1 adet sıfır hacimli 1h mum; aşırı sıçramalar (ör. 2020-03-12 çöküşü, 2021 DOGE yükselişi).
+- **Eski not:** Aşağıdaki "Binance verisine bu çalışma ortamından erişilemiyor" kararı bununla çözüldü.
+
 ## 2026-10-04 — Binance verisine bu çalışma ortamından erişilemiyor
 - **Durum:** Bu oturumun çalıştığı bulut ortamının ağ politikası `fapi.binance.com`, `api.binance.com` ve `data.binance.vision` adreslerini engelliyor (HTTP 403, proxy reddi). Brief'teki yedek yol (data.binance.vision arşivi) da engelli. Docker daemon da bu ortamda başlatılamıyor.
 - **Karar:** Veri indirme ve doğrulama araçları yazıldı ama gerçek veri indirilemedi. Sistem, **sentetik (rastgele üretilmiş) veri** ve çevrimdışı market listesiyle uçtan uca test edildi (`tests/smoke/`). Bu testin rakamları araştırma sonucu değildir ve `results/` klasörüne konmadı.

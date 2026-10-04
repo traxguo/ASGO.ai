@@ -36,5 +36,7 @@
 - Seviye atlanmaz. TP ızgarası genişletilmez. Kötü sonuç gizlenmez.
 
 ## Pratik notlar
-- Binance'e erişilemeyen ortamda: `tests/smoke/` altındaki sentetik veri + çevrimdışı Freqtrade ile sadece **boru hattı** testi yapılabilir; bunun sonuçları araştırma sonucu değildir ve `results/`'a konmaz.
+- Bulut ortamında Binance API'si HTTP 451 veriyor (coğrafi engel), `data.binance.vision` açık. Veri: `FT_LOCAL=1 FT_OFFLINE=1 ./scripts/download_data.sh`. Freqtrade komutları: `FT_LOCAL=1 FT_OFFLINE=1 ./scripts/ft.sh ...` (sabit market listesi, `scripts/offline_freqtrade.py`).
+- Tarih sınırları: geliştirme 2020-01-01 → 2024-12-31 (`--timerange 20200101-20250101`), doğrulama 2025-01-01 → 2026-03-31, kasa 2026-04-01 → 2026-09-30 (bkz. `docs/decisions.md`).
+- Binance'e hiç erişilemeyen ortamda: `tests/smoke/` altındaki sentetik veri + çevrimdışı Freqtrade ile sadece **boru hattı** testi yapılabilir; bunun sonuçları araştırma sonucu değildir ve `results/`'a konmaz.
 - Testler: `python -m pytest -q tests`.

@@ -98,7 +98,7 @@ def main() -> None:
     details: list[str] = []
     for pair in pairs:
         for tf in a.timeframes:
-            df = dh.ohlcv_load(pair, tf, candle_type=CandleType.FUTURES)
+            df = dh.ohlcv_load(pair, tf, candle_type=CandleType.FUTURES, fill_missing=False)
             if df.empty:
                 lines.append(f"| {pair} | {tf} | **VERİ YOK** | | | | | | |")
                 problems += 1
@@ -114,8 +114,8 @@ def main() -> None:
               "| Coin | Funding başlangıç | Funding satır | 8 saatten uzun boşluk | En büyük boşluk | Mark price başlangıç | Mark mum |",
               "|---|---|---|---|---|---|---|"]
     for pair in pairs:
-        fr = dh.ohlcv_load(pair, "1h", candle_type=CandleType.FUNDING_RATE)
-        mk = dh.ohlcv_load(pair, "1h", candle_type=CandleType.MARK)
+        fr = dh.ohlcv_load(pair, "1h", candle_type=CandleType.FUNDING_RATE, fill_missing=False)
+        mk = dh.ohlcv_load(pair, "1h", candle_type=CandleType.MARK, fill_missing=False)
         f = check_funding(fr)
         if f["rows"] == 0 or mk.empty:
             problems += 1

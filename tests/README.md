@@ -10,7 +10,7 @@ Kodun doğru çalıştığını kontrol eder: `python -m pytest -q tests`
 `smoke/` — Binance'e erişilemeyen ortamda **sentetik veriyle** uçtan uca boru hattı testi:
 ```bash
 python tests/smoke/make_synthetic_data.py /tmp/synth/binance
-python tests/smoke/offline_freqtrade.py backtesting -c config/base.json -c tests/smoke/pairs_smoke.json \
+python scripts/offline_freqtrade.py backtesting -c config/base.json -c tests/smoke/pairs_smoke.json \
   --datadir /tmp/synth/binance --strategy-path strategies/candidates \
   --strategy-list TrendMA_A TrendMA_B --timeframe 4h --userdir /tmp/ud
 ```

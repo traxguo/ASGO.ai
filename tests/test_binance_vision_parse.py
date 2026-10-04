@@ -31,3 +31,11 @@ def test_funding():
 
 def test_symbol():
     assert fbv.symbol_of("BTC/USDT:USDT") == "BTCUSDT"
+
+
+def test_missing_days():
+    import pandas as pd
+    dates = pd.date_range("2022-02-25 22:00", "2022-02-25 23:00", freq="1h", tz="UTC").append(
+        pd.date_range("2022-02-27 00:00", periods=2, freq="1h", tz="UTC"))
+    df = pd.DataFrame({"date": dates})
+    assert fbv.missing_days(df, "1h") == ["2022-02-26"]
