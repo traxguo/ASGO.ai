@@ -2,6 +2,13 @@
 
 Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
+## 2026-10-04 — Botta isteğe bağlı yapay zekâ sohbeti
+- **Karar:** Proje sahibinin isteğiyle bota serbest sohbet eklendi (Google Gemini API ücretsiz katmanı, `.env`'de `AI_API_KEY` varsa açılır).
+- **Kural 1.3 ve 7.9 ile uyum:** Yapay zekâ seviye veya gerekçe üretmez. Komut cevapları ve coin raporu şablondan, olduğu gibi gelir; yapay zekâ en fazla altına "💬" ile kısa bir sohbet cümlesi ekler. Sadece sistemin verdiği bilgileri (durum, sıradaki işler, coin raporu) görür. Cevapta bu bilgilerde olmayan 3+ basamaklı bir sayı varsa cevap atılır.
+- **Grupta:** sadece `/sor` ve botun mesajına verilen yanıtlar. Normal grup sohbetine karışmaz.
+- **Gizlilik:** Ücretsiz katmanda mesajlar Google tarafından ürün geliştirme için kullanılabilir; kişisel bilgi yazılmamalı.
+- **Doğrulanmadı:** Varsayılan model adı (`gemini-2.5-flash`) bu ortamdan anahtarsız denenemedi; gerekirse `.env`'de `AI_MODEL` ile değiştirilir.
+
 ## 2026-10-04 — Bot tek bir gruba da yazabilir (kural 7 değişti)
 - **Karar:** Proje sahibi, botun arkadaşıyla olan bir gruba da yazmasını istedi. Kural 7 güncellendi: kişisel sohbet + `.env`'deki `TELEGRAM_GROUP_ID` ile seçilen **tek** grup. Kanal veya ikinci grup yok.
 - **Nasıl:** Grup ID'si boşsa bot eskisi gibi sadece kişisel sohbete yazar. Grupta sadece `/` ile başlayan komutlara cevap verir (normal sohbete karışmaz). Başka gruplar yok sayılır. Seviye 3'te otomatik sinyaller de bu iki sohbete gidecek.

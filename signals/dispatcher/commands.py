@@ -40,6 +40,7 @@ HELP = (
     "şu an ne dediği + güncel fiyat\n"
     "• /durum: projenin hangi seviyede olduğu, kaç strateji aktif\n"
     "• /liste: takip edilen coinler\n"
+    "• /sor <soru>: serbest soru (yapay zekâ açıksa). Özelden düz yazman da yeter.\n"
     "• /yardim: bu mesaj\n\n"
     "Not: Bot kendi kafasına göre alım/stop/hedef seviyesi söylemez. Seviyeler sadece "
     "testi geçmiş stratejilerden gelir."
@@ -146,7 +147,22 @@ def status_report() -> str:
             "\nSinyal gönderimi: " + ("açık" if actives else "kapalı (testi geçen strateji yok)"))
 
 
-def handle(text: str, price_fetcher: PriceFetcher = binance_price, log_dir: Path = LOG_DIR) -> str:
+def next_steps() -> str:
+    try:
+        text = ROADMAP.read_text(encoding="utf-8")
+        return text.split("## Sıradaki adım", 1)[1].strip()
+    except Exception:
+        return ""
+
+
+def project_facts() -> str:
+    return (status_report() + "\n\nSıradaki işler:\n" + next_steps() +
+            "\n\nBotun komutları: /btc /eth /sol /xrp /bnb /doge, /durum, /liste, /yardim, /sor <soru>")
+
+
+def handle(text: str, price_fetcher: PriceFetcher = binance_price, log_dir: Path = LOG_DIR,
+           ai=None) -> str:
+    """Template answers first. The optional `ai` (chat_ai.ChatAI) only adds a chat sentence."""
     t = (text or "").strip()
     cmd = t.lower().split()[0].split("@")[0] if t else ""
     if cmd in ("/start", "/yardim", "/yardım", "/help", "yardim", "yardım"):
@@ -156,7 +172,25 @@ def handle(text: str, price_fetcher: PriceFetcher = binance_price, log_dir: Path
     if cmd in ("/liste", "liste"):
         pairs = known_pairs()
         return "Takip edilen coinler: " + (", ".join(p.split("/")[0] for p in pairs) or "yok")
+
+    is_question = cmd == "/sor"
+    if is_question:
+        t = t.split(maxsplit=1)[1] if len(t.split()) > 1 else ""
+        if not t:
+            return "Sorunu /sor'dan sonra yaz. Örnek: /sor ne durumdayız?"
     symbol = find_symbol(t)
-    if symbol:
-        return pair_report(symbol, price_fetcher, log_dir)
-    return "Anlayamadım. Örnek: \"btc'ye bak\", \"/eth\", \"/durum\". Tüm komutlar için /yardim."
+    report = pair_report(symbol, price_fetcher, log_dir) if symbol else ""
+
+    # Plain coin command ("/btc", "btc") -> template only.
+    if report and not is_question and (t.startswith("/") or len(t.split()) <= 2):
+        return report
+    if ai is not None:
+        facts = (report + "\n\n" if report else "") + project_facts()
+        chat = ai.answer(t, facts)
+        if chat:
+            return (report + "\n\n💬 " + chat) if report else chat
+    if report:
+        return report
+    if ai is None:
+        return "Anlayamadım. Örnek: \"btc'ye bak\", \"/eth\", \"/durum\". Tüm komutlar için /yardim."
+    return "Şu an cevap üretemedim. Komutları deneyebilirsin: /durum, /btc, /yardim."

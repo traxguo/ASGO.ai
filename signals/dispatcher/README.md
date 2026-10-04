@@ -64,8 +64,22 @@ Bot dışarıya port açmaz; Telegram'a kendisi sorar ("bana mesaj var mı?"). E
 5. `.env` dosyasına yeni bir satır ekle: `TELEGRAM_GROUP_ID=-100...` (o sayı).
 6. `py -m signals.dispatcher.bot test` → deneme mesajı hem sana hem gruba gelir. Sonra `run` ile çalıştır.
 
-Grupta bot sadece `/` ile başlayan komutlara cevap verir: `/btc`, `/eth`, `/durum`, `/yardim`. Normal sohbete karışmaz.
+Grupta bot sadece `/` ile başlayan komutlara (`/btc`, `/eth`, `/durum`, `/sor ...`) ve kendi mesajına verilen yanıtlara cevap verir. Normal sohbete karışmaz.
 
+## Yapay zekâ ile sohbet (isteğe bağlı, ücretsiz)
+Açıksa bota özelden düz yazı yazabilirsin ("ne yaptın ne ettin", "btc ne olur"). Grupta `/sor <soru>` yazılır ya da botun mesajına yanıt verilir.
+
+**Kural:** Yapay zekâ sadece sohbet eder. Fiyat tahmini, alım/stop/hedef vermez; sadece sistemin kendi bilgilerine (durum, sıradaki işler, coin raporu) dayanır. Cevabında bu bilgilerde olmayan bir rakam (3+ basamak) varsa cevap atılır, bot sadece normal rapor verir.
+
+Kurulum:
+1. **aistudio.google.com** adresine Google hesabınla gir (kart istemez).
+2. **Get API key** → **Create API key**. Çıkan uzun anahtarı kopyala. **Bunu hiçbir sohbete yapıştırma.**
+3. `.env` dosyasına yeni satır ekle: `AI_API_KEY=anahtar`
+4. Botu yeniden başlat (`run`). Pencerede `AI chat on` yazmalı.
+
+Not: Ücretsiz kullanımda Google, gönderilen mesajları kendi ürünlerini geliştirmek için kullanabilir; bota kişisel bilgi yazma. Ücretsiz kotanın günlük sınırı var; dolarsa bot sadece normal cevaplara döner.
+
+## Nerede çalışmalı?
 Bot, açık kaldığı sürece çalışır. Seçenekler:
 1. **Küçük bir sanal sunucu (VPS)** — önerilen. Aylık birkaç dolar/euro. 7/24 açık; Seviye 3'te Freqtrade dry-run da zaten 7/24 çalışmak zorunda, ikisi aynı yerde durur.
 2. **Kendi bilgisayarın** — denemek için en kolayı, ama bilgisayar kapanınca bot da susar.
@@ -74,4 +88,5 @@ Bot, açık kaldığı sürece çalışır. Seçenekler:
 ## Dosyalar
 - `telegram_client.py`: Telegram'la konuşan küçük istemci; sadece `.env`'deki sohbete mesaj atabilir.
 - `commands.py`: Komutlara cevaplar (seviye uydurmaz; sadece aktif stratejiler ve `signals/log/` kaydı).
+- `chat_ai.py`: İsteğe bağlı yapay zekâ sohbeti (seviye üretmez, rakam kontrolü var).
 - `bot.py`: `chatid`, `test`, `run` komutları.
