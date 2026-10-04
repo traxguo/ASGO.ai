@@ -11,7 +11,7 @@ Kodun doğru çalıştığını kontrol eder: `python -m pytest -q tests`
 ```bash
 python tests/smoke/make_synthetic_data.py /tmp/synth/binance
 python scripts/offline_freqtrade.py backtesting -c config/base.json -c tests/smoke/pairs_smoke.json \
-  --datadir /tmp/synth/binance --strategy-path strategies/candidates \
+  --datadir /tmp/synth/binance --strategy-path strategies/retired \
   --strategy-list TrendMA_A TrendMA_B --timeframe 4h --userdir /tmp/ud
 ```
 `smoke/ornek_rapor_SENTETIK/` bu testin rapor örneğidir; **rakamları anlamsızdır**, sadece rapor formatını gösterir.

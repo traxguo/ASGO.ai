@@ -1,6 +1,6 @@
 # trend_ma — Hareketli ortalama kesişimi + trend filtresi
 
-Kod: [`strategies/candidates/trend_ma.py`](../strategies/candidates/trend_ma.py) (`TrendMA_B` = Model B, `TrendMA_A` = Model A)
+Kod: [`strategies/retired/trend_ma.py`](../strategies/retired/trend_ma.py) (`TrendMA_B` = Model B, `TrendMA_A` = Model A)
 
 ## Hipotez
 Fiyat güçlü bir yöne gittiğinde (trend), bir süre o yönde gitmeye devam etme eğilimindedir. Kısa vadeli ortalama orta vadeli ortalamayı kestiğinde yeni bir hareket başlıyor olabilir; bunu sadece uzun vadeli trendle aynı yöndeyse alırız ki ters yöndeki gürültüye girmeyelim.
@@ -42,7 +42,7 @@ Fiyat güçlü bir yöne gittiğinde (trend), bir süre o yönde gitmeye devam e
 | ATR periyodu | 14 | sabit |
 | Isınma (startup) | 1000 mum | EMA200'ün oturması için |
 
-## Durum: candidate — ilk backtest başarısız, **emeklilik önerildi** (proje sahibinin onayı bekleniyor)
+## Durum: retired (2026-10-04)
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
@@ -58,4 +58,4 @@ Fiyat güçlü bir yöne gittiğinde (trend), bir süre o yönde gitmeye devam e
 - Sadece short'u bırakmak cazip görünüyor (PF 1.15) ama short kârının hepsi 2021-2022 düşüş piyasasından; 2023-2024'te short da zararda. Sonuca bakıp yön seçmek aşırı uyum olur, yapılmadı.
 
 ## Emeklilik gerekçesi (varsa)
-—
+2026-10-04, proje sahibinin onayıyla. Test hattının 2. aşaması (ilk backtest, geliştirme verisi 2020-06 → 2024-12) geçilemedi: iki TP modelinde de işlem başına -0.06R, profit factor 0.91-0.92 (eşik ≥ 1.2), drawdown %43-47 (eşik ≤ %25). Sadece 2020 ortası - 2022 ortası kârlı; 2023-2024'te long ve short zararda. Parametre veya yön ayarı geliştirme verisine uydurma olacağı için düzeltme denenmedi. Rapor: [results/2026-10-04_trend_ma_ilk_backtest](../results/2026-10-04_trend_ma_ilk_backtest/rapor.md).

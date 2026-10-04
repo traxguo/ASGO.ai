@@ -89,4 +89,4 @@ Winrate tek başına başarı ölçütü değildir; asıl ölçüt ortalama R (e
 - Al-tut aynı dönemde +%3573 (ama %84 düşüşle). Strateji bunun çok gerisinde.
 
 ## Karar: devam / düzelt / emekli
-**Öneri: emekli.** Test hattının 2. aşamasında (ilk backtest) eşikleri açık farkla geçemedi: ortalama R negatif, profit factor < 1, drawdown eşiğin neredeyse iki katı. Parametreyle oynamak (ör. EMA uzunlukları) geliştirme verisine uydurma olur ve kart kuralına aykırı. Sıradaki adım: Seviye 1'deki diğer strateji aileleri (Donchian kırılımı, RSI ortalamaya dönüş, ATR filtreli versiyonlar).
+**Emekli** (proje sahibi 2026-10-04'te onayladı). Test hattının 2. aşamasında (ilk backtest) eşikleri açık farkla geçemedi: ortalama R negatif, profit factor < 1, drawdown eşiğin neredeyse iki katı. Parametreyle oynamak (ör. EMA uzunlukları) geliştirme verisine uydurma olur ve kart kuralına aykırı. Sıradaki adım: Seviye 1'deki diğer strateji aileleri (Donchian kırılımı, RSI ortalamaya dönüş, ATR filtreli versiyonlar).

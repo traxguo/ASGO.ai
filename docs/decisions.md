@@ -2,8 +2,8 @@
 
 Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
-## 2026-10-04 — trend_ma ilk backtest sonucu: emeklilik önerisi
-- **Karar (öneri, proje sahibinin onayı bekleniyor):** `trend_ma` emekliye ayrılsın, Seviye 1'deki diğer strateji ailelerine geçilsin.
+## 2026-10-04 — trend_ma emekliye ayrıldı
+- **Karar (proje sahibi onayladı):** `trend_ma` emekliye ayrıldı (`strategies/retired/`), Seviye 1'deki diğer strateji ailelerine geçiliyor.
 - **Gerekçe:** Geliştirme döneminde (2020-06 → 2024-12, 6 coin) iki TP modelinde de işlem başına -0.06R, profit factor 0.91-0.92, drawdown %43-47. Eşikler: PF ≥ 1.2, DD ≤ %25. Parametre veya yön ayarı geliştirme verisine uydurma olurdu. Rapor: `results/2026-10-04_trend_ma_ilk_backtest/rapor.md`.
 
 ## 2026-10-04 — Geliştirme / doğrulama / kasa tarih sınırları
