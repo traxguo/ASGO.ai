@@ -34,9 +34,9 @@ ALIASES = {
 }
 
 HELP = (
-    "Merhaba, ben ASGO botu. Sadece sana cevap veririm.\n\n"
+    "Merhaba, ben ASGO botu. Sadece sahibimin sohbetine ve seçtiği gruba cevap veririm.\n\n"
     "Komutlar:\n"
-    "• btc / eth / sol ... (ya da \"btc'ye bak\"): o coin için test edilmiş stratejilerin "
+    "• /btc, /eth, /sol ... (ya da \"btc'ye bak\"): o coin için test edilmiş stratejilerin "
     "şu an ne dediği + güncel fiyat\n"
     "• /durum: projenin hangi seviyede olduğu, kaç strateji aktif\n"
     "• /liste: takip edilen coinler\n"

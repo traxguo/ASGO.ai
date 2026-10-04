@@ -1,9 +1,10 @@
 """
 Minimal Telegram Bot API client (standard library only).
 
-The client is locked to ONE chat id: the project owner's personal chat
-(PROJECT_BRIEF rule 7). Sending to any other chat raises an error, and
-incoming messages from other chats are dropped by the bot.
+The client is locked to the owner's personal chat plus, optionally, ONE group
+the owner chose (PROJECT_BRIEF rule 7, changed by the owner on 2026-10-04).
+Sending to any other chat raises an error, and incoming messages from other
+chats are dropped by the bot.
 """
 
 from __future__ import annotations
@@ -50,19 +51,39 @@ def parse_chat_id(raw: str | None) -> int:
     return chat_id
 
 
+def parse_group_id(raw: str | None) -> int | None:
+    """Optional TELEGRAM_GROUP_ID. Empty means no group."""
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    try:
+        group_id = int(raw)
+    except ValueError as e:
+        raise ConfigError("TELEGRAM_GROUP_ID must be a number") from e
+    if group_id >= 0:
+        raise ConfigError("TELEGRAM_GROUP_ID must be a group id (negative number)")
+    return group_id
+
+
 class TelegramClient:
-    def __init__(self, token: str, chat_id: int, timeout: float = 70.0):
+    def __init__(self, token: str, chat_id: int, timeout: float = 70.0, group_id: int | None = None):
         if not token or ":" not in token:
             raise ConfigError("TELEGRAM_BOT_TOKEN is missing or malformed in .env")
         self._token = token
         self.chat_id = chat_id
+        self.group_id = group_id
         self.timeout = timeout
+
+    @property
+    def allowed_chats(self) -> tuple[int, ...]:
+        return (self.chat_id,) if self.group_id is None else (self.chat_id, self.group_id)
 
     @classmethod
     def from_env(cls) -> "TelegramClient":
         load_env()
         return cls(os.environ.get("TELEGRAM_BOT_TOKEN", "").strip(),
-                   parse_chat_id(os.environ.get("TELEGRAM_CHAT_ID")))
+                   parse_chat_id(os.environ.get("TELEGRAM_CHAT_ID")),
+                   group_id=parse_group_id(os.environ.get("TELEGRAM_GROUP_ID")))
 
     def _call(self, method: str, params: dict) -> dict:
         url = f"{API_BASE}/bot{self._token}/{method}"
@@ -88,8 +109,8 @@ class TelegramClient:
 
     def send_message(self, text: str, chat_id: int | None = None) -> dict:
         target = self.chat_id if chat_id is None else chat_id
-        if target != self.chat_id:
-            raise PermissionError("messages may only go to the owner's personal chat")
+        if target not in self.allowed_chats:
+            raise PermissionError("messages may only go to the owner's chat or the configured group")
         return self._call("sendMessage", {
             "chat_id": target,
             "text": text,

@@ -2,6 +2,11 @@
 
 Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
+## 2026-10-04 — Bot tek bir gruba da yazabilir (kural 7 değişti)
+- **Karar:** Proje sahibi, botun arkadaşıyla olan bir gruba da yazmasını istedi. Kural 7 güncellendi: kişisel sohbet + `.env`'deki `TELEGRAM_GROUP_ID` ile seçilen **tek** grup. Kanal veya ikinci grup yok.
+- **Nasıl:** Grup ID'si boşsa bot eskisi gibi sadece kişisel sohbete yazar. Grupta sadece `/` ile başlayan komutlara cevap verir (normal sohbete karışmaz). Başka gruplar yok sayılır. Seviye 3'te otomatik sinyaller de bu iki sohbete gidecek.
+- **Not:** Grup üyeleri de sinyalleri görür; mesajlardaki "yatırım tavsiyesi değildir" uyarısı kalır.
+
 ## 2026-10-04 — Telegram botu Seviye 3'ten önce kuruldu (sadece altyapı)
 - **Karar:** Proje sahibinin isteğiyle Telegram botu şimdi kuruldu: deneme mesajı, `/durum`, `/liste` ve coin sorgusu (`btc'ye bak`). Otomatik sinyal gönderimi **açılmadı**; o Seviye 3'te, testi geçen strateji çıkınca açılır.
 - **Seviye atlama sayılmaz çünkü:** Bot hiçbir seviye (alım/stop/TP) üretmez. Coin sorgusu sadece (1) güncel fiyat ve 24s değişim ("sadece bilgi" etiketiyle), (2) aktif strateji listesi, (3) `signals/log/`'daki kayıtlı son sinyali olduğu gibi gösterir. Aktif strateji yoksa bunu açıkça söyler.

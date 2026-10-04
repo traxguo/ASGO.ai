@@ -6,6 +6,7 @@ ASGO Telegram bot (long polling, no open ports needed).
     python -m signals.dispatcher.bot run      # keeps running, answers your commands
 
 Token and chat id come from .env (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID).
+Optional TELEGRAM_GROUP_ID: one group the owner chose; the bot answers there too.
 Messages from any other chat are ignored and never answered.
 """
 
@@ -26,19 +27,24 @@ def process_update(client: TelegramClient, update: dict, responder=handle) -> bo
     """Answers one update. Returns True if it was answered."""
     msg = update.get("message") or {}
     chat = msg.get("chat") or {}
-    if chat.get("id") != client.chat_id or chat.get("type") != "private":
-        log.warning("ignored message from a chat that is not the owner's")
+    is_owner = chat.get("id") == client.chat_id and chat.get("type") == "private"
+    is_group = (client.group_id is not None and chat.get("id") == client.group_id
+                and chat.get("type") in ("group", "supergroup"))
+    if not (is_owner or is_group):
+        log.warning("ignored message from a chat that is not allowed")
         return False
     text = msg.get("text")
     if not text:
         return False
-    client.send_message(responder(text))
+    if is_group and not text.startswith("/"):
+        return False  # in the group only /commands are answered, normal chat is left alone
+    client.send_message(responder(text), chat_id=chat["id"])
     return True
 
 
 def run(client: TelegramClient) -> None:
     me = client.get_me()
-    log.info("bot @%s started; answering only the owner's chat", me.get("username"))
+    log.info("bot @%s started; answering only %s", me.get("username"), client.allowed_chats)
     offset = None
     while True:
         try:
@@ -62,11 +68,13 @@ def print_chat_ids() -> None:
     for u in updates:
         chat = (u.get("message") or {}).get("chat") or {}
         if chat.get("type") == "private":
-            seen[chat["id"]] = chat.get("first_name", "")
+            seen[chat["id"]] = (f"kişisel: {chat.get('first_name', '')}", "TELEGRAM_CHAT_ID")
+        elif chat.get("type") in ("group", "supergroup"):
+            seen[chat["id"]] = (f"grup: {chat.get('title', '')}", "TELEGRAM_GROUP_ID")
     if not seen:
-        print("Henüz mesaj yok. Telegram'da botuna bir mesaj (ör. 'merhaba') at, sonra tekrar çalıştır.")
-    for cid, name in seen.items():
-        print(f"Chat ID: {cid}  ({name})  -> bunu .env içine TELEGRAM_CHAT_ID olarak yaz")
+        print("Henüz mesaj yok. Telegram'da botuna (veya gruba) /start yaz, sonra tekrar çalıştır.")
+    for cid, (name, key) in seen.items():
+        print(f"ID: {cid}  ({name})  -> bunu .env içine {key} olarak yaz")
 
 
 def main(argv: list[str]) -> int:
@@ -78,7 +86,8 @@ def main(argv: list[str]) -> int:
             return 0
         client = TelegramClient.from_env()
         if cmd == "test":
-            client.send_message("✅ ASGO botu bağlandı. Bu bir deneme mesajıdır.\n\n/yardim yazarak komutları görebilirsin.")
+            for cid in client.allowed_chats:
+                client.send_message("✅ ASGO botu bağlandı. Bu bir deneme mesajıdır.\n\n/yardim yazarak komutları görebilirsin.", chat_id=cid)
             print("Deneme mesajı gönderildi.")
         elif cmd == "run":
             run(client)
