@@ -211,6 +211,8 @@ class ManagedStrategy(IStrategy):
             be_active = trade.nr_of_successful_exits >= 1
         else:
             best = trade.min_rate if trade.is_short else trade.max_rate
+            if best is None:  # first call right after the entry fill
+                best = trade.open_rate
             moved_r = (best - trade.open_rate) / risk * (1 if side == "long" else -1)
             be_active = moved_r >= model.breakeven_r
         if be_active:

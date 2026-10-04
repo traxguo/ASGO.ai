@@ -46,5 +46,6 @@ Seviye 0 çıkış şartı sağlandı (2026-10-04).
 **Çıkış şartı:** Her giriş sinyali tasarıma uygun görselle birkaç saniye içinde geliyor.
 
 ## Sıradaki adım
-1. Seviye 1 strateji ailesinden sıradaki: Donchian kırılımı (kart → kod → lookahead/recursive → ilk backtest A vs B).
-2. Seviye 1 coin listesini son 90 günlük hacimle kontrol et (arşivdeki hacim verisiyle).
+1. `donchian_breakout` (ilk backtest pozitif, DD yüksek): aşama 3 TP model ızgarası (geliştirme verisi), sonra aşama 4 doğrulama.
+2. Seviye 1 ailesinden sıradakiler: RSI ortalamaya dönüş, ATR filtreli versiyonlar.
+3. Seviye 1 coin listesini son 90 günlük hacimle kontrol et (arşivdeki hacim verisiyle).

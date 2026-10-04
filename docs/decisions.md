@@ -2,6 +2,14 @@
 
 Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
+## 2026-10-04 — donchian_breakout ilk backtest: devam
+- **Karar:** Aşama 3'e (TP model ızgarası, geliştirme verisi) devam.
+- **Gerekçe:** Maliyet ve funding sonrası beklenti pozitif (B: +0.09R, 567 işlem, 6 coinin 4'ü pozitif). Drawdown (%38) ve PF (1.10) active eşiklerinin altında; aşama 4'te de böyle kalırsa bu kart değiştirilmez, filtreli yeni kart açılır veya emekli edilir. Rapor: `results/2026-10-04_donchian_breakout_ilk_backtest/rapor.md`.
+
+## 2026-10-04 — Ortak modül düzeltmesi (Model A break even kontrolü)
+- **Durum:** Model A'da girişten hemen sonraki ilk `custom_stoploss` çağrısında `max_rate/min_rate` henüz boştu ve hata veriyordu; o mumda planlanan stop kurulmuyordu.
+- **Karar:** Boşsa giriş fiyatı kullanılıyor. trend_ma raporu yeniden üretildi (A net -19.5% → -18.6%); emeklilik kararı değişmedi. Model B etkilenmedi.
+
 ## 2026-10-04 — trend_ma emekliye ayrıldı
 - **Karar (proje sahibi onayladı):** `trend_ma` emekliye ayrıldı (`strategies/retired/`), Seviye 1'deki diğer strateji ailelerine geçiliyor.
 - **Gerekçe:** Geliştirme döneminde (2020-06 → 2024-12, 6 coin) iki TP modelinde de işlem başına -0.06R, profit factor 0.91-0.92, drawdown %43-47. Eşikler: PF ≥ 1.2, DD ≤ %25. Parametre veya yön ayarı geliştirme verisine uydurma olurdu. Rapor: `results/2026-10-04_trend_ma_ilk_backtest/rapor.md`.
