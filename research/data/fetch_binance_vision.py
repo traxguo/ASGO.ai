@@ -46,14 +46,28 @@ def months(start: str, end: date) -> list[str]:
     return [str(p) for p in pd.period_range(pd.Period(start, "M"), last_full, freq="M")]
 
 
+CACHE_DIR = Path("user_data/data/binance_vision_raw")  # raw zips, reused on re-runs
+
+
 def fetch_zip_csv(url: str) -> bytes | None:
-    try:
-        with urllib.request.urlopen(url, timeout=60) as r:
-            raw = r.read()
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            return None  # month not available (coin not listed yet)
-        raise
+    cached = CACHE_DIR / url.split("/monthly/", 1)[-1]
+    missing = cached.with_suffix(".missing")
+    if missing.exists():
+        return None
+    if cached.exists():
+        raw = cached.read_bytes()
+    else:
+        try:
+            with urllib.request.urlopen(url, timeout=60) as r:
+                raw = r.read()
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                missing.parent.mkdir(parents=True, exist_ok=True)
+                missing.touch()
+                return None  # month not available (coin not listed yet)
+            raise
+        cached.parent.mkdir(parents=True, exist_ok=True)
+        cached.write_bytes(raw)
     with zipfile.ZipFile(io.BytesIO(raw)) as z:
         return z.read(z.namelist()[0])
 
