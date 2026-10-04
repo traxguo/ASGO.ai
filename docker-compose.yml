@@ -1,0 +1,16 @@
+# Usage: always go through scripts/ft.sh so the safety check runs first.
+#   ./scripts/ft.sh backtesting --strategy TrendMA_B
+services:
+  freqtrade:
+    build: .
+    image: asgo-freqtrade:local
+    container_name: asgo-freqtrade
+    # The whole repo is mounted; configs, strategies and data live in it.
+    volumes:
+      - ./:/freqtrade/repo
+    working_dir: /freqtrade/repo
+    env_file:
+      - path: .env
+        required: false
+    entrypoint: ["freqtrade"]
+    command: ["--help"]

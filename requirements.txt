@@ -1,0 +1,4 @@
+# Local (non-Docker) setup. Docker users don't need this.
+freqtrade
+matplotlib
+pytest
