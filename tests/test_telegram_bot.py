@@ -130,3 +130,56 @@ def test_group_id_parsing():
 def test_command_with_bot_suffix():
     assert commands.find_symbol("/eth@asgo_bot") == "ETH"
     assert "Seviye" in commands.handle("/durum@asgo_bot")
+
+
+class FakeAI:
+    def __init__(self, reply):
+        self.reply = reply
+        self.calls = []
+
+    def answer(self, question, facts):
+        self.calls.append((question, facts))
+        return self.reply
+
+
+def test_ai_not_used_for_plain_commands(monkeypatch):
+    monkeypatch.setattr(commands, "active_strategies", lambda: [])
+    ai = FakeAI("selam")
+    commands.handle("/btc", price_fetcher=no_price, ai=ai)
+    commands.handle("btc'ye bak", price_fetcher=no_price, ai=ai)
+    commands.handle("/durum", ai=ai)
+    assert ai.calls == []
+
+
+def test_ai_chat_free_text_and_coin_question(monkeypatch, tmp_path):
+    monkeypatch.setattr(commands, "active_strategies", lambda: [])
+    ai = FakeAI("Henüz test edilmiş strateji yok.")
+    assert commands.handle("ne yaptın ne ettin", ai=ai) == "Henüz test edilmiş strateji yok."
+    out = commands.handle("btc ne olur sence", price_fetcher=no_price, log_dir=tmp_path, ai=ai)
+    assert out.startswith("🔎 BTC/USDT") and "💬 Henüz" in out
+    assert "Seviye" in ai.calls[0][1]  # facts include project status
+    assert commands.handle("/sor", ai=ai).startswith("Sorunu")
+
+
+def test_ai_failure_falls_back_to_template(monkeypatch, tmp_path):
+    monkeypatch.setattr(commands, "active_strategies", lambda: [])
+    out = commands.handle("btc ne olur sence", price_fetcher=no_price, log_dir=tmp_path, ai=FakeAI(None))
+    assert out.startswith("🔎 BTC/USDT") and "💬" not in out
+    assert "Anlayamadım" in commands.handle("ne yaptın ne ettin", ai=None)
+
+
+def test_grounding_guard():
+    from signals.dispatcher.chat_ai import is_grounded
+    facts = "Fiyat: 62345.1 (24s: +1.52%)\nSeviye: 0"
+    assert is_grounded("BTC şu an 62345 civarında, seviye 0.", facts)
+    assert not is_grounded("BTC 70000'e çıkar, stop 60000.", facts)
+
+
+def test_group_replies_to_bot_are_answered():
+    c = FakeClient(group_id=GROUP)
+    reply = {"message": {"chat": {"id": GROUP, "type": "group"}, "text": "peki ne zaman?",
+                         "reply_to_message": {"from": {"id": 555}}}}
+    assert process_update(c, reply, responder=lambda t: "hi", bot_id=555)
+    other_reply = {"message": {"chat": {"id": GROUP, "type": "group"}, "text": "aynen",
+                               "reply_to_message": {"from": {"id": 999}}}}
+    assert not process_update(c, other_reply, responder=lambda t: "hi", bot_id=555)

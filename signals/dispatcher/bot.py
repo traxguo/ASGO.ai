@@ -17,13 +17,14 @@ import os
 import sys
 import time
 
+from signals.dispatcher.chat_ai import ChatAI
 from signals.dispatcher.commands import handle
 from signals.dispatcher.telegram_client import ConfigError, TelegramClient, load_env
 
 log = logging.getLogger("asgo.bot")
 
 
-def process_update(client: TelegramClient, update: dict, responder=handle) -> bool:
+def process_update(client: TelegramClient, update: dict, responder=handle, bot_id: int | None = None) -> bool:
     """Answers one update. Returns True if it was answered."""
     msg = update.get("message") or {}
     chat = msg.get("chat") or {}
@@ -36,22 +37,29 @@ def process_update(client: TelegramClient, update: dict, responder=handle) -> bo
     text = msg.get("text")
     if not text:
         return False
-    if is_group and not text.startswith("/"):
-        return False  # in the group only /commands are answered, normal chat is left alone
+    replied_to = ((msg.get("reply_to_message") or {}).get("from") or {}).get("id")
+    if is_group and not text.startswith("/") and (bot_id is None or replied_to != bot_id):
+        return False  # in the group only /commands and replies to the bot are answered
     client.send_message(responder(text), chat_id=chat["id"])
     return True
 
 
 def run(client: TelegramClient) -> None:
     me = client.get_me()
-    log.info("bot @%s started; answering only %s", me.get("username"), client.allowed_chats)
+    ai = ChatAI.from_env()
+    log.info("bot @%s started; answering only %s; AI chat %s", me.get("username"),
+             client.allowed_chats, f"on ({ai.model})" if ai else "off")
+
+    def responder(text: str) -> str:
+        return handle(text, ai=ai)
+
     offset = None
     while True:
         try:
             for upd in client.get_updates(offset):
                 offset = upd["update_id"] + 1
                 try:
-                    process_update(client, upd)
+                    process_update(client, upd, responder, bot_id=me.get("id"))
                 except Exception as e:  # one bad message must not stop the bot
                     log.error("could not answer: %s", e)
         except Exception as e:
