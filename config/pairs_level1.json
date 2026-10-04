@@ -1,0 +1,13 @@
+{
+  "$comment": "Level 1 fixed pair list. Selection rationale: docs/decisions.md (2026-10-04).",
+  "exchange": {
+    "pair_whitelist": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "XRP/USDT:USDT",
+      "BNB/USDT:USDT",
+      "DOGE/USDT:USDT"
+    ]
+  }
+}

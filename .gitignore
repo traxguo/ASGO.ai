@@ -1,0 +1,28 @@
+# Secrets: never commit
+.env
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Freqtrade runtime data (downloaded market data, databases, logs, raw backtest output)
+user_data/data/
+user_data/backtest_results/
+user_data/logs/
+user_data/*.sqlite*
+*.sqlite
+*.sqlite-*
+*.feather
+
+# Signal logs may contain personal chat info; keep folder, not contents
+signals/log/*.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

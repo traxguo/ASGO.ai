@@ -1,0 +1,46 @@
+{
+  "$comment": "Base config. dry_run MUST stay true (checked by scripts/safety_check.py). No API keys here.",
+  "dry_run": true,
+  "dry_run_wallet": 10000,
+  "trading_mode": "futures",
+  "margin_mode": "isolated",
+  "stake_currency": "USDT",
+  "stake_amount": "unlimited",
+  "tradable_balance_ratio": 0.99,
+  "max_open_trades": 5,
+  "fee": 0.001,
+  "cancel_open_orders_on_exit": false,
+  "entry_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1,
+    "price_last_balance": 0.0
+  },
+  "exit_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exchange": {
+    "name": "binance",
+    "key": "",
+    "secret": "",
+    "ccxt_config": {},
+    "ccxt_async_config": {},
+    "pair_whitelist": [],
+    "pair_blacklist": []
+  },
+  "pairlists": [
+    {
+      "method": "StaticPairList"
+    }
+  ],
+  "dataformat_ohlcv": "feather",
+  "user_data_dir": "user_data",
+  "datadir": "user_data/data/binance",
+  "internals": {
+    "process_throttle_secs": 5
+  },
+  "bot_name": "asgo-quant-lab",
+  "initial_state": "running"
+}
