@@ -116,7 +116,7 @@ class Signal:
         log_dir.mkdir(parents=True, exist_ok=True)
         safe_id = self.signal_id.replace(":", "").replace("/", "")
         path = log_dir / f"{safe_id}.json"
-        path.write_text(self.to_json())
+        path.write_text(self.to_json(), encoding="utf-8")
         return path
 
 
