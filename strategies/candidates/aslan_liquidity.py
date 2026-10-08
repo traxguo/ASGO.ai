@@ -111,14 +111,23 @@ def daily_bias(daily: DataFrame) -> DataFrame:
     return DataFrame({"avail": avail, "bias": out})
 
 
-def stop_from_candle(side: str, o: float, h: float, lo: float, c: float) -> float:
-    """Wick of the extreme candle; body end when the wick is longer than the body."""
+def stop_from_candle(side: str, o: float, h: float, lo: float, c: float, wick_cap: float | None = None) -> float:
+    """
+    Stop at the wick of the extreme candle.
+    wick_cap=None (v1): body end when the wick is longer than the body.
+    wick_cap=1.75 (v2, Aslan 2026-10-08): the wick may be at most 175% of the
+    body; a longer wick is cut there (stop = body end -/+ 1.75 x body).
+    """
     body = abs(c - o)
     if side == "long":
         wick = min(o, c) - lo
-        return min(o, c) if wick > body else lo
+        if wick_cap is None:
+            return min(o, c) if wick > body else lo
+        return lo if wick <= wick_cap * body else min(o, c) - wick_cap * body
     wick = h - max(o, c)
-    return max(o, c) if wick > body else h
+    if wick_cap is None:
+        return max(o, c) if wick > body else h
+    return h if wick <= wick_cap * body else max(o, c) + wick_cap * body
 
 
 def find_signals(
@@ -126,6 +135,7 @@ def find_signals(
     levels: DataFrame,
     setup_window: int,
     fvg_lookback: int = 10,
+    wick_cap: float | None = None,
 ) -> DataFrame:
     """
     Walks the entry-timeframe candles in order and returns, per candle, the
@@ -211,7 +221,7 @@ def find_signals(
                             break
                 if trig:
                     long_trig[k] = trig
-                    long_stop[k] = stop_from_candle("long", o[e], h[e], lo[e], c[e])
+                    long_stop[k] = stop_from_candle("long", o[e], h[e], lo[e], c[e], wick_cap)
             else:
                 pos = bisect_left(pl_idx, e) - 1
                 if pos >= 0 and c[k] < lo[pl_idx[pos]]:
@@ -224,7 +234,7 @@ def find_signals(
                             break
                 if trig:
                     short_trig[k] = trig
-                    short_stop[k] = stop_from_candle("short", o[e], h[e], lo[e], c[e])
+                    short_stop[k] = stop_from_candle("short", o[e], h[e], lo[e], c[e], wick_cap)
             if trig:
                 setup[side] = None  # one entry per sweep
 
@@ -251,6 +261,8 @@ class AslanLiqBase(ManagedStrategy):
     news_before = timedelta(hours=1)
     news_after = timedelta(hours=1)
     use_news_filter = True
+    use_bias_filter = True
+    wick_cap: float | None = None  # see stop_from_candle
     mgmt = tm.ManagementParams(
         entry_zone_atr=0.0,  # limit at the signal candle close
         valid_for_candles=2,
@@ -277,7 +289,7 @@ class AslanLiqBase(ManagedStrategy):
         levels = pd.concat(
             [htf_levels(d1, 1440, prev_day=True), htf_levels(h4, 240)], ignore_index=True
         ).sort_values("avail", kind="stable")
-        sig = find_signals(df, levels, self.setup_window)
+        sig = find_signals(df, levels, self.setup_window, wick_cap=self.wick_cap)
         for col in sig.columns:
             df[col] = sig[col]
 
@@ -313,13 +325,13 @@ class AslanLiqBase(ManagedStrategy):
         stop_ok_short = df["short_struct_stop"] > df["close"]
         return {
             "long": {
-                "bias_up": df["daily_bias"] == 1,
+                "bias_up": (df["daily_bias"] == 1) | (not self.use_bias_filter),
                 "liquidity_swept_low": df["long_trigger"] != "",
                 "reversal_mss_or_ifvg": df["long_trigger"].isin(["mss", "ifvg"]) & stop_ok_long,
                 "no_news": ~df["news_block"],
             },
             "short": {
-                "bias_down": df["daily_bias"] == -1,
+                "bias_down": (df["daily_bias"] == -1) | (not self.use_bias_filter),
                 "liquidity_swept_high": df["short_trigger"] != "",
                 "reversal_mss_or_ifvg": df["short_trigger"].isin(["mss", "ifvg"]) & stop_ok_short,
                 "no_news": ~df["news_block"],
@@ -359,3 +371,24 @@ class AslanLiq_1h_NoNews(AslanLiq_1h_1pct):
     """Same as AslanLiq_1h without the news filter, to measure the filter's effect."""
 
     use_news_filter = False
+
+
+# ---------------------------------------------------------------- v2 (Aslan's corrections, 2026-10-08)
+# Stop: wick up to 175% of the body. "Bias" variants keep the daily bias filter;
+# "NoBias" variants also look for trades against the daily bias.
+
+
+class AslanLiq2_1h(AslanLiq_1h_1pct):
+    wick_cap = 1.75
+
+
+class AslanLiq2_15m(AslanLiq_15m_1pct):
+    wick_cap = 1.75
+
+
+class AslanLiq2_1h_NoBias(AslanLiq2_1h):
+    use_bias_filter = False
+
+
+class AslanLiq2_15m_NoBias(AslanLiq2_15m):
+    use_bias_filter = False

@@ -27,6 +27,14 @@ def test_stop_uses_wick_unless_wick_longer_than_body():
     assert al.stop_from_candle("short", 101, 120, 99, 100) == 101
 
 
+def test_stop_wick_cap_175():
+    # body 100->101 (1), lower wick 1.5 <= 1.75 -> stop at the wick
+    assert al.stop_from_candle("long", 100, 102, 98.5, 101, 1.75) == 98.5
+    # lower wick 10 > 1.75 -> cut at body bottom - 1.75 x body
+    assert al.stop_from_candle("long", 100, 102, 90, 101, 1.75) == 98.25
+    assert al.stop_from_candle("short", 101, 120, 99, 100, 1.75) == 102.75
+
+
 def test_pivots_confirmed_shape():
     high = np.array([1, 2, 5, 2, 1, 1, 1], float)
     low = high - 0.5
