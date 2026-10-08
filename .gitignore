@@ -32,3 +32,4 @@ user_data/neighbor_strategies/
 user_data/neighbor_results/
 user_data/dev_*/
 user_data/val_*/
+user_data/grid_*.log

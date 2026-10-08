@@ -2,6 +2,12 @@
 
 Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
+## 2026-10-08 — "Önce günlük trend" stratejileri (mtf_trend) test edildi
+- **Durum:** Proje sahibinin isteğiyle popüler fikirler günlük trend filtresiyle (günlük kapanış > / < günlük EMA50) denendi: Donchian kırılımı, RSI geri çekilme, Supertrend, sıkışma kırılımı ve en iyi adayın (DonchianATR) günlük trendli hali. Günlük veri (1d) indirme ve doğrulamaya eklendi.
+- **Sonuç:** Sadece `MTFDonchian_B` geçen kısımlar gösterdi: geliştirmede +0.10R / PF 1.11 / DD %37, doğrulamada +0.10R / PF 1.09 / DD %16, 6 coinin 4'ü pozitif. Diğerleri aşama 2'de elendi.
+- **Karar:** Hiçbir strateji active olmadı (PF < 1.2; geliştirme DD > %25). En iyi iki aday: `DonchianATR_B` (geliştirmede güçlü, doğrulamada zayıf) ve `MTFDonchian_B` (iki dönemde tutarlı ama zayıf, yüksek drawdown). Kasa kullanılmadı.
+- **Not:** Drawdown büyük ölçüde işlem başına %1 risk ve aynı anda 5'e kadar açık işlemden geliyor; riski düşürmek drawdown'u kabaca orantılı küçültür, ama bu kurallarda (bölüm 10) değişiklik olur ve proje sahibinin kararıdır. Yapılmadı.
+
 ## 2026-10-08 — Seviye 1 strateji ailesi tamamlandı: active olacak strateji yok
 - **Durum:** Brief'teki dört ailenin hepsi test edildi (trend_ma, donchian_breakout, rsi_reversion, üçünün ATR filtreli versiyonları). Hiçbiri aşama 1-4'ü eşiklerle geçemedi. En iyi aday `DonchianATR_B`: geliştirmede +0.16R / PF 1.22 / DD %17; doğrulamada +0.06R / PF 1.04 (eşik 1.2) / DD %13.5, 6 coinin 2'si pozitif (eşik %50).
 - **Karar:** Hiçbir strateji `active/`'e alınmadı, kasa (holdout) kullanılmadı. Eşikler değiştirilmedi. Nasıl devam edileceği proje sahibine soruldu.

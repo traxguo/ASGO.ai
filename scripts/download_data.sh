@@ -12,14 +12,14 @@ if [[ "${FT_LOCAL:-0}" == "1" && "${FT_OFFLINE:-0}" == "1" ]]; then
   python3 scripts/safety_check.py
   python3 research/data/fetch_binance_vision.py \
     --pairs $(python3 -c "import json;print(' '.join(json.load(open('config/pairs_level1.json'))['exchange']['pair_whitelist']))") \
-    --timeframes 1h 4h --start 2020-01
+    --timeframes 1h 4h 1d --start 2020-01
   python3 research/data/validate.py
   exit 0
 fi
 
 ./scripts/ft.sh download-data \
   --trading-mode futures \
-  --timeframes 1h 4h \
+  --timeframes 1h 4h 1d \
   --candle-types futures funding_rate mark \
   --timerange 20190901- \
   --data-format-ohlcv feather

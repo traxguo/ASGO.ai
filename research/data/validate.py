@@ -25,7 +25,7 @@ import pandas as pd
 from freqtrade.data.history import get_datahandler
 from freqtrade.enums import CandleType
 
-JUMP_THRESHOLD = {"1h": 0.15, "4h": 0.25}  # flag single-candle moves larger than this
+JUMP_THRESHOLD = {"1h": 0.15, "4h": 0.25, "1d": 0.35}  # flag single-candle moves larger than this
 FUNDING_MAX_GAP = pd.Timedelta(hours=8)  # Binance funding is every 8h (some pairs 4h)
 
 
@@ -38,7 +38,7 @@ def load_pairs(configs: list[str]) -> list[str]:
 
 
 def check_ohlcv(df: pd.DataFrame, timeframe: str) -> dict:
-    td = pd.Timedelta(timeframe)
+    td = pd.Timedelta(timeframe.replace("d", "D"))
     dates = df["date"]
     dup = int(dates.duplicated().sum())
     full = pd.date_range(dates.min(), dates.max(), freq=td)
@@ -81,7 +81,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", action="append", default=["config/base.json", "config/pairs_level1.json"])
     ap.add_argument("--datadir", default="user_data/data/binance")
-    ap.add_argument("--timeframes", nargs="+", default=["1h", "4h"])
+    ap.add_argument("--timeframes", nargs="+", default=["1h", "4h", "1d"])
     ap.add_argument("--out", default="research/data/validation_report.md")
     a = ap.parse_args()
 
