@@ -42,13 +42,15 @@ Parametreler test öncesi sabitlendi, geliştirme sonucuna göre değiştirilmey
 | Yapısal stop bakışı | 10 mum | sabit |
 | Isınma (startup) | 300 mum | ATR sapması ~%0 (recursive-analysis) |
 
-## Durum: candidate
+## Durum: elendi — aşama 4 (doğrulama) geçilemedi (kod `atr_filtered` tarafından kullanıldığı için şimdilik `candidates/`'ta)
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
 | 2026-10-04 | Lookahead + recursive (4h) | 60 sinyalde bias yok; ATR için 300 mum ısınma. | — |
 | 2026-10-04 | İlk backtest, A vs B (geliştirme 2020-02 → 2024-12, 6 coin) | A: +0.06R/işlem, PF 1.04, DD %41.6. B: +0.09R/işlem, PF 1.10, DD %38.4. Long taşıyor (+46.7R), short ~0. Maliyet x2'de B +0.05R. Pozitif ama DD eşiğin çok üstünde. | [results/2026-10-04_donchian_breakout_ilk_backtest](../results/2026-10-04_donchian_breakout_ilk_backtest/rapor.md) |
+| 2026-10-08 | TP model ızgarası (geliştirme) | 12 farklı modelin hepsi +0.05 ile +0.09R; en iyisi varsayılan Model B. | [results/2026-10-08_donchian_breakout_tp_izgara](../results/2026-10-08_donchian_breakout_tp_izgara/izgara.md) |
+| 2026-10-08 | Doğrulama, Model B (2025-01 → 2026-03) | -0.09R/işlem, PF 0.84, DD %19.9. Long -20.1R, short +4.2R. Geçemedi. | [results/2026-10-08_donchian_breakout_dogrulama](../results/2026-10-08_donchian_breakout_dogrulama/rapor.md) |
 
 ## Notlar / öğrenilenler
 - Kârın büyük kısmı SOL ve DOGE'nin büyük trendlerinden; XRP ve BNB negatif.
@@ -56,4 +58,4 @@ Parametreler test öncesi sabitlendi, geliştirme sonucuna göre değiştirilmey
 - Model B, A'dan her ölçüde iyi.
 
 ## Emeklilik gerekçesi (varsa)
-—
+2026-10-08: doğrulama verisinde beklenti negatif (-0.09R, PF 0.84). Geliştirmede kârı taşıyan long tarafı 2025 düşüş piyasasında -20R kaybettirdi. Filtreli versiyonu: [atr_filtered](atr_filtered.md).

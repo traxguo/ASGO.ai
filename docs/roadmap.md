@@ -47,6 +47,6 @@ Seviye 0 çıkış şartı sağlandı (2026-10-04).
 **Çıkış şartı:** Her giriş sinyali tasarıma uygun görselle birkaç saniye içinde geliyor.
 
 ## Sıradaki adım
-1. `donchian_breakout` (ilk backtest pozitif, DD yüksek): aşama 3 TP model ızgarası (geliştirme verisi), sonra aşama 4 doğrulama.
-2. Seviye 1 ailesinden sıradakiler: RSI ortalamaya dönüş, ATR filtreli versiyonlar.
+1. Seviye 1'deki dört aile test edildi (2026-10-08), hiçbiri eşikleri geçmedi; en iyi aday `DonchianATR_B` doğrulamada zayıf (PF 1.04). Proje sahibinin nasıl devam edileceğine kararı bekleniyor (`decisions.md`).
+2. Elenen stratejilerin kodu `strategies/retired/`'e taşınacak (`atr_filtered.py` diğerlerini içe aktardığı için birlikte, karar sonrası).
 3. Seviye 1 coin listesini son 90 günlük hacimle kontrol et (arşivdeki hacim verisiyle).

@@ -2,6 +2,19 @@
 
 Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
+## 2026-10-08 — Seviye 1 strateji ailesi tamamlandı: active olacak strateji yok
+- **Durum:** Brief'teki dört ailenin hepsi test edildi (trend_ma, donchian_breakout, rsi_reversion, üçünün ATR filtreli versiyonları). Hiçbiri aşama 1-4'ü eşiklerle geçemedi. En iyi aday `DonchianATR_B`: geliştirmede +0.16R / PF 1.22 / DD %17; doğrulamada +0.06R / PF 1.04 (eşik 1.2) / DD %13.5, 6 coinin 2'si pozitif (eşik %50).
+- **Karar:** Hiçbir strateji `active/`'e alınmadı, kasa (holdout) kullanılmadı. Eşikler değiştirilmedi. Nasıl devam edileceği proje sahibine soruldu.
+- **Gerekçe:** Kurallar ("kötü sonuç gizlenmez", eşikler) ve doğrulamadaki +0.06R'nin 88 işlemle sıfırdan ayırt edilememesi.
+
+## 2026-10-08 — rsi_reversion lookahead uyarısı yanlış alarm sayıldı
+- **Durum:** `lookahead-analysis` 45 işlemin 1'inde bias işaretledi (ETH 2023-08-30 04:00), gösterge sapması yoktu.
+- **Kontrol:** Aynı strateji veri 04:00'te, 08:00'de ve 12:00'de kesilerek çalıştırıldı. Veri 08:00 ve 12:00'de kesilince işlem aynı fiyat ve stopla açıldı; 04:00'te kesilince hiç açılmadı, çünkü o mumun verisi yoktu. Gelecek veriye bakan bir hesap yok.
+- **Karar:** Yanlış alarm; strateji zaten ilk backtest'te elendiği için ek önlem alınmadı.
+
+## 2026-10-08 — TP model seçim kuralı (aşama 3)
+- **Karar:** Sabit ızgaradan (16 kombinasyon; aynı sonucu veren modeller çıkınca 12) geliştirme verisinde **en yüksek ortalama R** seçilir. Hem donchian_breakout hem DonchianATR'de seçilen model varsayılan Model B oldu (varsayılandan sapma gerekmedi).
+
 ## 2026-10-04 — donchian_breakout ilk backtest: devam
 - **Karar:** Aşama 3'e (TP model ızgarası, geliştirme verisi) devam.
 - **Gerekçe:** Maliyet ve funding sonrası beklenti pozitif (B: +0.09R, 567 işlem, 6 coinin 4'ü pozitif). Drawdown (%38) ve PF (1.10) active eşiklerinin altında; aşama 4'te de böyle kalırsa bu kart değiştirilmez, filtreli yeni kart açılır veya emekli edilir. Rapor: `results/2026-10-04_donchian_breakout_ilk_backtest/rapor.md`.
