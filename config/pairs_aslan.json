@@ -1,0 +1,12 @@
+{
+  "$comment": "Pairs for the aslan_liquidity strategy (chosen by Aslan, 2026-10-08). Pass after pairs_level1.json so it replaces that list.",
+  "exchange": {
+    "pair_whitelist": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "ADA/USDT:USDT",
+      "SOL/USDT:USDT",
+      "XRP/USDT:USDT"
+    ]
+  }
+}
