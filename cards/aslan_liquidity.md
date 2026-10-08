@@ -27,7 +27,8 @@ Tanımlar:
 
 ## İşlem yönetimi
 - Giriş: sinyal mumunun kapanış fiyatına limit emir, 2 mum içinde dolmazsa iptal (önce stop'a değerse de iptal).
-- Stop: likiditeyi alan en uç mumun iğnesi (long'da en dip mumun dibi). **O mumun iğnesi gövdesinden uzunsa** stop iğneye değil gövdenin ucuna konur (Aslan: "abartı fitil varsa mumun kapanışını al"). Tampon yok. Stop fiyatın %8'inden uzaksa sinyal yok.
+- Stop (v2, Aslan 2026-10-08, `AslanLiq2_*`): iğne en fazla gövdenin %175'i kadar olabilir; daha uzunsa stop gövde ucundan 1.75 gövde uzağa konur. Günlük yön filtresi kapalı versiyon (`*_NoBias`) her iki yönde de işlem arar.
+- Stop (v1, karşılaştırma için): likiditeyi alan en uç mumun iğnesi (long'da en dip mumun dibi). **O mumun iğnesi gövdesinden uzunsa** stop iğneye değil gövdenin ucuna konur (Aslan: "abartı fitil varsa mumun kapanışını al"). Tampon yok. Stop fiyatın %8'inden uzaksa sinyal yok.
 - Hedef: tek hedef **2R**, kısmi çıkış yok, stop başa çekilmez (`MODEL_ASLAN`, 1R stop / 2R hedef). Projenin standart A/B modellerinden farklıdır, çünkü stratejinin sahibi böyle kullanıyor.
 - Risk: işlem başına kasanın **%3**'ü (Aslan %3-5 diyor). Kaldıraç en fazla 20x, likidasyon her zaman stop mesafesinin en az 2 katı uzakta.
 - Saat filtresi yok ("her zaman girebilir"), sadece haber filtresi var.
