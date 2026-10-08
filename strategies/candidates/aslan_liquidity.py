@@ -300,6 +300,14 @@ class AslanLiqBase(ManagedStrategy):
     def swing_levels(self, df: DataFrame):
         return {"long": df["long_struct_stop"], "short": df["short_struct_stop"]}
 
+    def populate_entry_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_entry_trend(df, metadata)
+        # Keep which reversal (mss / ifvg) fired, for the report breakdown.
+        for side in ("long", "short"):
+            m = df.get(f"enter_{side}", pd.Series(0, index=df.index)).fillna(0) == 1
+            df.loc[m, "enter_tag"] = df.loc[m, "enter_tag"] + " trig=" + df.loc[m, f"{side}_trigger"]
+        return df
+
     def signal_conditions(self, df: DataFrame):
         stop_ok_long = df["long_struct_stop"] < df["close"]
         stop_ok_short = df["short_struct_stop"] > df["close"]
@@ -330,7 +338,24 @@ class AslanLiq_15m(AslanLiqBase):
     startup_candle_count = 800  # 800 x 15m; levels/bias get 800 daily / 4h candles of history
 
 
-class AslanLiq_1h_NoNews(AslanLiq_1h):
+def _risk_1pct(cls):
+    return tm.ManagementParams(**{**cls.mgmt.__dict__, "risk_per_trade": 0.01})
+
+
+class AslanLiq_1h_1pct(AslanLiq_1h):
+    """Same rules at 1% risk: at 3% the test account is wiped out before the
+    period ends, so R is measured over the whole period with this variant."""
+
+    mgmt = _risk_1pct(AslanLiq_1h)
+
+
+class AslanLiq_15m_1pct(AslanLiq_15m):
+    """15m version of AslanLiq_1h_1pct."""
+
+    mgmt = _risk_1pct(AslanLiq_15m)
+
+
+class AslanLiq_1h_NoNews(AslanLiq_1h_1pct):
     """Same as AslanLiq_1h without the news filter, to measure the filter's effect."""
 
     use_news_filter = False

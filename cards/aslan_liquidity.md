@@ -54,12 +54,18 @@ Test öncesi sabitlendi; Aslan düzeltirse kart ve kod birlikte değişir.
 5. "Mum boyutu" = mumun gövdesi.
 6. Haber listesi çevrimdışı hazırlandı (ForexFactory'ye bu ortamdan erişilemiyor): FOMC tarihleri, CPI tarihleri ve NFP tarih kuralı. Tarihler resmi takvimle doğrulanmadı.
 
-## Durum: candidate
+## Durum: candidate — ilk backtest'te başarısız, Aslan'ın kural düzeltmesi bekleniyor
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-08 | Lookahead kontrolü (BTC 1h ve 15m, 50 kesim noktası) | Geleceği görme yok (`research/robustness/aslan_lookahead_check.py`). | — |
+| 2026-10-08 | İlk backtest, geliştirme (2020-01 → 2024-12) | 1h: -0.21R, PF 0.72, 2266 işlem. 15m: -0.28R, PF 0.63, 3143 işlem. Maliyet hariç ~0R. %3 riskle hesap 2023'te sıfırlandı. Haber filtresi etkisiz. Doğrulama ve kasa kullanılmadı. | [results/2026-10-08_aslan_liquidity_ilk_backtest](../results/2026-10-08_aslan_liquidity_ilk_backtest/README.md) |
 
 ## Notlar / öğrenilenler
+- Kazanma oranı %30-32; 2R hedefle başa baş için ~%33 gerekiyor. Maliyetsiz bile sonuç ~0R: giriş kuralının kenarı yok.
+- Stop iğnenin ucunda olduğu için çok dar (1h ortanca %1.8, 15m %1.1); işlem başı ~%0.2 maliyet R'nin büyük kısmını yiyor. En dar stoplu işlemler en kötüsü.
+- MSS ve iFVG ayrı ayrı da eksi. Long ve short, 5 coinin hepsi, 2020-2024'ün her yılı eksi.
+- Aslan'ın gözle yaptığı seçim kartın varsayımlarından farklıysa (özellikle "önemli likidite" ve günlük yön), düzeltilmiş kurallarla yeniden test edilecek. Doğrulama verisi bunun için temiz duruyor.
 
 ## Emeklilik gerekçesi (varsa)
