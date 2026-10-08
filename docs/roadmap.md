@@ -35,8 +35,9 @@ Seviye 0 çıkış şartı sağlandı (2026-10-04).
 **Çıkış şartı:** Aktif strateji(ler) dinamik evrende de eşikleri geçiyor.
 
 ## Seviye 3 — Canlı tarayıcı ve metin sinyalleri
+- [x] Telegram botu altyapısı (erken kuruldu, sinyal göndermez; bkz. `decisions.md` 2026-10-04)
 - Freqtrade dry-run, sinyal servisi, Telegram mesajları + Türkçe açıklamalar, kill switch, elle işlem kaydı, haftalık rapor
-- Proje sahibinden gerekecek: Telegram bot token ve kişisel chat ID (`.env`)
+- Proje sahibinden gerekecek: Telegram bot token ve kişisel chat ID (`.env`) — adımlar `signals/dispatcher/README.md`
 
 **Çıkış şartı:** Mesajlar eksiksiz ve doğru; dry-run sonuçları backtest beklentisiyle tutarlı.
 

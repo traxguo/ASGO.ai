@@ -32,7 +32,7 @@
 - Başarısız strateji silinmez, `strategies/retired/` + kartında emeklilik gerekçesi.
 - Kasa (holdout, son 6 ay) geliştirmede kullanılmaz; "active" öncesi bir kez.
 - Her raporda al-tut kıyası; long ve short ayrı raporlanır; funding dahil.
-- Sinyal sadece proje sahibinin kişisel Telegram sohbetine gider.
+- Sinyal sadece proje sahibinin kişisel Telegram sohbetine ve `.env`'de seçtiği tek gruba gider.
 - Seviye atlanmaz. TP ızgarası genişletilmez. Kötü sonuç gizlenmez.
 
 ## Pratik notlar

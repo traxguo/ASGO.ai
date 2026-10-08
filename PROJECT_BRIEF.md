@@ -32,7 +32,7 @@ Binance USDⓈ-M perpetual futures piyasasında al-sat (long ve short) stratejil
 4. **Dürüstlük.** Başarısız stratejiler silinmez, `strategies/retired/` altına gerekçesiyle taşınır.
 5. **Kasa verisine dokunma.** Bölüm 8'deki "holdout" dönemi geliştirme sırasında asla kullanılmaz.
 6. **Al-tut kıyası zorunlu.** Her raporda strateji, aynı dönemde ilgili coini "al ve tut" sonucuyla kıyaslanır.
-7. **Sinyaller sadece proje sahibine gider.** Telegram botu yalnızca proje sahibinin kişisel sohbet ID'sine mesaj atar; grup veya kanal desteği eklenmez.
+7. **Sinyaller sadece proje sahibine ve onun seçtiği tek gruba gider.** Telegram botu yalnızca proje sahibinin kişisel sohbet ID'sine ve (isteğe bağlı) proje sahibinin `.env`'de belirlediği tek bir gruba mesaj atar; kanal veya başka grup desteği eklenmez. (2026-10-04'te proje sahibinin kararıyla güncellendi, bkz. `docs/decisions.md`.)
 
 ---
 
@@ -505,7 +505,7 @@ Seviyeler sırayla ilerler. Bir seviyenin çıkış şartı sağlanmadan sonraki
 - Sinyal seviyelerini test edilmiş kurallar dışında üretmek veya değiştirmek
 - TP1'i 1R'den küçük tutmak
 - Tetiklenmemiş koşulları veya uydurma gerekçeleri açıklamaya yazmak
-- Sinyalleri proje sahibinin kişisel sohbeti dışında bir yere göndermek
+- Sinyalleri proje sahibinin kişisel sohbeti ve seçtiği tek grup dışında bir yere göndermek
 
 ---
 

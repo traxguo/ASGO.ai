@@ -9,7 +9,7 @@ Bu kurallar PROJECT_BRIEF.md'den alınmıştır ve değişmez. Değiştirmek iç
 4. **Dürüstlük.** Başarısız stratejiler silinmez; `strategies/retired/` altına gerekçesiyle taşınır.
 5. **Kasa verisine dokunma.** Son 6 ay (holdout) geliştirme sırasında kullanılmaz; "active" olmadan önce tek seferlik son test içindir.
 6. **Al-tut kıyası zorunlu.** Her rapor stratejiyi aynı dönemde coin(ler)i al-tut ile kıyaslar.
-7. **Sinyaller sadece proje sahibine gider.** Telegram botu yalnızca proje sahibinin kişisel sohbet ID'sine mesaj atar.
+7. **Sinyaller sadece proje sahibine ve seçtiği tek gruba gider.** Telegram botu yalnızca proje sahibinin kişisel sohbet ID'sine ve `.env`'deki `TELEGRAM_GROUP_ID` grubuna (isteğe bağlı) mesaj atar.
 
 ## Risk kuralları (simülasyonda da geçerli)
 - Her stratejide stop zorunlu.
@@ -37,4 +37,4 @@ Bu kurallar PROJECT_BRIEF.md'den alınmıştır ve değişmez. Değiştirmek iç
 - Sinyal seviyelerini test edilmiş kurallar dışında üretmek veya değiştirmek
 - TP1'i 1R'den küçük tutmak
 - Tetiklenmemiş koşulları veya uydurma gerekçeleri açıklamaya yazmak
-- Sinyalleri proje sahibinin kişisel sohbeti dışında bir yere göndermek
+- Sinyalleri proje sahibinin kişisel sohbeti ve seçtiği tek grup dışında bir yere göndermek

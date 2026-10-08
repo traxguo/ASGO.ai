@@ -25,6 +25,18 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - **Kalan uyarılar (gerçek piyasa olayları, düzeltilmedi):** her coinde 1 adet sıfır hacimli 1h mum; aşırı sıçramalar (ör. 2020-03-12 çöküşü, 2021 DOGE yükselişi).
 - **Eski not:** Aşağıdaki "Binance verisine bu çalışma ortamından erişilemiyor" kararı bununla çözüldü.
 
+## 2026-10-04 — Bot tek bir gruba da yazabilir (kural 7 değişti)
+- **Karar:** Proje sahibi, botun arkadaşıyla olan bir gruba da yazmasını istedi. Kural 7 güncellendi: kişisel sohbet + `.env`'deki `TELEGRAM_GROUP_ID` ile seçilen **tek** grup. Kanal veya ikinci grup yok.
+- **Nasıl:** Grup ID'si boşsa bot eskisi gibi sadece kişisel sohbete yazar. Grupta sadece `/` ile başlayan komutlara cevap verir (normal sohbete karışmaz). Başka gruplar yok sayılır. Seviye 3'te otomatik sinyaller de bu iki sohbete gidecek.
+- **Not:** Grup üyeleri de sinyalleri görür; mesajlardaki "yatırım tavsiyesi değildir" uyarısı kalır.
+
+## 2026-10-04 — Telegram botu Seviye 3'ten önce kuruldu (sadece altyapı)
+- **Karar:** Proje sahibinin isteğiyle Telegram botu şimdi kuruldu: deneme mesajı, `/durum`, `/liste` ve coin sorgusu (`btc'ye bak`). Otomatik sinyal gönderimi **açılmadı**; o Seviye 3'te, testi geçen strateji çıkınca açılır.
+- **Seviye atlama sayılmaz çünkü:** Bot hiçbir seviye (alım/stop/TP) üretmez. Coin sorgusu sadece (1) güncel fiyat ve 24s değişim ("sadece bilgi" etiketiyle), (2) aktif strateji listesi, (3) `signals/log/`'daki kayıtlı son sinyali olduğu gibi gösterir. Aktif strateji yoksa bunu açıkça söyler.
+- **Güvenlik:** Bot sadece `.env`'deki `TELEGRAM_CHAT_ID`'ye yazar; başka sohbete gönderme kodda engelli. Grup/kanal ID'leri (negatif sayılar) reddedilir. Başka sohbetlerden gelen mesajlara cevap verilmez. Token sadece `.env`'de.
+- **Çalışma yeri:** Bulut oturumu geçici olduğu için uygun değil. Öneri: küçük bir VPS (Seviye 3'te Freqtrade dry-run da 7/24 orada çalışacak). Denemek için proje sahibinin bilgisayarı da olur.
+- **Teknik:** Ek kütüphane yok (Python standart kütüphanesi, long polling, açık port yok). Docker servisi: `telegram-bot`.
+
 ## 2026-10-04 — Binance verisine bu çalışma ortamından erişilemiyor
 - **Durum:** Bu oturumun çalıştığı bulut ortamının ağ politikası `fapi.binance.com`, `api.binance.com` ve `data.binance.vision` adreslerini engelliyor (HTTP 403, proxy reddi). Brief'teki yedek yol (data.binance.vision arşivi) da engelli. Docker daemon da bu ortamda başlatılamıyor.
 - **Karar:** Veri indirme ve doğrulama araçları yazıldı ama gerçek veri indirilemedi. Sistem, **sentetik (rastgele üretilmiş) veri** ve çevrimdışı market listesiyle uçtan uca test edildi (`tests/smoke/`). Bu testin rakamları araştırma sonucu değildir ve `results/` klasörüne konmadı.
