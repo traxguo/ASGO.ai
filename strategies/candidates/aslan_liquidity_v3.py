@@ -171,6 +171,10 @@ def find_signals_v3(
     trig = {"long": np.full(n, "", dtype=object), "short": np.full(n, "", dtype=object)}
     kind = {"long": np.full(n, "", dtype=object), "short": np.full(n, "", dtype=object)}
     stop = {"long": np.full(n, np.nan), "short": np.full(n, np.nan)}
+    # audit trail of each signal: swept level, candle that took it, extreme candle
+    lvl = {"long": np.full(n, np.nan), "short": np.full(n, np.nan)}
+    at = {"long": np.full(n, -1), "short": np.full(n, -1)}
+    ext = {"long": np.full(n, -1), "short": np.full(n, -1)}
 
     lows_heap: list[float] = []
     highs_heap: list[float] = []
@@ -245,6 +249,7 @@ def find_signals_v3(
             if t:
                 trig[side][k] = t
                 kind[side][k] = st["kind"]
+                lvl[side][k], at[side][k], ext[side][k] = st["level"], st["start"], e
                 if stop_buffer_pct is None:
                     stop[side][k] = stop_from_candle(side, o[e], h[e], lo[e], c[e], WICK_CAP)
                 elif side == "long":
@@ -261,6 +266,12 @@ def find_signals_v3(
             "short_kind": kind["short"],
             "long_struct_stop": stop["long"],
             "short_struct_stop": stop["short"],
+            "long_level": lvl["long"],
+            "short_level": lvl["short"],
+            "long_setup_at": at["long"],
+            "short_setup_at": at["short"],
+            "long_ext_at": ext["long"],
+            "short_ext_at": ext["short"],
         },
         index=df.index,
     )
