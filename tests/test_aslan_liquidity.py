@@ -143,3 +143,27 @@ def test_v3_sweep_trades_reversal():
     sig = v3.find_signals_v3(df, levels, setup_window=12)
     k = int(np.flatnonzero(sig["long_trigger"] != "")[0])
     assert sig["long_kind"].iloc[k] == "sweep"
+
+
+# ---------------------------------------------------------------- v4
+
+from strategies.candidates import aslan_liquidity_v4 as v4  # noqa: E402
+
+
+def test_v4_zones_fvg_and_ob():
+    rows = [(100, 101, 99, 100), (100, 100.5, 98, 99), (99, 104, 99, 103.5), (103.5, 106, 102, 105)]
+    z = v4.poi_zones(candles(rows))
+    fvg = z[(z.kind == "fvg") & (z.side == "long")]
+    assert len(fvg) == 1 and fvg.bottom.iloc[0] == 100.5 and fvg.top.iloc[0] == 102
+    ob = z[(z.kind == "ob") & (z.side == "long")]
+    assert ob.bottom.iloc[0] == 98 and ob.top.iloc[0] == 100.5  # bearish candle 1
+
+
+def test_v4_touch_then_engulf_breaking_mini_high():
+    rows = [(110, 111, 109, 110), (110, 112, 109.5, 111), (111, 111.5, 108, 108.5), (108.5, 109, 104, 104.5),
+            (104.5, 105, 101, 102), (102, 103.5, 101.5, 103), (103, 103.2, 102, 102.2), (102.1, 113, 102, 112.5)]
+    df = candles(rows, freq="5min")
+    zones = pd.DataFrame({"avail": [df["date"].iloc[0]], "bottom": [100.0], "top": [102.5], "side": ["long"], "kind": ["fvg"]})
+    sig = v4.find_signals_v4(df, zones, setup_window=36)
+    assert sig["long_trigger"].iloc[7] == "engulf" and sig["long_kind"].iloc[7] == "fvg"
+    assert sig["long_struct_stop"].iloc[7] == 101
