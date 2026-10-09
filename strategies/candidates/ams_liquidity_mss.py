@@ -108,14 +108,20 @@ def liquidity_levels(df: DataFrame, d1: DataFrame) -> DataFrame:
     return out.sort_values("avail", kind="stable").reset_index(drop=True)
 
 
-def find_signals(df: DataFrame, levels: DataFrame) -> DataFrame:
-    """Per 15m candle: MSS signal with the limit entry (edge), stop and level kind."""
+def find_signals(
+    df: DataFrame, levels: DataFrame, use_killzone: bool = True, require_fvg: bool = True, stop_atr: float | None = None
+) -> DataFrame:
+    """Per 15m candle: MSS signal with the limit entry (edge), stop and level kind.
+    Variant options (Gemini's second round): use_killzone=False trades around the clock,
+    require_fvg=False signals at the MSS close itself (edge stays NaN), stop_atr puts the
+    stop that many ATR(14) beyond the sweep extreme instead of 0.1%."""
     h = df["high"].to_numpy(float)
     lo = df["low"].to_numpy(float)
     c = df["close"].to_numpy(float)
     t_open = pd.to_datetime(df["date"], utc=True).dt.tz_convert(None).to_numpy(dtype="datetime64[ns]")
     n = len(df)
-    kz = in_killzone(df["date"])
+    kz = in_killzone(df["date"]) if use_killzone else np.ones(n, dtype=bool)
+    atr = ta.ATR(df, timeperiod=14).to_numpy(float) if stop_atr is not None else None
     ph, pl = pivots(h, lo, FRACTAL_N)
     lv_t = pd.to_datetime(levels["avail"], utc=True).dt.tz_convert(None).to_numpy(dtype="datetime64[ns]")
     lv_p = levels["price"].to_numpy(float)
@@ -208,11 +214,14 @@ def find_signals(df: DataFrame, levels: DataFrame) -> DataFrame:
                     if (h[i + 1:k + 1] < bottom).all():
                         edge = top
                         break
-            if np.isnan(edge):
+            if np.isnan(edge) and require_fvg:
                 continue
             out[f"{side}_trigger"][k] = "mss_fvg"
             out[f"{side}_edge"][k] = edge
-            out[f"{side}_struct_stop"][k] = lo[e] * (1 - STOP_BUFFER) if side == "long" else h[e] * (1 + STOP_BUFFER)
+            if atr is not None:
+                out[f"{side}_struct_stop"][k] = lo[e] - stop_atr * atr[k] if side == "long" else h[e] + stop_atr * atr[k]
+            else:
+                out[f"{side}_struct_stop"][k] = lo[e] * (1 - STOP_BUFFER) if side == "long" else h[e] * (1 + STOP_BUFFER)
             out[f"{side}_kind"][k] = st["kind"]
     return DataFrame(out, index=df.index)
 
@@ -295,3 +304,63 @@ class AMSLiquidityMSS(ManagedStrategy):
             m = df.get(f"enter_{side}", pd.Series(0, index=df.index)).fillna(0) == 1
             df.loc[m, "enter_tag"] = df.loc[m, "enter_tag"] + " kind=" + df.loc[m, f"{side}_kind"]
         return df
+
+
+# ---------------------------------------------------------------- Gemini round 2 (2026-10-09 14:12)
+# Around the clock, no 1h EMA200: direction from the previous day's range (close above
+# PDH -> longs only, below PDL -> shorts only, inside -> both). Entry at the MSS close
+# (limit at the close, valid 2 candles), stop 1 ATR(14) beyond the sweep extreme.
+# Exit stays on the fixed grid (TP1 1.5R 50% + BE, TP2 3R): the fractal trailing stop
+# Gemini asked for is not in the fixed TP grid (docs/rules.md), so it is not tested here.
+
+
+class AMSLiquidityMSS_MarketATR(AMSLiquidityMSS):
+    news_before = timedelta(minutes=30)
+    mgmt = tm.ManagementParams(
+        entry_zone_atr=0.0,
+        valid_for_candles=2,
+        stop_method="structural",
+        stop_buffer_atr=0.0,
+        max_stop_pct=0.08,
+        max_leverage=20.0,
+        risk_per_trade=0.01,
+    )
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        pair = metadata["pair"]
+        df["atr"] = ta.ATR(df, timeperiod=14)
+        d1 = self.dp.get_pair_dataframe(pair=pair, timeframe="1d")
+        sig = find_signals(df, liquidity_levels(df, d1), use_killzone=False, require_fvg=False, stop_atr=1.0)
+        for col in sig.columns:
+            df[col] = sig[col]
+        close_time = (pd.to_datetime(df["date"], utc=True) + TF).astype("datetime64[ns, UTC]")
+        prev = pd.DataFrame(
+            {
+                "avail": (pd.to_datetime(d1["date"], utc=True) + pd.Timedelta(days=1)).astype("datetime64[ns, UTC]"),
+                "pdh": d1["high"].to_numpy(float),
+                "pdl": d1["low"].to_numpy(float),
+            }
+        )
+        m = pd.merge_asof(pd.DataFrame({"avail": close_time}).reset_index(), prev, on="avail").set_index("index")
+        df["pd_side"] = np.where(df["close"] > m["pdh"], 1, np.where(df["close"] < m["pdl"], -1, 0))
+        df["news_block"] = news_calendar.blocked(close_time, self.news_before, self.news_after)
+        return df
+
+    def add_plan_columns(self, df: DataFrame) -> DataFrame:
+        return ManagedStrategy.add_plan_columns(self, df)  # entry at the MSS close
+
+    def signal_conditions(self, df: DataFrame):
+        return {
+            "long": {
+                "not_below_pdl": df["pd_side"] >= 0,
+                "sweep_low_then_mss": df["long_trigger"] == "mss_fvg",
+                "stop_below_close": df["long_struct_stop"] < df["close"],
+                "no_news": ~df["news_block"],
+            },
+            "short": {
+                "not_above_pdh": df["pd_side"] <= 0,
+                "sweep_high_then_mss": df["short_trigger"] == "mss_fvg",
+                "stop_above_close": df["short_struct_stop"] > df["close"],
+                "no_news": ~df["news_block"],
+            },
+        }
