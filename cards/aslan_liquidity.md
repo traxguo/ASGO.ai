@@ -81,6 +81,13 @@ Kod: `AslanLiq6_5m`, `AslanLiq6_1m` ([`aslan_liquidity_v3.py`](../strategies/can
 - [reversal_mss_or_ifvg] alımdan sonra işlem yönünde yeni FVG, alımdan sonra oluşmuş boşluğun ters kırılması (iFVG) veya MSS; 5 dk veya 1 dk | "Likidite alındı, ardından {FVG/iFVG/MSS} oluştu."
 - İşlem denetimi grafikleri: `research/audit/aslan_trade_audit.py` (20 rastgele işlem, Aslan "alırdım / almazdım" diye işaretler).
 
+## v7 — alım, sonra 5 dk MSS, sonra 1 dk giriş (2026-10-09)
+Kod: [`aslan_liquidity_v7.py`](../strategies/candidates/aslan_liquidity_v7.py)
+- [sweep_then_mss_5m] likidite alındı ve 5 dk mumu son tepe/dibin ötesinde kapandı | "Likidite alındı, 5 dakikalıkta yapı kırıldı (MSS)."
+- [fvg_or_ifvg_1m] MSS'ten sonra 1 dk'da FVG/iFVG (`AslanLiq7_1m`) | "1 dakikalıkta FVG oluştu, giriş."
+- Seçenek (`AslanLiq7_1m_Retest`): MSS mumunun bıraktığı 5 dk FVG'ye geri dönüşte limit giriş | "Fiyat MSS boşluğuna geri geldi, giriş."
+- Stop alım uç noktasının %0.1 ötesi, hedef 1R.
+
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
@@ -91,6 +98,7 @@ Kod: `AslanLiq6_5m`, `AslanLiq6_1m` ([`aslan_liquidity_v3.py`](../strategies/can
 | 2026-10-09 | v4: videodaki yöntem (günlük+4s trend, 1s FVG/OB/iFVG bölgesine dönüş, mini yapı kırılımı + engulf; 5 dk/15 dk, 1R/2R) | -0.24R ile -0.33R; maliyet hariç ~0R; winrate yazı-tura beklentisinde. | [results/2026-10-09_aslan_liquidity_v4](../results/2026-10-09_aslan_liquidity_v4/README.md) |
 | 2026-10-09 | v5: sadece likidite alımı, 5/15 dk OB/iFVG/MSS onayı, stop alım uç noktasının %0.1 ötesi, 1R/2R | -0.24R ile -0.27R; maliyet hariç ~0R. | [results/2026-10-09_aslan_liquidity_v5](../results/2026-10-09_aslan_liquidity_v5/README.md) |
 | 2026-10-09 | v6: teyit sadece alımdan sonra oluşan FVG/iFVG/MSS, 5 dk ve 1 dk, 1R | 5 dk: -0.25R (3022 işlem); 1 dk: -0.37R (2508 işlem, hesap 11.2024'te bitti). Maliyet hariç ~0R. | [results/2026-10-09_aslan_liquidity_v6](../results/2026-10-09_aslan_liquidity_v6/README.md) |
+| 2026-10-09 | v7: alım → 5 dk MSS → 1 dk FVG/iFVG ya da MSS boşluğuna geri dönüş | -0.21R (1945 işlem) / -0.22R (1148 işlem); maliyet hariç ~-0.03R. | [results/2026-10-09_aslan_liquidity_v7](../results/2026-10-09_aslan_liquidity_v7/README.md) |
 
 ## Notlar / öğrenilenler
 - Kazanma oranı %30-32; 2R hedefle başa baş için ~%33 gerekiyor. Maliyetsiz bile sonuç ~0R: giriş kuralının kenarı yok.
