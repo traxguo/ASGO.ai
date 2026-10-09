@@ -1,0 +1,17 @@
+{
+  "$comment": "Coins never used to design pusula (robustness test on unseen coins, 2026-10-09). Pass after pairs_level1.json so it replaces that list. Survivorship note: all are still listed today.",
+  "exchange": {
+    "pair_whitelist": [
+      "ADA/USDT:USDT",
+      "LINK/USDT:USDT",
+      "LTC/USDT:USDT",
+      "DOT/USDT:USDT",
+      "AVAX/USDT:USDT",
+      "TRX/USDT:USDT",
+      "ATOM/USDT:USDT",
+      "BCH/USDT:USDT",
+      "ETC/USDT:USDT",
+      "XLM/USDT:USDT"
+    ]
+  }
+}

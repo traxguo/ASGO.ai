@@ -59,10 +59,26 @@ Karşılaştırma (sadece etkileri ayırmak için): `Pusula_B` en fazla 3 işlem
 
 Geçme şartı (değişmedi): maliyet ve funding sonrası > 0R, düşüş ≤ %25, en az 100 işlem, coinlerin en az yarısı pozitif. Geçerse doğrulama verisinde bir kez kontrol.
 
+## 3. tur (2026-10-09): ters köşeden açık arama
+Proje sahibi: "her defasında açık bularak geliştir, farklı açılardan vur." Kurallar değiştirilmeden önce açıklar ölçüldü:
+- **Şans testi** (`research/robustness/pusula_trade_anatomy.py`): 6 coinde en iyi 5 işlem toplam kârdan büyük; tek BNB işlemi +53R. En iyi 10 işlem çıkarılınca -42.8R.
+- **Geri verilen kâr:** trend çıkışında ortalama 6.7R açık kârın 3.7R'si geri veriliyor.
+
+Denenen çözümler (geliştirme verisi, sonra yeni coinler):
+| Deneme | Sınıf | Geliştirme (6 coin) | 10 yeni coin | Karar |
+|---|---|---|---|---|
+| Ana sürüm | `PusulaTrendLong` | +0.83R, DD %20.2 | **+1.05R, PF 2.38, DD %15.1** | Devam |
+| İki vitesli çıkış (4R sonrası 4h kanal) | `PusulaTrendLong2` | +0.69R, DD %20.9 | — | Elendi |
+| Kapanıştan giriş | `PusulaTrendLongClose` | +1.44R (tek DOGE işlemi +79R) | +0.92R | Elendi |
+| 1R'de BE | `PusulaTrendLongBE1` | +0.83R, DD %17.0 | +0.41R | Elendi |
+| Long + short | `PusulaTrend` | +0.43R, DD %31.0 | +0.49R, DD %20.0, short -0.05R | Short avantajı yok |
+| 16 coin birlikte, en fazla 3 işlem | `PusulaTrendLong` | — | 2020-01 → 2026-03: +1.02R, DD %26.1, en iyi 10 hariç ≈ 0R | Geniş liste daha sağlıklı |
+
 ## Durum: candidate
 - `Pusula_B` (sabit TP): geçemedi.
 - `PusulaTrend` (long+short): doğrulamayı geçti, geliştirmede DD %31 > %25.
-- `PusulaTrendLong`: iki dönemde de eşikleri geçti (sonradan eklendi, doğrulamada 31 işlem). Kasa testi için proje sahibinin seçimi bekleniyor.
+- `PusulaTrendLong`: iki dönemde de eşikleri geçti (sonradan eklendi, doğrulamada 31 işlem) ve hiç görmediği 10 coinde de artıda (+1.05R). Kasa testi için proje sahibinin seçimi bekleniyor.
+- `PusulaTrendLong2`, `PusulaTrendLongClose`, `PusulaTrendLongBE1`: 3. turda elendi.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
@@ -73,6 +89,8 @@ Geçme şartı (değişmedi): maliyet ve funding sonrası > 0R, düşüş ≤ %2
 | 2026-10-09 | **Doğrulama, bir kez** (2025-01 → 2026-03) | PusulaTrend +0.16R, PF 1.27, DD %12.7, 64 işlem (short +0.04R). PusulaTrendLong +0.28R, PF 1.50, DD %7.7, 31 işlem. Al-tut -%40. | [tur2_dogrulama](../results/2026-10-09_PusulaTrend_PusulaTrendLong_tur2_dogrulama/rapor.md) |
 
 ## Notlar / öğrenilenler
+- Geliştirmede iyi görünen üç ek değişiklik (BE 1R, kapanıştan giriş, iki vitesli çıkış) yeni coinlerde tutmadı. Basit sürüm kazandı.
+- Kâr birkaç büyük trende bağlı; daha çok coin bu bağımlılığı azaltıyor (16 coinde en iyi 10 işlem hariç ≈ 0R, 6 coinde -42.8R).
 - Sabit 2R/4R hedef yerine trend bozulunca çıkmak, aynı girişlerde ortalamayı +0.11R'den +0.43R'ye çıkardı. Asıl açık çıkış kuralıydı.
 - Short tarafı iki turda da geliştirmede zararda, doğrulamada başa baş. Bu coinlerde trend takipli short avantajı yok gibi.
 - Üç ölçünün de aynı yönü göstermesi short'ları kurtarmadı: 2022'de 63 short, ortalama -0.02R.

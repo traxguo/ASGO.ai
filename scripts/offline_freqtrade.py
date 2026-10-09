@@ -27,6 +27,16 @@ SYMBOLS = {
     "BNB": (0.01, 0.01),
     "DOGE": (0.00001, 1),
     "ADA": (0.0001, 1),
+    # out-of-sample coins for pusula robustness (config/pairs_unseen.json)
+    "LINK": (0.001, 0.01),
+    "LTC": (0.01, 0.001),
+    "DOT": (0.001, 0.1),
+    "AVAX": (0.001, 1),
+    "TRX": (0.00001, 1),
+    "ATOM": (0.001, 0.01),
+    "BCH": (0.01, 0.001),
+    "ETC": (0.001, 0.01),
+    "XLM": (0.00001, 1),
 }
 
 

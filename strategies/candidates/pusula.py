@@ -276,3 +276,57 @@ class PusulaTrendLong(PusulaTrend):
         conds = super().signal_conditions(df)
         conds["short"] = {}
         return conds
+
+
+class TwoSpeedExitMixin:
+    """
+    Round 3 (fixed before testing, card section "3. tur"): two-speed exit.
+    Once the trade has been at least `fast_exit_after_r` in profit at any time,
+    it is also closed when a 4h candle closes beyond the opposite 20-candle
+    channel (long: below the previous 20-candle low). The slow daily EMA20 exit
+    stays as before. Aim: give back less of a big open profit.
+    """
+
+    fast_exit_after_r = 4.0
+
+    def custom_exit(self, pair, trade, current_time, current_rate, current_profit, **kwargs):
+        plan = self._plan_for_trade(trade)
+        last = self._last_row(pair)
+        if plan is None or last is None:
+            return None
+        risk = abs(plan["entry"] - plan["stop"])
+        if risk <= 0:
+            return None
+        if trade.is_short:
+            best_r = (trade.open_rate - (trade.min_rate or trade.open_rate)) / risk
+            broke = last["close"] > last["dc_upper"]
+        else:
+            best_r = ((trade.max_rate or trade.open_rate) - trade.open_rate) / risk
+            broke = last["close"] < last["dc_lower"]
+        if best_r >= self.fast_exit_after_r and broke:
+            return "fast_exit_4h"
+        return None
+
+
+class PusulaTrend2(TwoSpeedExitMixin, PusulaTrend):
+    pass
+
+
+class PusulaTrendLong2(TwoSpeedExitMixin, PusulaTrendLong):
+    pass
+
+
+class PusulaTrendLongClose(PusulaTrendLong):
+    """Round 3 test: limit entry at the breakout candle close (no 0.25 ATR pullback), so fast breakouts are not missed."""
+
+    from strategies.common import trade_management as _tm
+    mgmt = _tm.ManagementParams(entry_zone_atr=0.0)
+
+
+class PusulaTrendLongBE1(PusulaTrendLong):
+    """Round 3 test: stop moves to break even after 1R in favour instead of 2R."""
+
+    @property
+    def tp_model(self):
+        from strategies.common import trade_management as tm
+        return tm.TPModel(name="BE1", tp1_r=1.0, tp2_r=1.0, tp1_close_pct=0, breakeven_trigger="TP1")
