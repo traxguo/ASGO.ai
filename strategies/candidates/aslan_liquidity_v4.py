@@ -252,3 +252,19 @@ class AslanLiq4_15m(AslanLiq4Base):
 
 class AslanLiq4_15m_2R(AslanLiq4_15m):
     target_model = MODEL_2R
+
+
+# ---------------------------------------------------------------- v5 2R variants (see aslan_liquidity_v3.AslanLiq5_*)
+from strategies.candidates.aslan_liquidity_v3 import AslanLiq5_5m, AslanLiq5_15m  # noqa: E402
+
+
+class AslanLiq5_15m_2R(AslanLiq5_15m):
+    @property
+    def tp_model(self) -> tm.TPModel:
+        return MODEL_2R
+
+
+class AslanLiq5_5m_2R(AslanLiq5_5m):
+    @property
+    def tp_model(self) -> tm.TPModel:
+        return MODEL_2R

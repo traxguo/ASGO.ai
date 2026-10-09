@@ -167,3 +167,26 @@ def test_v4_touch_then_engulf_breaking_mini_high():
     sig = v4.find_signals_v4(df, zones, setup_window=36)
     assert sig["long_trigger"].iloc[7] == "engulf" and sig["long_kind"].iloc[7] == "fvg"
     assert sig["long_struct_stop"].iloc[7] == 101
+
+
+def test_v5_sweep_only_stop_beyond_extreme_and_ob():
+    rows = [(100, 101, 99, 100), (100, 102, 99, 101), (101, 104, 100, 103), (103, 103.5, 100, 101),
+            (101, 102, 98, 99), (99, 100, 96, 97), (97, 98, 93, 96), (96, 99, 95, 98),
+            (98, 103, 97, 102), (102, 106, 101, 105)]
+    df = candles(rows)
+    levels = pd.DataFrame({"avail": [df["date"].iloc[0]], "price": [95.0], "side": ["low"]})
+    sig = v3.find_signals_v3(df, levels, 12, allow_break=False, use_ob=True, stop_buffer_pct=0.001)
+    k = int(np.flatnonzero(sig["long_trigger"] != "")[0])
+    # candle 7 closes 98 above the high (98) of the last bearish candle 6? no: 98 is not > 98;
+    # candle 8 closes 102 > 98 -> order block confirmation before the MSS at candle 9
+    assert k == 8 and sig["long_trigger"].iloc[k] == "ob"
+    assert sig["long_struct_stop"].iloc[k] == pytest.approx(93 * 0.999)
+
+
+def test_v5_break_not_traded():
+    rows = [(100, 101, 99, 100), (100, 103, 99, 102), (102, 104, 101, 103), (103, 103.5, 100, 101),
+            (101, 102, 99.5, 101.5), (101.5, 108, 101, 107.5)]
+    df = candles(rows)
+    levels = pd.DataFrame({"avail": [df["date"].iloc[0]], "price": [105.0], "side": ["high"]})
+    sig = v3.find_signals_v3(df, levels, 12, allow_break=False, use_ob=True, stop_buffer_pct=0.001)
+    assert (sig["long_trigger"] == "").all() and (sig["short_trigger"] == "").all()

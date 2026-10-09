@@ -129,8 +129,30 @@ def _confirm(side, k, e, start, o, h, lo, c, ph_idx, pl_idx, fvg_lookback):
     return ""
 
 
-def find_signals_v3(df: DataFrame, levels: DataFrame, setup_window: int, fvg_lookback: int = 10) -> DataFrame:
+def _ob_confirm(side, k, e, o, c, h, lo):
+    """Order block: close beyond the last opposite candle at or before the extreme (v5)."""
+    for j in range(e, max(-1, e - 20), -1):
+        if side == "long" and c[j] < o[j]:
+            return c[k] > h[j]
+        if side == "short" and c[j] > o[j]:
+            return c[k] < lo[j]
+    return False
+
+
+def find_signals_v3(
+    df: DataFrame,
+    levels: DataFrame,
+    setup_window: int,
+    fvg_lookback: int = 10,
+    allow_break: bool = True,
+    use_ob: bool = False,
+    stop_buffer_pct: float | None = None,
+) -> DataFrame:
     """
+    v5 options: allow_break=False trades sweeps (reversals) only; use_ob=True also
+    accepts an order block break as confirmation; stop_buffer_pct puts the stop at
+    the sweep extreme plus this buffer instead of the wick-cap rule.
+
     Per entry-timeframe candle: long_trigger / short_trigger ('mss' / 'ifvg' / ''),
     long_kind / short_kind ('sweep' / 'break'), and the structural stop.
     Uses only data known at each candle's close.
@@ -159,6 +181,8 @@ def find_signals_v3(df: DataFrame, levels: DataFrame, setup_window: int, fvg_loo
     setup: dict[str, dict | None] = {"long": None, "short": None}
 
     def open_setup(side, k, kd, level):
+        if kd == "break" and not allow_break:
+            return
         setup[side] = {"start": k, "ext": k, "kind": kd, "level": level}
 
     for k in range(n):
@@ -216,10 +240,17 @@ def find_signals_v3(df: DataFrame, levels: DataFrame, setup_window: int, fvg_loo
             if (side == "long" and lo[k] < lo[e]) or (side == "short" and h[k] > h[e]):
                 st["ext"] = e = k
             t = _confirm(side, k, e, st["start"], o, h, lo, c, ph_idx, pl_idx, fvg_lookback)
+            if not t and use_ob and _ob_confirm(side, k, e, o, c, h, lo):
+                t = "ob"
             if t:
                 trig[side][k] = t
                 kind[side][k] = st["kind"]
-                stop[side][k] = stop_from_candle(side, o[e], h[e], lo[e], c[e], WICK_CAP)
+                if stop_buffer_pct is None:
+                    stop[side][k] = stop_from_candle(side, o[e], h[e], lo[e], c[e], WICK_CAP)
+                elif side == "long":
+                    stop[side][k] = lo[e] * (1 - stop_buffer_pct)
+                else:
+                    stop[side][k] = h[e] * (1 + stop_buffer_pct)
                 setup[side] = None
 
     return DataFrame(
@@ -240,6 +271,9 @@ class AslanLiq3Base(AslanLiqBase):
     setup_window = 48  # 12 hours of 15m candles
     startup_candle_count = 800
     trend_filter = "4h"  # "4h", "4h+1h" or "none"
+    allow_break = True
+    use_ob = False
+    stop_buffer_pct: float | None = None
     mgmt = tm.ManagementParams(
         entry_zone_atr=0.0,
         valid_for_candles=2,
@@ -263,7 +297,14 @@ class AslanLiq3Base(AslanLiqBase):
         h1 = self.dp.get_pair_dataframe(pair=pair, timeframe="1h")
         h4 = self.dp.get_pair_dataframe(pair=pair, timeframe="4h")
         d1 = self.dp.get_pair_dataframe(pair=pair, timeframe="1d")
-        sig = find_signals_v3(df, all_levels(h1, h4, d1), self.setup_window)
+        sig = find_signals_v3(
+            df,
+            all_levels(h1, h4, d1),
+            self.setup_window,
+            allow_break=self.allow_break,
+            use_ob=self.use_ob,
+            stop_buffer_pct=self.stop_buffer_pct,
+        )
         for col in sig.columns:
             df[col] = sig[col]
 
@@ -335,3 +376,20 @@ class AslanLiq3_5m_Trend2(AslanLiq3_5m):
 
 class AslanLiq3_5m_NoTrend(AslanLiq3_5m):
     trend_filter = "none"
+
+
+# ---------------------------------------------------------------- v5 (Aslan, 2026-10-09 10:05)
+# Sweeps only (reversal), confirmation on 5m / 15m by order block, iFVG or MSS,
+# stop a little (0.1%) beyond the high / low that took the liquidity.
+
+
+class AslanLiq5_15m(AslanLiq3_15m):
+    allow_break = False
+    use_ob = True
+    stop_buffer_pct = 0.001
+
+
+class AslanLiq5_5m(AslanLiq3_5m):
+    allow_break = False
+    use_ob = True
+    stop_buffer_pct = 0.001
