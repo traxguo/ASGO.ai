@@ -55,6 +55,19 @@ Test öncesi sabitlendi; Aslan düzeltirse kart ve kod birlikte değişir.
 5. "Mum boyutu" = mumun gövdesi.
 6. Haber listesi çevrimdışı hazırlandı (ForexFactory'ye bu ortamdan erişilemiyor): FOMC tarihleri, CPI tarihleri ve NFP tarih kuralı. Tarihler resmi takvimle doğrulanmadı.
 
+
+## v3 — Aslan'ın 2026-10-09 düzeltmeleri
+Kod: [`strategies/candidates/aslan_liquidity_v3.py`](../strategies/candidates/aslan_liquidity_v3.py)
+
+- **Likidite seviyeleri:** 1h, 4h ve 1d tepe/dipleri, önceki gün tepe/dibi, seans tepe/dipleri (UTC: Asya 00-07, Londra 07-13, New York 13-21; seans bitince kullanılır).
+- **İki tür kurulum:**
+  - [liquidity_taken] **Alım (sweep):** fiyat seviyeyi iğneyle geçip içeride kapatırsa ters yönde işlem (dip alındı → long, tepe alındı → short). | "Fiyat {seviye} likiditesini alıp geri döndü."
+  - [liquidity_taken] **Kırılım (break):** bir mum seviyenin ötesinde kapatırsa kırılım yönünde işlem (tepe kırıldı → long, dip kırıldı → short). Önce alım sayılan seviye 12 saat içinde gövdeyle kırılırsa kırılıma dönüşür. | "Fiyat {seviye} seviyesini mum kapanışıyla kırdı."
+- [reversal_mss_or_ifvg] **Giriş onayı:** işlem yönünde MSS veya iFVG, giriş grafiğinde (`AslanLiq3_15m`: 15 dk, `AslanLiq3_5m`: 5 dk), 12 saat içinde.
+- [trend_up] / [trend_down] **Trend (daily bias):** son onaylı tepe ve dip bir öncekinden yüksekse (HH + HL) yukarı, alçaksa (LH + LL) aşağı, karışıksa nötr. Ana versiyon 4 saatlik trende bakar; `_Trend2` 4 saatlik ve 1 saatlik ikisinin de aynı yönde olmasını ister; `_NoTrend` filtre kullanmaz.
+- **Hedef:** tek hedef **1R** (`MODEL_1R`). **Stop:** v2 kuralı (iğne en fazla gövdenin %175'i).
+- Haber filtresi, giriş fiyatı, 2 mum geçerlilik aynı. Risk testte %1 (hesap tüm dönem boyunca yaşasın diye; R sonuçları riskten bağımsız).
+
 ## Durum: candidate — ilk backtest'te başarısız, Aslan'ın kural düzeltmesi bekleniyor
 
 ## Test geçmişi

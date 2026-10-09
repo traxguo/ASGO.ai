@@ -96,3 +96,50 @@ def test_nfp_rule():
     assert str(news_calendar.nfp_date(2024, 11)) == "2024-11-01"
     assert str(news_calendar.nfp_date(2023, 12)) == "2023-12-08"
     assert str(news_calendar.nfp_date(2021, 1)) == "2021-01-08"
+
+
+# ---------------------------------------------------------------- v3
+
+from strategies.candidates import aslan_liquidity_v3 as v3  # noqa: E402
+
+
+def test_single_1r_target_model_allowed():
+    assert v3.MODEL_1R.tp2_r == 1.0 and v3.MODEL_1R.tp1_close_pct == 0
+
+
+def test_session_levels_available_after_session_end():
+    rows = [(100, 100 + i, 99 - i, 100) for i in range(24)]
+    d = candles(rows)
+    s = v3.session_levels(d)
+    asia = s[(s.side == "high") & (s.avail == pd.Timestamp("2024-01-01 07:00", tz="UTC"))]
+    assert asia.price.iloc[0] == 106  # highest high of hours 0-6
+
+
+def test_structure_trend_hh_hl():
+    highs = [10, 12, 10, 9, 11, 14, 11, 10, 12, 16, 13, 12]
+    lows = [h - 3 for h in highs]
+    rows = [(h - 1, h, lo, h - 1) for h, lo in zip(highs, lows)]
+    tr = v3.structure_trend(candles(rows, freq="4h"), 240)
+    assert tr["trend"].iloc[-1] == 1
+
+
+def test_v3_break_trades_in_break_direction():
+    # a liquidity high at 105 is closed through -> long (break), not short
+    rows = [(100, 101, 99, 100), (100, 103, 99, 102), (102, 104, 101, 103), (103, 103.5, 100, 101),
+            (101, 102, 99.5, 101.5), (101.5, 108, 101, 107.5)]
+    df = candles(rows)
+    levels = pd.DataFrame({"avail": [df["date"].iloc[0]], "price": [105.0], "side": ["high"]})
+    sig = v3.find_signals_v3(df, levels, setup_window=12)
+    assert sig["long_kind"].iloc[5] == "break" and sig["long_trigger"].iloc[5] == "mss"
+    assert (sig["short_trigger"] == "").all()
+
+
+def test_v3_sweep_trades_reversal():
+    rows = [(100, 101, 99, 100), (100, 102, 99, 101), (101, 104, 100, 103), (103, 103.5, 100, 101),
+            (101, 102, 98, 99), (99, 100, 96, 97), (97, 98, 93, 96), (96, 99, 95, 98),
+            (98, 103, 97, 102), (102, 106, 101, 105)]
+    df = candles(rows)
+    levels = pd.DataFrame({"avail": [df["date"].iloc[0]], "price": [95.0], "side": ["low"]})
+    sig = v3.find_signals_v3(df, levels, setup_window=12)
+    k = int(np.flatnonzero(sig["long_trigger"] != "")[0])
+    assert sig["long_kind"].iloc[k] == "sweep"
