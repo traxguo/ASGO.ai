@@ -4,7 +4,8 @@ Lookahead check for aslan_liquidity v3 (see aslan_lookahead_check.py): signals,
 stops and trend computed with data up to random cut points must equal the
 values computed on the full history.
 
-Usage: python research/robustness/aslan_v3_lookahead_check.py BTC 15m 48 [cuts]
+Usage: python research/robustness/aslan_v3_lookahead_check.py BTC 15m 48 [cuts] [v6]
+(v6: sweeps only, stop beyond the extreme, post-sweep confirmation)
 """
 
 import sys
@@ -20,8 +21,11 @@ DATA = Path("user_data/data/binance/futures")
 COLS = ["long_trigger", "short_trigger", "long_kind", "short_kind", "long_struct_stop", "short_struct_stop", "trend_4h", "trend_1h"]
 
 
+OPTS: dict = {}
+
+
 def compute(df, h1, h4, d1, win):
-    sig = v3.find_signals_v3(df, v3.all_levels(h1, h4, d1), win)
+    sig = v3.find_signals_v3(df, v3.all_levels(h1, h4, d1), win, **OPTS)
     tf = df["date"].iloc[1] - df["date"].iloc[0]
     base = pd.DataFrame({"avail": (df["date"] + tf).astype("datetime64[ns, UTC]")})
     for name, src, mins in (("trend_4h", h4, 240), ("trend_1h", h1, 60)):
@@ -32,6 +36,8 @@ def compute(df, h1, h4, d1, win):
 def main():
     coin, tf, win = sys.argv[1], sys.argv[2], int(sys.argv[3])
     cuts = int(sys.argv[4]) if len(sys.argv) > 4 else 20
+    if len(sys.argv) > 5 and sys.argv[5] == "v6":
+        OPTS.update(allow_break=False, stop_buffer_pct=0.001, post_sweep=True)
     rd = lambda t: pd.read_feather(DATA / f"{coin}_USDT_USDT-{t}-futures.feather")  # noqa: E731
     df, h1, h4, d1 = rd(tf), rd("1h"), rd("4h"), rd("1d")
     # keep it fast: last ~2 years

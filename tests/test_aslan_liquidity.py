@@ -190,3 +190,30 @@ def test_v5_break_not_traded():
     levels = pd.DataFrame({"avail": [df["date"].iloc[0]], "price": [105.0], "side": ["high"]})
     sig = v3.find_signals_v3(df, levels, 12, allow_break=False, use_ob=True, stop_buffer_pct=0.001)
     assert (sig["long_trigger"] == "").all() and (sig["short_trigger"] == "").all()
+
+
+# ---------------------------------------------------------------- v6
+
+
+def test_v6_ignores_gap_formed_before_sweep():
+    # bearish gap at candles 2-4 (before the sweep at 6); v5 takes it as iFVG, v6 must not
+    rows = [(110, 111, 109, 110), (110, 110.5, 108, 108.5), (108.5, 109, 104, 104.5), (104.5, 105, 101, 101.5),
+            (101.5, 102, 98, 98.5), (98.5, 99, 97, 98), (98, 98.5, 93, 97), (97, 100, 96.5, 99.5),
+            (99.5, 108.8, 98, 108.7)]
+    df = candles(rows)
+    levels = pd.DataFrame({"avail": [df["date"].iloc[0]], "price": [95.0], "side": ["low"]})
+    old = v3.find_signals_v3(df, levels, 12, allow_break=False, stop_buffer_pct=0.001)
+    new = v3.find_signals_v3(df, levels, 12, allow_break=False, stop_buffer_pct=0.001, post_sweep=True)
+    assert old["long_trigger"].iloc[8] == "ifvg"  # gap 105-108 (candles 1-3) closed above
+    assert (new["long_trigger"] == "").all()
+
+
+def test_v6_new_fvg_after_sweep_confirms():
+    rows = [(100, 101, 99, 100), (100, 100.5, 98, 98.5), (98.5, 99, 96, 96.5), (96.5, 97, 93, 96),
+            (96, 97.5, 95.5, 97.2), (97.2, 99.5, 97.1, 99.4), (99.4, 101, 98.2, 100.5)]
+    df = candles(rows)
+    levels = pd.DataFrame({"avail": [df["date"].iloc[0]], "price": [94.0], "side": ["low"]})
+    sig = v3.find_signals_v3(df, levels, 12, allow_break=False, stop_buffer_pct=0.001, post_sweep=True)
+    k = int(np.flatnonzero(sig["long_trigger"] != "")[0])
+    assert k == 5 and sig["long_trigger"].iloc[k] == "fvg"  # low 97.1 > high of candle 3 (97)
+    assert sig["long_struct_stop"].iloc[k] == pytest.approx(93 * 0.999)

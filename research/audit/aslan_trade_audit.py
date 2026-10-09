@@ -38,13 +38,19 @@ from strategies.candidates.aslan_liquidity import PIVOT_N, htf_levels, pivots  #
 
 DATA = ROOT / "user_data/data/binance/futures"
 DEV_END = pd.Timestamp("2025-01-01", tz="UTC")
-TF_MIN = {"15m": 15, "5m": 5}
-SETUP = {"15m": 48, "5m": 144}
+TF_MIN = {"15m": 15, "5m": 5, "1m": 1}
+SETUP = {"15m": 48, "5m": 144, "1m": 720}
 
+SIGNAL_OPTS = {
+    "AslanLiq5": dict(allow_break=False, use_ob=True, stop_buffer_pct=0.001),
+    "AslanLiq6": dict(allow_break=False, stop_buffer_pct=0.001, post_sweep=True),
+}
+FVG_LOOKBACK = [10]  # -2 for post-sweep gaps only (v6)
 LBL = dict(boxstyle="round,pad=0.2", fc="#1a1a19", ec="none", alpha=0.85)
 SURF, T1, T2, GRID = "#1a1a19", "#ffffff", "#c3c2b7", "#33332f"
 BLUE, ORANGE, GREEN, RED, PURPLE = "#3987e5", "#d95926", "#199e70", "#d03b3b", "#9a6bd8"
-TRIG_TR = {"mss": "MSS (son tepe/dip kırıldı)", "ifvg": "iFVG (boşluk ters kırıldı)", "ob": "Order block kırıldı"}
+TRIG_TR = {"mss": "MSS (son tepe/dip kırıldı)", "ifvg": "iFVG (boşluk ters kırıldı)", "ob": "Order block kırıldı",
+           "fvg": "alım sonrası yeni FVG"}
 
 
 def load(pair: str, tf: str) -> pd.DataFrame:
@@ -83,6 +89,8 @@ def level_source(lv, price, side, t) -> tuple[str, pd.Timestamp]:
 
 def confirm_detail(trig, side, k, e, start, o, h, lo, c, ph_idx, pl_idx, fvg_lookback=10):
     """Which candle / price the confirmation broke (mirrors v3._confirm / _ob_confirm)."""
+    if trig == "fvg":
+        return {"ref": k - 2, "gap": (h[k - 2], lo[k]) if side == "long" else (h[k], lo[k - 2])}
     if trig == "mss":
         idx = ph_idx if side == "long" else pl_idx
         j = idx[bisect_left(idx, e) - 1]
@@ -126,7 +134,7 @@ def draw(no, t, sig_k, df, sig, lv, trend4h, out_dir, tf):
     ph, pl = pivots(h, lo)
     ph_idx = [i for i in np.flatnonzero(ph) if i + PIVOT_N <= sig_k]
     pl_idx = [i for i in np.flatnonzero(pl) if i + PIVOT_N <= sig_k]
-    det = confirm_detail(trig, side, sig_k, e, start, o, h, lo, c, ph_idx, pl_idx)
+    det = confirm_detail(trig, side, sig_k, e, start, o, h, lo, c, ph_idx, pl_idx, FVG_LOOKBACK[0])
 
     open_t = pd.Timestamp(t["open_date"])
     close_t = pd.Timestamp(t["close_date"])
@@ -225,6 +233,8 @@ def main():
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    if SIGNAL_OPTS[args.strategy.split("_")[0]].get("post_sweep"):
+        FVG_LOOKBACK[0] = -2
     trades = load_backtest_stats(Path(args.zip))["strategy"][args.strategy]["trades"]
     trades = [t for t in trades if pd.Timestamp(t["open_date"]) < DEV_END]
     rng = np.random.default_rng(args.seed)
@@ -239,7 +249,7 @@ def main():
             df = load(pair, args.tf)
             h1, h4, d1 = (load(pair, x) for x in ("1h", "4h", "1d"))
             sig = v3.find_signals_v3(df, v3.all_levels(h1, h4, d1), SETUP[args.tf],
-                                     allow_break=False, use_ob=True, stop_buffer_pct=0.001)
+                                     **SIGNAL_OPTS[args.strategy.split("_")[0]])
             ct = (df["date"] + pd.Timedelta(minutes=TF_MIN[args.tf])).astype("datetime64[ns, UTC]")
             tr4 = pd.merge_asof(pd.DataFrame({"avail": ct}), v3.structure_trend(h4, 240), on="avail")
             cache[pair] = (df, sig, labelled_levels(h1, h4, d1), tr4["trend"].fillna(0).astype(int).to_numpy())

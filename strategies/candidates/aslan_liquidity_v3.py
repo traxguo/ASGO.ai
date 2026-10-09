@@ -108,8 +108,14 @@ def structure_trend(htf: DataFrame, tf_minutes: int) -> DataFrame:
     return DataFrame({"avail": avail, "trend": out})
 
 
-def _confirm(side, k, e, start, o, h, lo, c, ph_idx, pl_idx, fvg_lookback):
-    """MSS or iFVG in the trade direction at candle k ('' if none)."""
+def _confirm(side, k, e, start, o, h, lo, c, ph_idx, pl_idx, fvg_lookback, post_sweep=False):
+    """MSS or iFVG in the trade direction at candle k ('' if none).
+    post_sweep=True (v6): the inverted gap must have formed at or after the sweep candle,
+    and a new FVG in the trade direction formed after the sweep also confirms ('fvg')."""
+    if post_sweep:
+        fvg_lookback = -2  # first gap candle f - 2 >= start
+        if k - 2 >= start and ((side == "long" and lo[k] > h[k - 2]) or (side == "short" and h[k] < lo[k - 2])):
+            return "fvg"
     if side == "long":
         pos = bisect_left(ph_idx, e) - 1
         if pos >= 0 and c[k] > h[ph_idx[pos]]:
@@ -147,6 +153,7 @@ def find_signals_v3(
     allow_break: bool = True,
     use_ob: bool = False,
     stop_buffer_pct: float | None = None,
+    post_sweep: bool = False,
 ) -> DataFrame:
     """
     v5 options: allow_break=False trades sweeps (reversals) only; use_ob=True also
@@ -243,7 +250,7 @@ def find_signals_v3(
             e = st["ext"]
             if (side == "long" and lo[k] < lo[e]) or (side == "short" and h[k] > h[e]):
                 st["ext"] = e = k
-            t = _confirm(side, k, e, st["start"], o, h, lo, c, ph_idx, pl_idx, fvg_lookback)
+            t = _confirm(side, k, e, st["start"], o, h, lo, c, ph_idx, pl_idx, fvg_lookback, post_sweep)
             if not t and use_ob and _ob_confirm(side, k, e, o, c, h, lo):
                 t = "ob"
             if t:
@@ -285,6 +292,7 @@ class AslanLiq3Base(AslanLiqBase):
     allow_break = True
     use_ob = False
     stop_buffer_pct: float | None = None
+    post_sweep = False
     mgmt = tm.ManagementParams(
         entry_zone_atr=0.0,
         valid_for_candles=2,
@@ -315,6 +323,7 @@ class AslanLiq3Base(AslanLiqBase):
             allow_break=self.allow_break,
             use_ob=self.use_ob,
             stop_buffer_pct=self.stop_buffer_pct,
+            post_sweep=self.post_sweep,
         )
         for col in sig.columns:
             df[col] = sig[col]
@@ -343,13 +352,13 @@ class AslanLiq3Base(AslanLiqBase):
             "long": {
                 "trend_up": self._trend_ok(df, 1),
                 "liquidity_taken": df["long_kind"] != "",
-                "reversal_mss_or_ifvg": df["long_trigger"].isin(["mss", "ifvg"]) & (df["long_struct_stop"] < df["close"]),
+                "reversal_mss_or_ifvg": df["long_trigger"].isin(["mss", "ifvg", "fvg"]) & (df["long_struct_stop"] < df["close"]),
                 "no_news": ~df["news_block"],
             },
             "short": {
                 "trend_down": self._trend_ok(df, -1),
                 "liquidity_taken": df["short_kind"] != "",
-                "reversal_mss_or_ifvg": df["short_trigger"].isin(["mss", "ifvg"]) & (df["short_struct_stop"] > df["close"]),
+                "reversal_mss_or_ifvg": df["short_trigger"].isin(["mss", "ifvg", "fvg"]) & (df["short_struct_stop"] > df["close"]),
                 "no_news": ~df["news_block"],
             },
         }
@@ -404,3 +413,21 @@ class AslanLiq5_5m(AslanLiq3_5m):
     allow_break = False
     use_ob = True
     stop_buffer_pct = 0.001
+
+
+# ---------------------------------------------------------------- v6 (Aslan, 2026-10-09 10:58)
+# Confirmation only from what forms after the sweep: a new FVG in the trade
+# direction, an iFVG whose gap formed after the sweep, or an MSS. Entry chart
+# 5m or 1m. No order block. Stop 0.1% beyond the sweep extreme, 1R target.
+
+
+class AslanLiq6_5m(AslanLiq3_5m):
+    allow_break = False
+    stop_buffer_pct = 0.001
+    post_sweep = True
+
+
+class AslanLiq6_1m(AslanLiq6_5m):
+    timeframe = "1m"
+    setup_window = 720  # 12 hours of 1m candles
+    startup_candle_count = 7200
