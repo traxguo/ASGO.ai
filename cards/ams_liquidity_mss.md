@@ -40,6 +40,7 @@ Proje sahibi 2026-10-09'da Gemini'den aldı (Aslan stratejisinin 26 başarısız
 |---|---|---|---|
 | 2026-10-09 | Lookahead kontrolü (BTC 15 dk, 15 kesim noktası) | Geleceği görme yok (`research/robustness/ams_lookahead_check.py`). | — |
 | 2026-10-09 | İlk backtest, geliştirme (2020-01 → 2024-12) | 95 işlem, -0.48R, PF 0.42, DD %38. Long -0.40R, short -0.55R. Sinyallerin %57'si dolmadı. Doğrulama ve kasa kullanılmadı. | [results/2026-10-09_ams_liquidity_mss_ilk_backtest](../results/2026-10-09_ams_liquidity_mss_ilk_backtest/rapor.md) |
+| 2026-10-09 | Gemini 2. tur (`AMSLiquidityMSS_MarketATR`): 7/24, EMA yok, önceki gün tepe/dibine göre yön, MSS kapanışında giriş, 1 ATR stop; trailing test edilmedi (TP ızgarası) | 3049 işlem, -0.11R, PF 0.84, DD %97. Masraf hariç ~-0.02R. Her yıl eksi. | [results/2026-10-09_ams_liquidity_mss_tur2](../results/2026-10-09_ams_liquidity_mss_tur2/rapor.md) |
 
 ## Durum
 candidate — ilk backtest'te başarısız
