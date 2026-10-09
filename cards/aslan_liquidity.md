@@ -68,7 +68,13 @@ Kod: [`strategies/candidates/aslan_liquidity_v3.py`](../strategies/candidates/as
 - **Hedef:** tek hedef **1R** (`MODEL_1R`). **Stop:** v2 kuralı (iğne en fazla gövdenin %175'i).
 - Haber filtresi, giriş fiyatı, 2 mum geçerlilik aynı. Risk testte %1 (hesap tüm dönem boyunca yaşasın diye; R sonuçları riskten bağımsız).
 
-## Durum: candidate — ilk backtest'te başarısız, Aslan'ın kural düzeltmesi bekleniyor
+## v4 — videodaki kontrol listesi (2026-10-09)
+Kod: [`strategies/candidates/aslan_liquidity_v4.py`](../strategies/candidates/aslan_liquidity_v4.py)
+- [bias_up]/[bias_down] günlük HH+HL / LH+LL; [trend_up]/[trend_down] 4 saatlik aynı yön.
+- [poi_touched] fiyat 1 saatlik bir FVG, order block veya iFVG bölgesine döndü | "Fiyat {bölge} bölgesine geri çekildi."
+- [mini_structure_engulf] 5 dk / 15 dk'da son mini tepeyi (1+1 mum) kıran engulf mumu | "Küçük grafikte yapı kırıldı ve engulf mumu geldi."
+- Stop: dönüşün uç noktası (iğne en fazla gövdenin %175'i). Hedef 1R (`AslanLiq4_*`) veya 2R (`*_2R`).
+ candidate — ilk backtest'te başarısız, Aslan'ın kural düzeltmesi bekleniyor
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
@@ -77,6 +83,7 @@ Kod: [`strategies/candidates/aslan_liquidity_v3.py`](../strategies/candidates/as
 | 2026-10-08 | İlk backtest, geliştirme (2020-01 → 2024-12) | 1h: -0.21R, PF 0.72, 2266 işlem. 15m: -0.28R, PF 0.63, 3143 işlem. Maliyet hariç ~0R. %3 riskle hesap 2023'te sıfırlandı. Haber filtresi etkisiz. Doğrulama ve kasa kullanılmadı. | [results/2026-10-08_aslan_liquidity_ilk_backtest](../results/2026-10-08_aslan_liquidity_ilk_backtest/README.md) |
 | 2026-10-08 | v2: iğne en fazla gövdenin %175'i (Aslan), yön filtresi açık/kapalı | 1h: -0.16R (filtre açık), -0.14R (kapalı). 15m: -0.20R / -0.16R. İyileşti ama hâlâ eksi; maliyet hariç ~0R. Yön filtresi faydasız. | [results/2026-10-08_aslan_liquidity_v2](../results/2026-10-08_aslan_liquidity_v2/README.md) |
 | 2026-10-09 | v3: 1R, seans seviyeleri, kırılım, HH/HL trend, 15 dk ve 5 dk (6 varyant) | 15 dk: -0.32 ile -0.39R; 5 dk: -0.46 ile -0.58R. Maliyet hariç hepsi ~0R. Test hesapları erken sıfırlandı. | [results/2026-10-09_aslan_liquidity_v3](../results/2026-10-09_aslan_liquidity_v3/README.md) |
+| 2026-10-09 | v4: videodaki yöntem (günlük+4s trend, 1s FVG/OB/iFVG bölgesine dönüş, mini yapı kırılımı + engulf; 5 dk/15 dk, 1R/2R) | -0.24R ile -0.33R; maliyet hariç ~0R; winrate yazı-tura beklentisinde. | [results/2026-10-09_aslan_liquidity_v4](../results/2026-10-09_aslan_liquidity_v4/README.md) |
 
 ## Notlar / öğrenilenler
 - Kazanma oranı %30-32; 2R hedefle başa baş için ~%33 gerekiyor. Maliyetsiz bile sonuç ~0R: giriş kuralının kenarı yok.
