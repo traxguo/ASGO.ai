@@ -430,4 +430,4 @@ class AslanLiq6_5m(AslanLiq3_5m):
 class AslanLiq6_1m(AslanLiq6_5m):
     timeframe = "1m"
     setup_window = 720  # 12 hours of 1m candles
-    startup_candle_count = 7200
+    startup_candle_count = 2400  # freqtrade allows at most ~2500 1m candles
