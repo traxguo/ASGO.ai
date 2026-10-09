@@ -84,6 +84,7 @@ Kod: [`strategies/candidates/aslan_liquidity_v4.py`](../strategies/candidates/as
 | 2026-10-08 | v2: iğne en fazla gövdenin %175'i (Aslan), yön filtresi açık/kapalı | 1h: -0.16R (filtre açık), -0.14R (kapalı). 15m: -0.20R / -0.16R. İyileşti ama hâlâ eksi; maliyet hariç ~0R. Yön filtresi faydasız. | [results/2026-10-08_aslan_liquidity_v2](../results/2026-10-08_aslan_liquidity_v2/README.md) |
 | 2026-10-09 | v3: 1R, seans seviyeleri, kırılım, HH/HL trend, 15 dk ve 5 dk (6 varyant) | 15 dk: -0.32 ile -0.39R; 5 dk: -0.46 ile -0.58R. Maliyet hariç hepsi ~0R. Test hesapları erken sıfırlandı. | [results/2026-10-09_aslan_liquidity_v3](../results/2026-10-09_aslan_liquidity_v3/README.md) |
 | 2026-10-09 | v4: videodaki yöntem (günlük+4s trend, 1s FVG/OB/iFVG bölgesine dönüş, mini yapı kırılımı + engulf; 5 dk/15 dk, 1R/2R) | -0.24R ile -0.33R; maliyet hariç ~0R; winrate yazı-tura beklentisinde. | [results/2026-10-09_aslan_liquidity_v4](../results/2026-10-09_aslan_liquidity_v4/README.md) |
+| 2026-10-09 | v5: sadece likidite alımı, 5/15 dk OB/iFVG/MSS onayı, stop alım uç noktasının %0.1 ötesi, 1R/2R | -0.24R ile -0.27R; maliyet hariç ~0R. | [results/2026-10-09_aslan_liquidity_v5](../results/2026-10-09_aslan_liquidity_v5/README.md) |
 
 ## Notlar / öğrenilenler
 - Kazanma oranı %30-32; 2R hedefle başa baş için ~%33 gerekiyor. Maliyetsiz bile sonuç ~0R: giriş kuralının kenarı yok.
