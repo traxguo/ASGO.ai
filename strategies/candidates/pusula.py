@@ -146,6 +146,37 @@ class Pusula_B(PusulaBase):
     """Core strategy."""
 
 
+class PusulaTrend(PusulaBase):
+    """
+    Round 2 (fixed before testing, card section "2. tur"): same entries, but no
+    fixed take-profit. The trade is held until the daily trend breaks:
+      long  exit: last closed daily close below daily EMA(20)
+      short exit: last closed daily close above daily EMA(20)
+    The planned stop stays; it moves to break even once price has gone 2R in
+    favour (Model A break-even rule). Entries are skipped when the exit rule is
+    already true, so a trade is never opened only to be closed on the next candle.
+    """
+
+    tp_model_name = "A"  # only its break-even rule is used (2R); no TP orders are placed
+    use_exit_signal = True
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        close_1d, ema_fast = df[f"close_{REGIME_TF}"], df[f"ema_fast_{REGIME_TF}"]
+        conds["long"]["daily_above_ema20"] = close_1d > ema_fast
+        conds["short"]["daily_below_ema20"] = close_1d < ema_fast
+        return conds
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        close_1d, ema_fast = df[f"close_{REGIME_TF}"], df[f"ema_fast_{REGIME_TF}"]
+        df.loc[close_1d < ema_fast, "exit_long"] = 1
+        df.loc[close_1d > ema_fast, "exit_short"] = 1
+        return df
+
+    def adjust_trade_position(self, trade, current_time, current_rate, current_profit, min_stake, max_stake, **kwargs):
+        return None  # no TP orders: the exit comes from the daily trend rule or the stop
+
+
 class PusulaNoBTC_B(PusulaBase):
     """Ablation: same rules without the market (BTC) filter."""
 

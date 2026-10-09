@@ -45,6 +45,20 @@ Ortak modülden (`strategies/common/`): giriş bölgesi 0.25 ATR, stop 1.5 ATR v
 - `Pusula_B`: ana strateji, karar buna göre verilir.
 - `PusulaNoBTC_B`: Bitcoin filtresi olmadan, sadece filtrenin katkısını görmek için.
 
+## 2. tur (2026-10-09, test öncesi yazıldı; proje sahibi "teste devam, açıkları kapat" dedi)
+İlk turda iki açık vardı: düşüş %35 (sınır %25) ve kârın tek yıla (2020) bağlı olması. Kazananlar ortalama 13 gün sürüyordu, sabit 2R/4R hedef trendi erken kesiyor olabilir.
+
+`PusulaTrend` (ana karar buna göre):
+- Girişler aynı + [daily_above_ema20] long için son günlük kapanış EMA(20) üstünde / [daily_below_ema20] short için altında (çıkış kuralı zaten doğruyken işleme girmemek için).
+- **Sabit TP yok.** Çıkış: son kapanmış günlük mum EMA(20)'nin altında kapanırsa long kapanır (short için üstünde). Açıklama: "Günlük trend bozuldu (kapanış {close_1d}, EMA20 {ema_fast_1d} altında), işlem kapatılıyor."
+- Stop aynı (1.5 ATR / son 10 mum). Fiyat 2R lehimize gidince stop girişe çekilir.
+- Aynı anda en fazla **3 açık işlem** (önceden 5). Coinler birlikte hareket ettiği için aynı yöndeki çok sayıda işlem düşüşü büyütüyordu.
+- Brief 7.5: "takip eden stop gibi alternatif kurallar test edilebilir, testten geçmeden kullanılmaz." Bu o testtir.
+
+Karşılaştırma (sadece etkileri ayırmak için): `Pusula_B` en fazla 3 işlemle (sadece işlem sınırının etkisi) ve `PusulaTrend` en fazla 5 işlemle (sadece çıkışın etkisi).
+
+Geçme şartı (değişmedi): maliyet ve funding sonrası > 0R, düşüş ≤ %25, en az 100 işlem, coinlerin en az yarısı pozitif. Geçerse doğrulama verisinde bir kez kontrol.
+
 ## Durum: candidate (ilk backtest'i geçemedi, sonraki adım için proje sahibinin kararı bekleniyor)
 
 ## Test geçmişi
