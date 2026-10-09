@@ -217,3 +217,28 @@ def test_v6_new_fvg_after_sweep_confirms():
     k = int(np.flatnonzero(sig["long_trigger"] != "")[0])
     assert k == 5 and sig["long_trigger"].iloc[k] == "fvg"  # low 97.1 > high of candle 3 (97)
     assert sig["long_struct_stop"].iloc[k] == pytest.approx(93 * 0.999)
+
+
+# ---------------------------------------------------------------- v7
+
+from strategies.candidates import aslan_liquidity_v7 as v7  # noqa: E402
+
+
+def test_v7_entry_only_on_1m_gap_after_mss():
+    rows = [(100, 101, 99, 100.5), (100.5, 101.2, 100.2, 101), (101, 102, 100.8, 101.8),
+            (101.8, 103, 101.5, 102.8), (102.8, 104, 102.9, 103.9)]
+    df = candles(rows, freq="1min")
+    # MSS known at the open of candle 1: candles before it must not count
+    ev = pd.DataFrame({"avail": [df["date"].iloc[1]], "side": ["long"], "stop": [98.0]})
+    sig = v7.find_entries_1m(df, ev, window=60)
+    k = int(np.flatnonzero(sig["long_trigger"] != "")[0])
+    assert k == 3 and sig["long_trigger"].iloc[k] == "fvg"  # low 101.5 > high of candle 1 (101.2)
+    assert sig["long_struct_stop"].iloc[k] == 98.0
+
+
+def test_v7_setup_dies_when_stop_hit_first():
+    rows = [(100, 101, 99, 100.5), (100.5, 100.6, 97, 98), (98, 99, 97.5, 98.8), (98.8, 101, 99.5, 100.9)]
+    df = candles(rows, freq="1min")
+    ev = pd.DataFrame({"avail": [df["date"].iloc[1]], "side": ["long"], "stop": [97.5]})
+    sig = v7.find_entries_1m(df, ev, window=60)
+    assert (sig["long_trigger"] == "").all()

@@ -154,6 +154,7 @@ def find_signals_v3(
     use_ob: bool = False,
     stop_buffer_pct: float | None = None,
     post_sweep: bool = False,
+    mss_only: bool = False,
 ) -> DataFrame:
     """
     v5 options: allow_break=False trades sweeps (reversals) only; use_ob=True also
@@ -250,7 +251,10 @@ def find_signals_v3(
             e = st["ext"]
             if (side == "long" and lo[k] < lo[e]) or (side == "short" and h[k] > h[e]):
                 st["ext"] = e = k
-            t = _confirm(side, k, e, st["start"], o, h, lo, c, ph_idx, pl_idx, fvg_lookback, post_sweep)
+            if mss_only:  # v7: the market structure shift itself, gaps are looked for later on 1m
+                t = "mss" if _confirm(side, k, e, st["start"], o, h, lo, c, ph_idx, pl_idx, -(10**9)) == "mss" else ""
+            else:
+                t = _confirm(side, k, e, st["start"], o, h, lo, c, ph_idx, pl_idx, fvg_lookback, post_sweep)
             if not t and use_ob and _ob_confirm(side, k, e, o, c, h, lo):
                 t = "ob"
             if t:
