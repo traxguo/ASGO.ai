@@ -53,12 +53,12 @@ def first_true(cond: Series) -> Series:
     return cond & ~cond.shift(1, fill_value=False)
 
 
-def regime_score(daily: DataFrame) -> Series:
+def regime_score(daily: DataFrame, fast: int = EMA_FAST, slow: int = EMA_SLOW, mom_days: int = MOMENTUM_DAYS) -> Series:
     """-3 .. +3 trend score per daily candle, from that candle's data and older only."""
     close = daily["close"]
-    ema_fast = close.ewm(span=EMA_FAST, adjust=False, min_periods=EMA_FAST).mean()
-    ema_slow = close.ewm(span=EMA_SLOW, adjust=False, min_periods=EMA_SLOW).mean()
-    momentum = close / close.shift(MOMENTUM_DAYS) - 1
+    ema_fast = close.ewm(span=fast, adjust=False, min_periods=fast).mean()
+    ema_slow = close.ewm(span=slow, adjust=False, min_periods=slow).mean()
+    momentum = close / close.shift(mom_days) - 1
     parts = [np.sign(close - ema_slow), np.sign(ema_fast - ema_slow), np.sign(momentum)]
     score = sum(parts)
     # Not enough history yet -> no regime (no trade, no commentary verdict).
@@ -76,18 +76,20 @@ def regime_label(score) -> str:
     return "mixed"
 
 
-def daily_regime_frame(daily: DataFrame, market_daily: DataFrame | None) -> DataFrame:
+def daily_regime_frame(daily: DataFrame, market_daily: DataFrame | None, fast: int = EMA_FAST,
+                       slow: int = EMA_SLOW, mom_days: int = MOMENTUM_DAYS) -> DataFrame:
     """Daily frame with the coin's score, its EMAs and the market (BTC) score, joined on date."""
     out = daily[["date", "close"]].copy()
     close = out["close"]
-    out["ema_fast"] = close.ewm(span=EMA_FAST, adjust=False, min_periods=EMA_FAST).mean()
-    out["ema_slow"] = close.ewm(span=EMA_SLOW, adjust=False, min_periods=EMA_SLOW).mean()
-    out["mom"] = close / close.shift(MOMENTUM_DAYS) - 1
-    out["score"] = regime_score(daily)
+    out["ema_fast"] = close.ewm(span=fast, adjust=False, min_periods=fast).mean()
+    out["ema_slow"] = close.ewm(span=slow, adjust=False, min_periods=slow).mean()
+    out["mom"] = close / close.shift(mom_days) - 1
+    out["score"] = regime_score(daily, fast, slow, mom_days)
     if market_daily is None:
         out["mkt_score"] = out["score"]
     else:
-        mkt = pd.DataFrame({"date": market_daily["date"], "mkt_score": regime_score(market_daily)})
+        mkt = pd.DataFrame({"date": market_daily["date"],
+                            "mkt_score": regime_score(market_daily, fast, slow, mom_days)})
         out = out.merge(mkt, on="date", how="left")
     return out
 
@@ -100,6 +102,9 @@ class PusulaBase(ManagedStrategy):
     # EMA50 and the 90-day momentum.
     startup_candle_count = 400
     channel = CHANNEL
+    ema_fast = EMA_FAST
+    ema_slow = EMA_SLOW
+    momentum_days = MOMENTUM_DAYS
     use_market_filter = True
 
     def informative_pairs(self):
@@ -119,7 +124,7 @@ class PusulaBase(ManagedStrategy):
         market = None
         if self.use_market_filter:
             market = self.dp.get_pair_dataframe(pair=MARKET_PAIR, timeframe=REGIME_TF)
-        regime = daily_regime_frame(daily, market)
+        regime = daily_regime_frame(daily, market, self.ema_fast, self.ema_slow, self.momentum_days)
         return merge_informative_pair(df, regime, self.timeframe, REGIME_TF, ffill=True)
 
     def swing_levels(self, df: DataFrame):
@@ -259,3 +264,15 @@ def commentary(row, pair: str, mgmt=None, model=None, market_filter: bool = True
         lines.append(f"{'Short' if side == 'long' else 'Long'} yok: trende karşı işlem açmıyorum.")
     view["text"] = "\n".join(lines)
     return view
+
+
+class PusulaTrendLong(PusulaTrend):
+    """
+    Added AFTER the round 2 result (post-hoc, see card): PusulaTrend without
+    shorts. Round 1 and 2 both showed no short edge in 2020-2024.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["short"] = {}
+        return conds

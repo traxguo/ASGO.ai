@@ -86,3 +86,9 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-04 — trend_ma için ısınma süresi
 - **Karar:** `startup_candle_count = 1000`.
 - **Gerekçe:** `recursive-analysis` EMA200'ün 250 mumla ~%2 saptığını, 1000 mumla ~%0 saptığını gösterdi (sentetik veriyle; gerçek veriyle tekrar edilecek).
+
+## 2026-10-09 — Pusula 2. tur: sabit TP yerine trend çıkışı test edildi
+- **Karar:** `PusulaTrend` ve `PusulaTrendLong` sabit TP kullanmıyor: işlem, günlük kapanış EMA(20)'nin aleyhine geçince kapanır; stop aynı, 2R'de girişe çekilir. Aynı anda en fazla 3 açık işlem (`--max-open-trades 3`).
+- **Gerekçe:** Brief 7.5 "takip eden stop gibi alternatif kurallar test edilebilir, testten geçmeden kullanılmaz". Proje sahibi "teste devam, açıkları kapat" dedi. İlk turda kazananlar ortalama 13 gün sürüyordu, sabit 2R/4R onları erken kesiyordu.
+- **Sonuç:** Geliştirmede aynı girişlerle +0.11R → +0.43R (long+short) / +0.83R (sadece long). Doğrulamada +0.16R / +0.28R. Ayrıntı: `cards/pusula.md`.
+- **Not:** Sinyal mesajında TP1/TP2 yerine "trend bozulunca çıkış" yazacak. Bu, brief bölüm 7.3'teki iki TP'li yapıdan bir sapmadır; strateji "active" olmadan önce proje sahibinin onayı gerekir.

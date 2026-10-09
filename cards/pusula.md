@@ -59,14 +59,22 @@ Karşılaştırma (sadece etkileri ayırmak için): `Pusula_B` en fazla 3 işlem
 
 Geçme şartı (değişmedi): maliyet ve funding sonrası > 0R, düşüş ≤ %25, en az 100 işlem, coinlerin en az yarısı pozitif. Geçerse doğrulama verisinde bir kez kontrol.
 
-## Durum: candidate (ilk backtest'i geçemedi, sonraki adım için proje sahibinin kararı bekleniyor)
+## Durum: candidate
+- `Pusula_B` (sabit TP): geçemedi.
+- `PusulaTrend` (long+short): doğrulamayı geçti, geliştirmede DD %31 > %25.
+- `PusulaTrendLong`: iki dönemde de eşikleri geçti (sonradan eklendi, doğrulamada 31 işlem). Kasa testi için proje sahibinin seçimi bekleniyor.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
 | 2026-10-09 | Birim testleri (rejim puanı sadece geçmiş veriyi kullanıyor) + ilk backtest (geliştirme 2020-03 → 2024-12) | Pusula_B +0.08R, PF 1.07, DD %35.0, 269 işlem (long +21.3R, short -0.1R). Kârın tamamı 2020 long'ları; 2021-2024 ≈ -1.6R. BTC filtresiz: +0.06R, DD %38.2. Geçemedi; doğrulamaya bakılmadı. | [results/2026-10-09_Pusula_B_PusulaNoBTC_B_ilk_backtest_gelistirme](../results/2026-10-09_Pusula_B_PusulaNoBTC_B_ilk_backtest_gelistirme/rapor.md) |
+| 2026-10-09 | 2. tur geliştirme (en fazla 3 işlem) | **PusulaTrend** +0.43R, PF 1.40, DD %31.0, 214 işlem (long +109.5R her yıl artıda, short -17.8R). Aynı girişlerle sabit TP: +0.11R. 5 işlemle +0.49R DD %33.7. Maliyet x2: +0.39R. Hile testi temiz. | [tur2_gelistirme_max3](../results/2026-10-09_PusulaTrend_Pusula_B_tur2_gelistirme_max3/rapor.md) |
+| 2026-10-09 | PusulaTrendLong (sonradan eklendi) geliştirme + ±%20 | +0.83R, PF 1.87, DD %20.2, 132 işlem. 8 parametre komşusunun hepsi +0.72R ile +1.45R. | [sadece_long](../results/2026-10-09_PusulaTrendLong_tur2_gelistirme_sadece_long/rapor.md), [dayanıklılık](../results/2026-10-09_pusula_trend_long_dayaniklilik/parametre_komsulari.md) |
+| 2026-10-09 | **Doğrulama, bir kez** (2025-01 → 2026-03) | PusulaTrend +0.16R, PF 1.27, DD %12.7, 64 işlem (short +0.04R). PusulaTrendLong +0.28R, PF 1.50, DD %7.7, 31 işlem. Al-tut -%40. | [tur2_dogrulama](../results/2026-10-09_PusulaTrend_PusulaTrendLong_tur2_dogrulama/rapor.md) |
 
 ## Notlar / öğrenilenler
+- Sabit 2R/4R hedef yerine trend bozulunca çıkmak, aynı girişlerde ortalamayı +0.11R'den +0.43R'ye çıkardı. Asıl açık çıkış kuralıydı.
+- Short tarafı iki turda da geliştirmede zararda, doğrulamada başa baş. Bu coinlerde trend takipli short avantajı yok gibi.
 - Üç ölçünün de aynı yönü göstermesi short'ları kurtarmadı: 2022'de 63 short, ortalama -0.02R.
 - Rejim ölçümü (araştırma): güçlü yükseliş günlerinden sonraki 7 gün ortalama %+4.8, güçlü düşüşten sonra %+1.2, tüm günler %+2.8. Düşüş rejimi bu dönemde short avantajı vermiyor.
 - Kazanan işlemler ortalama 13 gün sürüyor. Sabit 2R/4R hedef, trendin büyük kısmını kaçırıyor olabilir (test edilmedi).

@@ -47,6 +47,8 @@ def main() -> None:
     ap.add_argument("--timeframe", default="4h")
     ap.add_argument("--timerange", default="20200101-20250101")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--ft-arg", action="append", default=[],
+                    help="extra backtesting argument, repeatable, e.g. --ft-arg=--max-open-trades --ft-arg=3")
     a = ap.parse_args()
 
     vs = variants(a.param)
@@ -70,7 +72,7 @@ def main() -> None:
     RES_DIR.mkdir(parents=True)
     cmd = ["./scripts/ft.sh", "backtesting", "--strategy-list", *[f"Nb{i:02d}" for i in range(len(vs))],
            "--timeframe", a.timeframe, "--timerange", a.timerange, "--export", "trades",
-           "--backtest-directory", str(RES_DIR), "--cache", "none"]
+           "--backtest-directory", str(RES_DIR), "--cache", "none", *a.ft_arg]
     env = dict(os.environ, FT_STRATEGY_DIR=str(GEN_DIR.relative_to(ROOT)))
     log = RES_DIR / "backtest.log"
     with log.open("w") as fh:

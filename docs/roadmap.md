@@ -47,6 +47,4 @@ Seviye 0 çıkış şartı sağlandı (2026-10-04).
 **Çıkış şartı:** Her giriş sinyali tasarıma uygun görselle birkaç saniye içinde geliyor.
 
 ## Sıradaki adım
-1. Seviye 1'deki dört aile ve günlük trend filtreli versiyonları (`mtf_trend`) test edildi (2026-10-08), hiçbiri eşikleri geçmedi. En iyi iki aday: `DonchianATR_B` ve `MTFDonchian_B`. Proje sahibinin nasıl devam edileceğine kararı bekleniyor (`decisions.md`).
-2. Elenen stratejilerin kodu `strategies/retired/`'e taşınacak (`atr_filtered.py` diğerlerini içe aktardığı için birlikte, karar sonrası).
-3. Seviye 1 coin listesini son 90 günlük hacimle kontrol et (arşivdeki hacim verisiyle).
+1. (2026-10-09) Pusula 2. tur: `PusulaTrend` ve `PusulaTrendLong` geliştirme ve doğrulamayı büyük ölçüde geçti (`cards/pusula.md`). Proje sahibi kasa testine girecek versiyonu seçecek; kasa testi geçerse Seviye 1 çıkış şartı sağlanır.
