@@ -122,7 +122,7 @@ Winrate tek başına başarı ölçütü değildir; asıl ölçüt ortalama R (e
 
 ## Yorum: güçlü yanlar / şüpheli noktalar
 - **Pusula'nın tasarımında hiç kullanılmayan 10 coin** (ADA, LINK, LTC, DOT, AVAX, TRX, ATOM, BCH, ETC, XLM), 2020-01 → 2026-03, kurallar değiştirilmeden. Kasa dönemi (2026-04 sonrası) dahil değil.
-- **PusulaTrendLong:** +1.05R, PF 2.38, DD %15.1, 144 işlem, net +%212. Yıllara göre long R: 2020 +7.5, 2021 +59.6, 2023 +4.3, 2024 +76.3, 2025 +4.0 (2022'de işlem yok). 10 coinin 5'i artıda (ADA, LINK, TRX, BCH, ETC, XLM; DOT/AVAX başa baş, LTC ve ATOM eksi).
+- **PusulaTrendLong:** +1.05R, PF 2.38, DD %15.1, 144 işlem, net +%212. Yıllara göre long R: 2020 +7.5, 2021 +59.6, 2023 +4.3, 2024 +76.3, 2025 +4.0 (2022'de işlem yok). 10 coinin 6'sı artıda (ADA, LINK, TRX, BCH, ETC, XLM; DOT/AVAX başa baş, LTC ve ATOM eksi).
 - **PusulaTrend (long+short):** +0.49R, PF 1.56, DD %20.0. Short'lar yine başa baş: 148 işlem, -0.05R (2022'de +0.19R, diğer yıllarda eksi).
 - Geliştirmede denenen üç "iyileştirme" bu coinlerde tutmadı: 1R'de BE +0.41R (ana sürüm +1.05R), kapanıştan giriş +0.92R.
 - Şüpheli nokta: kâr yine birkaç büyük trendde toplanıyor (en iyi 5 işlem +149R, toplam +152R). XLM ve ETC'nin büyük kısmı birkaç işlemden.
