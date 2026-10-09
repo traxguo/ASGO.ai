@@ -154,3 +154,96 @@ class AslanLiq7_1m(v3.AslanLiq3Base):
                 "no_news": ~df["news_block"],
             },
         }
+
+
+# ---------------------------------------------------------------- v7 retest (Aslan's note on chart 3)
+# Same sweep -> 5m MSS, but the entry waits for price to come back into the
+# 5m gap the MSS candle left: limit order at the near edge of that gap
+# (long: the gap top), valid for one hour, cancelled if the stop trades first.
+
+
+def mss_gap_events(m5: DataFrame, levels: DataFrame, setup_window: int) -> DataFrame:
+    """[avail, side, stop, edge]: the 5m FVG around the MSS candle and when it is known."""
+    sig = v3.find_signals_v3(m5, levels, setup_window, allow_break=False, stop_buffer_pct=0.001, mss_only=True)
+    h = m5["high"].to_numpy(float)
+    lo = m5["low"].to_numpy(float)
+    close_t = pd.to_datetime(m5["date"], utc=True) + pd.Timedelta(minutes=MSS_TF_MINUTES)
+    n = len(m5)
+    rows = []
+    for side in ("long", "short"):
+        for k in np.flatnonzero((sig[f"{side}_trigger"] == "mss").to_numpy()):
+            stop = sig[f"{side}_struct_stop"].iloc[k]
+            # gap with the MSS candle as the middle candle (known one candle later),
+            # else a gap that the MSS candle itself completes
+            for j in (k + 1, k):
+                if j < 2 or j >= n:
+                    continue
+                if side == "long" and lo[j] > h[j - 2]:
+                    rows.append((close_t.iloc[j], side, stop, lo[j]))
+                    break
+                if side == "short" and h[j] < lo[j - 2]:
+                    rows.append((close_t.iloc[j], side, stop, h[j]))
+                    break
+    ev = DataFrame(rows, columns=["avail", "side", "stop", "edge"])
+    ev["avail"] = pd.to_datetime(ev["avail"], utc=True).astype("datetime64[ns, UTC]")
+    return ev.sort_values("avail", kind="stable").reset_index(drop=True)
+
+
+class AslanLiq7_1m_Retest(AslanLiq7_1m):
+    mgmt = v3.tm.ManagementParams(
+        entry_zone_atr=0.0,
+        valid_for_candles=60,  # the limit order waits one hour for the retest
+        stop_method="structural",
+        stop_buffer_atr=0.0,
+        max_stop_pct=0.08,
+        max_leverage=20.0,
+        risk_per_trade=0.01,
+    )
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        pair = metadata["pair"]
+        m5 = self.dp.get_pair_dataframe(pair=pair, timeframe="5m")
+        h1 = self.dp.get_pair_dataframe(pair=pair, timeframe="1h")
+        h4 = self.dp.get_pair_dataframe(pair=pair, timeframe="4h")
+        d1 = self.dp.get_pair_dataframe(pair=pair, timeframe="1d")
+        ev = mss_gap_events(m5, v3.all_levels(h1, h4, d1), self.mss_setup_window)
+        close_time = (pd.to_datetime(df["date"], utc=True) + pd.Timedelta(minutes=1)).astype("datetime64[ns, UTC]")
+        for side in ("long", "short"):
+            e = ev[ev["side"] == side].set_index("avail")
+            e = e[~e.index.duplicated(keep="last")]
+            df[f"{side}_trigger"] = np.where(close_time.isin(e.index), "retest", "")
+            df[f"{side}_struct_stop"] = close_time.map(e["stop"]).to_numpy()
+            df[f"{side}_edge"] = close_time.map(e["edge"]).to_numpy()
+            df[f"{side}_kind"] = np.where(df[f"{side}_trigger"] != "", "sweep", "")
+        return df
+
+    def add_plan_columns(self, df: DataFrame) -> DataFrame:
+        df = super().add_plan_columns(df)
+        for side in ("long", "short"):
+            has = df[f"{side}_edge"].notna()
+            entry = df[f"{side}_edge"].where(has, df[f"{side}_entry"])
+            stop = df[f"{side}_stop"]
+            tp1, tp2 = v3.tm.targets(side, entry, stop, self.tp_model)
+            df[f"{side}_entry"] = entry
+            df[f"{side}_tp1"] = tp1
+            df[f"{side}_tp2"] = tp2
+            stop_pct = np.abs(entry - stop) / entry
+            df[f"{side}_plan_ok"] = (stop_pct <= self.mgmt.max_stop_pct) & (stop_pct > 0)
+        return df
+
+    def signal_conditions(self, df: DataFrame):
+        return {
+            "long": {
+                "trend_up": self._trend_ok(df, 1),
+                "sweep_then_mss_5m_gap": df["long_trigger"] == "retest",
+                "gap_below_price": (df["long_edge"] < df["close"]) & (df["long_struct_stop"] < df["long_edge"]),
+                "no_news": ~df["news_block"],
+            },
+            "short": {
+                "trend_down": self._trend_ok(df, -1),
+                "sweep_then_mss_5m_gap": df["short_trigger"] == "retest",
+                "gap_above_price": (df["short_edge"] > df["close"]) & (df["short_struct_stop"] > df["short_edge"]),
+                "no_news": ~df["news_block"],
+            },
+        }
