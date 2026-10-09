@@ -330,3 +330,32 @@ class PusulaTrendLongBE1(PusulaTrendLong):
     def tp_model(self):
         from strategies.common import trade_management as tm
         return tm.TPModel(name="BE1", tp1_r=1.0, tp2_r=1.0, tp1_close_pct=0, breakeven_trigger="TP1")
+
+
+# ---------------------------------------------------------------------------
+# Round 4 stress tests (not candidates): same rules under worse conditions.
+# ---------------------------------------------------------------------------
+
+
+class PusulaTrendLongLate(PusulaTrendLong):
+    """Stress test: every signal is acted on one 4h candle late (plan from that later candle)."""
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        return {side: {k: v.shift(1, fill_value=False) for k, v in c.items()} for side, c in conds.items()}
+
+
+class PusulaTrendLong1h(PusulaTrendLong):
+    """Stress test: the same rules with 1h candles for the breakout, stop and plan."""
+
+    timeframe = "1h"
+    startup_candle_count = 2400  # 100 days of 1h candles; the daily data gets enough history too
+
+
+class PusulaTrendLongStrictBTC(PusulaTrendLong):
+    """Round 4 test: longs only when BTC is also in a strong uptrend (score +3), against long losing streaks after a market top."""
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["market_up"] = df[f"mkt_score_{REGIME_TF}"] >= 3
+        return conds

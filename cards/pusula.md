@@ -74,6 +74,12 @@ Denenen çözümler (geliştirme verisi, sonra yeni coinler):
 | Long + short | `PusulaTrend` | +0.43R, DD %31.0 | +0.49R, DD %20.0, short -0.05R | Short avantajı yok |
 | 16 coin birlikte, en fazla 3 işlem | `PusulaTrendLong` | — | 2020-01 → 2026-03: +1.02R, DD %26.1, en iyi 10 hariç ≈ 0R | Geniş liste daha sağlıklı |
 
+## 4. tur (2026-10-09): stres testleri
+16 coin, 2020-01 → 2026-03, en fazla 3 işlem. Rapor: [tur4_stres](../results/2026-10-09_pusula_tur4_stres/rapor.md).
+- Maliyet x2, 1 mum geç giriş, en kârlı coinleri çıkarma (tek tek ve üçü birden), 1h grafik: hepsinde artıda.
+- Açık: en uzun kayıp serisi 26 işlem (2024-03 → 2025-07), DD %26.
+- `PusulaTrendLongStrictBTC` (BTC puanı +3 şartı): toplam R aynı, DD bir listede iyi bir listede kötü; eklenmedi.
+
 ## Durum: candidate
 - `Pusula_B` (sabit TP): geçemedi.
 - `PusulaTrend` (long+short): doğrulamayı geçti, geliştirmede DD %31 > %25.
