@@ -85,6 +85,9 @@ def demo_exchange(key: str, secret: str, passphrase: str):
     ex = ccxt.bitget({"options": {"defaultType": "swap"}, "enableRateLimit": True})
     ex.apiKey, ex.secret, ex.password = key, secret, passphrase
     ex.set_sandbox_mode(True)
+    # the demo account answers the unified-account check, but its play money sits in the classic
+    # futures account; without this ccxt reads the empty unified balance
+    ex.options["uta"] = False
     original_sign = ex.sign
 
     def sign_demo_only(*args, **kwargs):
@@ -374,6 +377,13 @@ def diagnose_empty_account(ex) -> None:
         "unified account settings": lambda: ex.privateUtaGetV3AccountSettings(),
         "unified account assets": lambda: ex.privateUtaGetV3AccountAssets(),
         "spot assets": lambda: ex.privateSpotGetV2SpotAccountAssets(),
+        "unified account info": lambda: ex.privateUtaGetV3AccountInfo(),
+        "unified switch status": lambda: ex.privateUtaGetV3AccountSwitchStatus(),
+        "unified funding assets": lambda: ex.privateUtaGetV3AccountFundingAssets(),
+        "BTCUSDT futures account": lambda: ex.privateMixGetV2MixAccountAccount(
+            {"symbol": "BTCUSDT", "productType": "USDT-FUTURES", "marginCoin": "USDT"}),
+        "USDT-FUTURES bills": lambda: ex.privateMixGetV2MixAccountBill({"productType": "USDT-FUTURES"}),
+        "union config": lambda: ex.privateMixGetV2MixAccountUnionConfig(),
         "USDT-FUTURES positions": lambda: ex.privateMixGetV2MixPositionAllPosition({"productType": "USDT-FUTURES"}),
         "SUSDT-FUTURES positions": lambda: ex.privateMixGetV2MixPositionAllPosition({"productType": "SUSDT-FUTURES"}),
     }
