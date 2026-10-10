@@ -19,6 +19,7 @@ Her stratejinin **kodlanmadan önce** bir kartı olur. Kart, stratejinin "kimlik
 | [kirilim1s](kirilim1s.md) | retired | Günlük trend güçlüyken 1 saatlik grafikte son 24 saatin tepesi/dibi kırılınca girer (hızlı aday, elendi). |
 | [pusula_hizli](pusula_hizli.md) | retired | Pusula 4 saatlikte, gevşek trend şartı ve sabit 2R/4R hedefle (hızlı aday, elendi). |
 | [kirilim1s_limit](kirilim1s_limit.md) | retired | Kırılım1s sinyali, limit (maker) emirle kırılan seviyeye geri dönüşte girer (hızlı aday, elendi). |
+| [momentum_5m](momentum_5m.md) | beklemede | Proje sahibinin getirdiği 5 dakikalık momentum + kırılım + oynaklık filtresi, %1.5 stop / %3 hedef (ilk aşamayı normal masrafla geçemedi). |
 
 ## Strateji eklemek
 1. `_SABLON.md` dosyasını kopyala, `cards/<strateji_adi>.md` olarak kaydet ve doldur (ya da Claude'a "şu fikirle yeni bir strateji kartı aç" de).
