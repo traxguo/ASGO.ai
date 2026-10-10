@@ -1,0 +1,16 @@
+name: demo-reachability
+# One-off probe: which exchange demo APIs can GitHub-hosted runners reach?
+on:
+  push:
+    branches: [claude/project-thread-p81umz]
+    paths: [.github/workflows/demo_reachability.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe demo hosts
+        run: |
+          for u in https://demo-futures.kraken.com/derivatives/api/v3/tickers https://futures.kraken.com/derivatives/api/v3/tickers https://api-demo.bybit.com/v5/market/time https://www.okx.com/api/v5/public/time https://api.bitget.com/api/v2/public/time; do
+            code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 20 "$u" || echo ERR)
+            echo "$u -> $code $(head -c 120 /tmp/body 2>/dev/null)"
+          done
