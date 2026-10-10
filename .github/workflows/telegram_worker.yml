@@ -1,6 +1,7 @@
 # Deploys the Telegram command bot (telegram_worker/) to Cloudflare Workers and points Telegram at it.
 # Needs GitHub Secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
-# and the three BITGET_DEMO_API_* secrets; TELEGRAM_GROUP_ID is optional. Owner steps: docs/telegram_cloudflare_kurulum.md
+# and GH_DISPATCH_TOKEN (starts telegram_command.yml, which uses the BITGET_DEMO_API_* secrets);
+# TELEGRAM_GROUP_ID is optional. Owner steps: docs/telegram_cloudflare_kurulum.md
 name: Telegram bot (Cloudflare)
 
 on:
@@ -50,17 +51,19 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: telegram_worker
+          # the bot no longer talks to Bitget itself; remove the keys older versions stored
+          postCommands: |
+            echo y | npx wrangler secret delete BITGET_DEMO_API_KEY || true
+            echo y | npx wrangler secret delete BITGET_DEMO_API_SECRET || true
+            echo y | npx wrangler secret delete BITGET_DEMO_API_PASSPHRASE || true
           secrets: |
-            BITGET_DEMO_API_KEY
-            BITGET_DEMO_API_SECRET
-            BITGET_DEMO_API_PASSPHRASE
+            GH_DISPATCH_TOKEN
             TELEGRAM_CHAT_ID
             TELEGRAM_GROUP_ID
             WEBHOOK_SECRET
         env:
-          BITGET_DEMO_API_KEY: ${{ secrets.BITGET_DEMO_API_KEY }}
-          BITGET_DEMO_API_SECRET: ${{ secrets.BITGET_DEMO_API_SECRET }}
-          BITGET_DEMO_API_PASSPHRASE: ${{ secrets.BITGET_DEMO_API_PASSPHRASE }}
+          # lets the bot start the "Telegram komutu" job ("none" until the owner adds it)
+          GH_DISPATCH_TOKEN: ${{ secrets.GH_DISPATCH_TOKEN || 'none' }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           # optional: the one group the bot may answer in ("none" until the owner adds it)
           TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID || 'none' }}
@@ -80,3 +83,8 @@ jobs:
           curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands" \
             --data-urlencode 'commands=[{"command":"durum","description":"Bakiye ve açık işlemler"},{"command":"gecmis","description":"Son kapanan işlemler"},{"command":"fiyat","description":"Güncel fiyat, ör. /fiyat BTC"},{"command":"kapat","description":"Demo işlemini kapat, ör. /kapat NEAR"},{"command":"yardim","description":"Komut listesi"}]' > /dev/null
           echo "Telegram now sends messages to the worker."
+          # delivery health: pending messages and Telegram's last error reaching the worker
+          curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo" \
+            | jq '{pending: .result.pending_update_count, last_error: .result.last_error_message, last_error_date: .result.last_error_date}'
+          # the worker's own answer to a plain GET (expects "ok")
+          curl -sS "$URL"; echo

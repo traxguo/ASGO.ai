@@ -46,3 +46,20 @@ Kırmızı çarpı çıkarsa ekran görüntüsünü bana gönder.
 4. Actions → **Telegram bot (Cloudflare)** → Run workflow.
 
 Grupta herkes /durum, /gecmis, /fiyat kullanabilir; /kapat'ı sadece sen kullanabilirsin.
+
+## Bitget'e GitHub üzerinden sorma (GH_DISPATCH_TOKEN)
+
+Bitget, Cloudflare sunucularından gelen istekleri engelliyor. Bu yüzden bot /durum, /gecmis,
+/fiyat ve /kapat komutlarını GitHub'a iletiyor; cevabı GitHub'daki küçük bir iş ("Telegram komutu")
+Bitget'e sorup Telegram'a yolluyor (yaklaşık 30 saniye). Bunun için bir kerelik bir GitHub anahtarı gerekir:
+
+1. github.com/settings/personal-access-tokens/new adresini aç (Fine-grained token).
+2. Token name: `asgo-telegram`. Expiration: 1 yıl (ya da en uzun seçenek).
+3. Repository access: **Only select repositories** → **ASGO.ai**.
+4. Permissions → Repository permissions → **Actions: Read and write**. Başka hiçbir şey seçme.
+5. **Generate token**, çıkan değeri kopyala (bir kez gösterilir).
+6. ASGO.ai → Settings → Secrets and variables → Actions → New repository secret:
+   ad `GH_DISPATCH_TOKEN`, değer o token.
+7. Actions → **Telegram bot (Cloudflare)** → Run workflow.
+
+Bu anahtar sadece "Telegram komutu" işini başlatabilir; koda veya ayarlara dokunamaz.
