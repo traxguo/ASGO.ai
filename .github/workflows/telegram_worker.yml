@@ -1,6 +1,6 @@
 # Deploys the Telegram command bot (telegram_worker/) to Cloudflare Workers and points Telegram at it.
 # Needs GitHub Secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
-# and the three BITGET_DEMO_API_* secrets. Owner steps: docs/telegram_cloudflare_kurulum.md
+# and the three BITGET_DEMO_API_* secrets; TELEGRAM_GROUP_ID is optional. Owner steps: docs/telegram_cloudflare_kurulum.md
 name: Telegram bot (Cloudflare)
 
 on:
@@ -55,12 +55,15 @@ jobs:
             BITGET_DEMO_API_SECRET
             BITGET_DEMO_API_PASSPHRASE
             TELEGRAM_CHAT_ID
+            TELEGRAM_GROUP_ID
             WEBHOOK_SECRET
         env:
           BITGET_DEMO_API_KEY: ${{ secrets.BITGET_DEMO_API_KEY }}
           BITGET_DEMO_API_SECRET: ${{ secrets.BITGET_DEMO_API_SECRET }}
           BITGET_DEMO_API_PASSPHRASE: ${{ secrets.BITGET_DEMO_API_PASSPHRASE }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # optional: the one group the bot may answer in ("none" until the owner adds it)
+          TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID || 'none' }}
 
       - name: Point Telegram at the worker
         if: github.event_name != 'pull_request' && env.HAS_KEYS == 'true'

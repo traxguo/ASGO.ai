@@ -37,3 +37,12 @@ Bitget anahtarları zaten orada; tekrar girme. Hiçbir anahtarı sohbete yapış
 GitHub → **Actions** → solda **Telegram bot (Cloudflare)** → **Run workflow**. Bir iki dakika sonra yeşil tik çıkınca Telegram'da botuna `/durum` yaz.
 
 Kırmızı çarpı çıkarsa ekran görüntüsünü bana gönder.
+
+## Grupta da çalışsın (isteğe bağlı)
+
+1. Botu gruba ekle (zaten ekliyse geç).
+2. Grupta `/grupid` yaz. Bot sadece sana, grubun numarasını söyler (eksiyle başlar, ör. -100...).
+3. GitHub → Settings → Secrets and variables → Actions → New repository secret: ad `TELEGRAM_GROUP_ID`, değer o numara.
+4. Actions → **Telegram bot (Cloudflare)** → Run workflow.
+
+Grupta herkes /durum, /gecmis, /fiyat kullanabilir; /kapat'ı sadece sen kullanabilirsin.
