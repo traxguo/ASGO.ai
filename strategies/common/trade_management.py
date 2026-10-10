@@ -37,7 +37,9 @@ class TPModel:
     def __post_init__(self) -> None:
         if self.tp1_r < 1.0:
             raise ValueError("TP1 can never be smaller than 1R (brief 7.3)")
-        if self.tp2_r <= self.tp1_r:
+        # A single-target model (no partial exit) may put its only target at TP1.
+        single_target = self.tp1_close_pct == 0 and self.tp2_r == self.tp1_r
+        if self.tp2_r <= self.tp1_r and not single_target:
             raise ValueError("TP2 must be further away than TP1")
         if not 0 <= self.tp1_close_pct < 100:
             raise ValueError("tp1_close_pct must be in [0, 100)")

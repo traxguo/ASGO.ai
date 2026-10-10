@@ -2,7 +2,7 @@
 
 Seviyeler sırayla ilerler. Bir seviyenin çıkış şartı sağlanmadan sonrakine geçilmez.
 
-**Şu anki seviye: 0 — Altyapı** (son güncelleme: 2026-10-04)
+**Şu anki seviye: 1 — Sabit liste** (son güncelleme: 2026-10-04)
 
 ## Seviye 0 — Altyapı
 - [x] Repo yapısı, `.gitignore`, `.env.example`
@@ -13,9 +13,11 @@ Seviyeler sırayla ilerler. Bir seviyenin çıkış şartı sağlanmadan sonraki
 - [x] Örnek strateji (`trend_ma`) + kartı
 - [x] Rapor üretici (`scripts/make_report.py`) ve veri doğrulama (`research/data/validate.py`)
 - [x] Uçtan uca boru hattı testi (sentetik veriyle; lookahead/recursive analizleri dahil)
-- [ ] **Gerçek veriyi indir** (OHLCV 1h/4h + funding + mark) ve doğrula ← şu an Binance erişimi engelli, bkz. `decisions.md`
-- [ ] Gerçek veriyle `trend_ma` Model A vs B ilk backtest + rapor
-- [ ] Geliştirme / doğrulama / kasa tarih sınırlarını belirle
+- [x] Gerçek veriyi indir (OHLCV 1h/4h + funding + mark, 2020-01 → 2026-09) ve doğrula (data.binance.vision arşivi, bkz. `decisions.md`)
+- [x] Gerçek veriyle `trend_ma` Model A vs B ilk backtest + rapor (`results/2026-10-04_trend_ma_ilk_backtest/`)
+- [x] Geliştirme / doğrulama / kasa tarih sınırlarını belirle (`decisions.md`)
+
+Seviye 0 çıkış şartı sağlandı (2026-10-04).
 
 **Çıkış şartı:** Tek komutla veri indirilip, bir strateji bölüm 7'deki yönetimle (Model A ve B) test edilip, rapor üretilebiliyor.
 
@@ -45,5 +47,5 @@ Seviyeler sırayla ilerler. Bir seviyenin çıkış şartı sağlanmadan sonraki
 **Çıkış şartı:** Her giriş sinyali tasarıma uygun görselle birkaç saniye içinde geliyor.
 
 ## Sıradaki adım
-1. Binance verisine erişim (bkz. `decisions.md` 2026-10-04): ortamın ağ izni açılınca veya veri başka yerden indirilince `./scripts/download_data.sh`.
-2. `trend_ma` için gerçek veriyle lookahead + recursive analizi, ardından Model A vs B ilk backtest raporu.
+0. (2026-10-10) Pusula (`PusulaTrendLong`, donduruldu) ileriye dönük kağıt takipte: `research/forward/pusula_paper.py`, rapor `forward/pusula_kagit.md`, her pazartesi güncellenir. Yan strateji Kalabalık (funding tersine) geliştirme + doğrulamayı geçti, kasada başa baş (+0.05R); aylık kağıt takibe alınacak. Sıradaki yan fikir: güçlü/zayıf coin sepeti.
+1. (2026-10-09) Pusula 2. tur: `PusulaTrend` ve `PusulaTrendLong` geliştirme ve doğrulamayı büyük ölçüde geçti (`cards/pusula.md`). Proje sahibi kasa testine girecek versiyonu seçecek; kasa testi geçerse Seviye 1 çıkış şartı sağlanır.

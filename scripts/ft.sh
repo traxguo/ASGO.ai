@@ -2,6 +2,7 @@
 # Runs a Freqtrade command, ALWAYS after the safety check.
 #   ./scripts/ft.sh backtesting --strategy TrendMA_B
 #   FT_LOCAL=1 ./scripts/ft.sh ...   -> use a local freqtrade install instead of Docker
+#   FT_OFFLINE=1 (with FT_LOCAL=1)    -> static market list, for when the Binance API is blocked (HTTP 451)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -21,7 +22,9 @@ case "$cmd" in
     ARGS=("$cmd" "$@") ;;
 esac
 
-if [[ "${FT_LOCAL:-0}" == "1" ]]; then
+if [[ "${FT_LOCAL:-0}" == "1" && "${FT_OFFLINE:-0}" == "1" ]]; then
+  python3 scripts/offline_freqtrade.py "${ARGS[@]}"
+elif [[ "${FT_LOCAL:-0}" == "1" ]]; then
   freqtrade "${ARGS[@]}"
 else
   docker compose run --rm freqtrade "${ARGS[@]}"

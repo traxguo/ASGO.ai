@@ -3,7 +3,8 @@
 Safety check. Run before every Freqtrade command (scripts/ft.sh does this).
 
 Stops with an error if:
-  1. any config file has dry_run != true (or base.json has no dry_run at all)
+  1. any config file has dry_run != true (or base.json has no dry_run at all);
+     only exception: config/demo.json with exchange.demo_trading true (Binance demo account)
   2. any config file contains a non-empty exchange key/secret
   3. any file that git would commit looks like it contains a key, token or password
   4. a .env file is tracked by git
@@ -20,6 +21,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+DEMO_CONFIG = "config/demo.json"  # Binance demo trading (play money) only, see docs/decisions.md 2026-10-10
 
 SECRET_PATTERNS = {
     "telegram_bot_token": re.compile(r"\b\d{8,10}:[A-Za-z0-9_-]{35}\b"),
@@ -82,10 +84,13 @@ def check_configs(errors: list[str]) -> None:
         found = list(iter_dry_run_values(data))
         if cfg == base and not found:
             errors.append(f"{rel}: dry_run is not set (must be true)")
-        for p, v in found:
-            if v is not True:
-                errors.append(f"{rel}: {p} = {v!r} (must be true)")
         exch = data.get("exchange", {}) if isinstance(data, dict) else {}
+        # Owner decision 2026-10-10: only the Binance demo config may turn dry_run off.
+        demo_ok = (str(rel) == DEMO_CONFIG and exch.get("name") == "binance"
+                   and exch.get("demo_trading") is True)
+        for p, v in found:
+            if v is not True and not (demo_ok and p == "dry_run" and v is False):
+                errors.append(f"{rel}: {p} = {v!r} (must be true)")
         for k in ("key", "secret", "password", "uid"):
             if exch.get(k):
                 errors.append(f"{rel}: exchange.{k} is not empty (no API keys allowed)")
@@ -118,7 +123,7 @@ def main() -> int:
         for e in errors:
             print(f"  - {e}")
         return 1
-    print("Safety check OK: dry_run is true everywhere, no secrets found.")
+    print("Safety check OK: dry_run is true everywhere (except the Binance demo config), no secrets found.")
     return 0
 
 

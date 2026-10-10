@@ -25,7 +25,7 @@ import pandas as pd
 from freqtrade.data.history import get_datahandler
 from freqtrade.enums import CandleType
 
-JUMP_THRESHOLD = {"1h": 0.15, "4h": 0.25}  # flag single-candle moves larger than this
+JUMP_THRESHOLD = {"1h": 0.15, "4h": 0.25, "1d": 0.35}  # flag single-candle moves larger than this
 FUNDING_MAX_GAP = pd.Timedelta(hours=8)  # Binance funding is every 8h (some pairs 4h)
 
 
@@ -38,7 +38,7 @@ def load_pairs(configs: list[str]) -> list[str]:
 
 
 def check_ohlcv(df: pd.DataFrame, timeframe: str) -> dict:
-    td = pd.Timedelta(timeframe)
+    td = pd.Timedelta(timeframe.replace("d", "D"))
     dates = df["date"]
     dup = int(dates.duplicated().sum())
     full = pd.date_range(dates.min(), dates.max(), freq=td)
@@ -81,7 +81,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", action="append", default=["config/base.json", "config/pairs_level1.json"])
     ap.add_argument("--datadir", default="user_data/data/binance")
-    ap.add_argument("--timeframes", nargs="+", default=["1h", "4h"])
+    ap.add_argument("--timeframes", nargs="+", default=["1h", "4h", "1d"])
     ap.add_argument("--out", default="research/data/validation_report.md")
     a = ap.parse_args()
 
@@ -98,7 +98,7 @@ def main() -> None:
     details: list[str] = []
     for pair in pairs:
         for tf in a.timeframes:
-            df = dh.ohlcv_load(pair, tf, candle_type=CandleType.FUTURES)
+            df = dh.ohlcv_load(pair, tf, candle_type=CandleType.FUTURES, fill_missing=False)
             if df.empty:
                 lines.append(f"| {pair} | {tf} | **VERİ YOK** | | | | | | |")
                 problems += 1
@@ -114,8 +114,8 @@ def main() -> None:
               "| Coin | Funding başlangıç | Funding satır | 8 saatten uzun boşluk | En büyük boşluk | Mark price başlangıç | Mark mum |",
               "|---|---|---|---|---|---|---|"]
     for pair in pairs:
-        fr = dh.ohlcv_load(pair, "1h", candle_type=CandleType.FUNDING_RATE)
-        mk = dh.ohlcv_load(pair, "1h", candle_type=CandleType.MARK)
+        fr = dh.ohlcv_load(pair, "1h", candle_type=CandleType.FUNDING_RATE, fill_missing=False)
+        mk = dh.ohlcv_load(pair, "1h", candle_type=CandleType.MARK, fill_missing=False)
         f = check_funding(fr)
         if f["rows"] == 0 or mk.empty:
             problems += 1

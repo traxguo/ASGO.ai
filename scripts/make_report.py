@@ -155,7 +155,8 @@ def fmt(x, d=2):
     return f"{x:.{d}f}"
 
 
-def build_report(stats: dict, datadir: Path, test: str, out: Path, synthetic: bool) -> Path:
+def build_report(stats: dict, datadir: Path, test: str, out: Path, synthetic: bool,
+                 max_leverage: float = 3.0, risk_pct: float = 1.0) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     strategies = stats["strategy"]
     first = next(iter(strategies.values()))
@@ -201,8 +202,8 @@ def build_report(stats: dict, datadir: Path, test: str, out: Path, synthetic: bo
         f"- Zaman dilimi: {first['timeframe']}",
         "- Yön: long + short",
         f"- Mod: {first.get('trading_mode')} / {first.get('margin_mode')}",
-        "- Kaldıraç: en fazla 3x, likidasyon stop mesafesinin en az 2 katı uzakta (bölüm 7.6)",
-        "- Risk: işlem başına sermayenin %1'i (pozisyon büyüklüğü stop mesafesine göre)",
+        f"- Kaldıraç: en fazla {max_leverage:g}x, likidasyon stop mesafesinin en az 2 katı uzakta (bölüm 7.6)",
+        f"- Risk: işlem başına sermayenin %{risk_pct:g}'i (pozisyon büyüklüğü stop mesafesine göre)",
         "- Maliyet: her emir için %0.05 komisyon + %0.05 kayma (= %0.1), funding geçmiş veriden",
         f"- Başlangıç sermayesi: {first['starting_balance']} {first['stake_currency']}",
     ]
@@ -290,11 +291,13 @@ def main() -> None:
     ap.add_argument("--test", required=True, help="short test name, e.g. ilk_backtest")
     ap.add_argument("--out", help="output folder (default: results/<today>_<strategies>_<test>)")
     ap.add_argument("--synthetic", action="store_true", help="stamp the report as synthetic pipeline test")
+    ap.add_argument("--max-leverage", type=float, default=3.0, help="leverage cap the strategy ran with (text only)")
+    ap.add_argument("--risk-pct", type=float, default=1.0, help="risk per trade in %% the strategy ran with (text only)")
     a = ap.parse_args()
     stats = load_backtest_stats(Path(a.results))
     names = "_".join(stats["strategy"].keys())
     out = Path(a.out) if a.out else Path("results") / f"{date.today().isoformat()}_{names}_{a.test}"
-    print(build_report(stats, Path(a.datadir), a.test, out, a.synthetic))
+    print(build_report(stats, Path(a.datadir), a.test, out, a.synthetic, a.max_leverage, a.risk_pct))
 
 
 if __name__ == "__main__":

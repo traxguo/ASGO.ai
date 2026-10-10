@@ -33,7 +33,7 @@ Gereken: Docker. Tüm Freqtrade komutları `scripts/ft.sh` üzerinden çalışı
 ```bash
 docker compose build                       # bir kere
 ./scripts/download_data.sh                 # Seviye 1 verisini indir + doğrula
-./scripts/ft.sh backtesting --strategy-list TrendMA_A TrendMA_B --timeframe 4h
+FT_STRATEGY_DIR=strategies/retired ./scripts/ft.sh backtesting --strategy-list TrendMA_A TrendMA_B --timeframe 4h --timerange 20200101-20250101   # örnek: emekli trend_ma
 python scripts/make_report.py --test ilk_backtest   # results/ altına Türkçe rapor
 ```
 

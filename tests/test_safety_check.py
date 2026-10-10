@@ -32,3 +32,45 @@ def test_dry_run_values_found_nested():
 
 def test_repo_passes():
     assert sc.main() == 0
+
+
+def _check(tmp_path, monkeypatch, rel, data):
+    import json
+    (tmp_path / "config").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "config" / "base.json").write_text(json.dumps({"dry_run": True}))
+    (tmp_path / rel).write_text(json.dumps(data))
+    monkeypatch.setattr(sc, "REPO", tmp_path)
+    errors = []
+    sc.check_configs(errors)
+    return errors
+
+
+def test_demo_config_may_disable_dry_run(tmp_path, monkeypatch):
+    data = {"dry_run": False, "exchange": {"name": "binance", "demo_trading": True}}
+    assert _check(tmp_path, monkeypatch, "config/demo.json", data) == []
+
+
+def test_demo_config_without_demo_flag_fails(tmp_path, monkeypatch):
+    data = {"dry_run": False, "exchange": {"name": "binance"}}
+    assert _check(tmp_path, monkeypatch, "config/demo.json", data)
+
+
+def test_other_config_with_demo_flag_fails(tmp_path, monkeypatch):
+    data = {"dry_run": False, "exchange": {"name": "binance", "demo_trading": True}}
+    assert _check(tmp_path, monkeypatch, "config/live.json", data)
+
+
+def test_demo_hosts_guard():
+    import importlib.util
+
+    import ccxt
+    import pytest
+    spec = importlib.util.spec_from_file_location(
+        "demo_freqtrade", Path(__file__).resolve().parents[1] / "scripts" / "demo_freqtrade.py")
+    df = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(df)
+    api = ccxt.binanceusdm()
+    with pytest.raises(SystemExit):
+        df.assert_demo_hosts(api)
+    api.enable_demo_trading(True)
+    df.assert_demo_hosts(api)

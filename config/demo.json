@@ -1,0 +1,42 @@
+{
+  "$comment": "Binance DEMO TRADING only (play money, demo.binance.com). Owner decision 2026-10-10, docs/decisions.md. Use ONLY through scripts/demo_freqtrade.py, which checks that every API host is demo-*. Keys come from .env, never from this file. Pass after config/base.json.",
+  "dry_run": false,
+  "max_open_trades": 3,
+  "exchange": {
+    "name": "binance",
+    "demo_trading": true,
+    "key": "",
+    "secret": "",
+    "pair_whitelist": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "XRP/USDT:USDT",
+      "BNB/USDT:USDT",
+      "DOGE/USDT:USDT",
+      "ADA/USDT:USDT",
+      "LINK/USDT:USDT",
+      "LTC/USDT:USDT",
+      "DOT/USDT:USDT",
+      "AVAX/USDT:USDT",
+      "TRX/USDT:USDT",
+      "ATOM/USDT:USDT",
+      "BCH/USDT:USDT",
+      "ETC/USDT:USDT",
+      "XLM/USDT:USDT"
+    ]
+  },
+  "telegram": {
+    "enabled": false,
+    "token": "",
+    "chat_id": ""
+  },
+  "api_server": {
+    "enabled": true,
+    "listen_ip_address": "127.0.0.1",
+    "listen_port": 8080,
+    "verbosity": "error",
+    "enable_openapi": false,
+    "CORS_origins": []
+  }
+}

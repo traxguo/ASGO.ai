@@ -26,3 +26,11 @@ signals/log/*.json
 .DS_Store
 .idea/
 .vscode/
+user_data/tp_grid_strategies/
+user_data/tp_grid_results/
+user_data/neighbor_strategies/
+user_data/neighbor_results/
+user_data/dev_*/
+user_data/val_*/
+user_data/grid_*.log
+user_data/forward_results/

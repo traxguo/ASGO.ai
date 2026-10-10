@@ -2,6 +2,48 @@
 
 Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
+## 2026-10-08 — "Önce günlük trend" stratejileri (mtf_trend) test edildi
+- **Durum:** Proje sahibinin isteğiyle popüler fikirler günlük trend filtresiyle (günlük kapanış > / < günlük EMA50) denendi: Donchian kırılımı, RSI geri çekilme, Supertrend, sıkışma kırılımı ve en iyi adayın (DonchianATR) günlük trendli hali. Günlük veri (1d) indirme ve doğrulamaya eklendi.
+- **Sonuç:** Sadece `MTFDonchian_B` geçen kısımlar gösterdi: geliştirmede +0.10R / PF 1.11 / DD %37, doğrulamada +0.10R / PF 1.09 / DD %16, 6 coinin 4'ü pozitif. Diğerleri aşama 2'de elendi.
+- **Karar:** Hiçbir strateji active olmadı (PF < 1.2; geliştirme DD > %25). En iyi iki aday: `DonchianATR_B` (geliştirmede güçlü, doğrulamada zayıf) ve `MTFDonchian_B` (iki dönemde tutarlı ama zayıf, yüksek drawdown). Kasa kullanılmadı.
+- **Not:** Drawdown büyük ölçüde işlem başına %1 risk ve aynı anda 5'e kadar açık işlemden geliyor; riski düşürmek drawdown'u kabaca orantılı küçültür, ama bu kurallarda (bölüm 10) değişiklik olur ve proje sahibinin kararıdır. Yapılmadı.
+
+## 2026-10-08 — Seviye 1 strateji ailesi tamamlandı: active olacak strateji yok
+- **Durum:** Brief'teki dört ailenin hepsi test edildi (trend_ma, donchian_breakout, rsi_reversion, üçünün ATR filtreli versiyonları). Hiçbiri aşama 1-4'ü eşiklerle geçemedi. En iyi aday `DonchianATR_B`: geliştirmede +0.16R / PF 1.22 / DD %17; doğrulamada +0.06R / PF 1.04 (eşik 1.2) / DD %13.5, 6 coinin 2'si pozitif (eşik %50).
+- **Karar:** Hiçbir strateji `active/`'e alınmadı, kasa (holdout) kullanılmadı. Eşikler değiştirilmedi. Nasıl devam edileceği proje sahibine soruldu.
+- **Gerekçe:** Kurallar ("kötü sonuç gizlenmez", eşikler) ve doğrulamadaki +0.06R'nin 88 işlemle sıfırdan ayırt edilememesi.
+
+## 2026-10-08 — rsi_reversion lookahead uyarısı yanlış alarm sayıldı
+- **Durum:** `lookahead-analysis` 45 işlemin 1'inde bias işaretledi (ETH 2023-08-30 04:00), gösterge sapması yoktu.
+- **Kontrol:** Aynı strateji veri 04:00'te, 08:00'de ve 12:00'de kesilerek çalıştırıldı. Veri 08:00 ve 12:00'de kesilince işlem aynı fiyat ve stopla açıldı; 04:00'te kesilince hiç açılmadı, çünkü o mumun verisi yoktu. Gelecek veriye bakan bir hesap yok.
+- **Karar:** Yanlış alarm; strateji zaten ilk backtest'te elendiği için ek önlem alınmadı.
+
+## 2026-10-08 — TP model seçim kuralı (aşama 3)
+- **Karar:** Sabit ızgaradan (16 kombinasyon; aynı sonucu veren modeller çıkınca 12) geliştirme verisinde **en yüksek ortalama R** seçilir. Hem donchian_breakout hem DonchianATR'de seçilen model varsayılan Model B oldu (varsayılandan sapma gerekmedi).
+
+## 2026-10-04 — donchian_breakout ilk backtest: devam
+- **Karar:** Aşama 3'e (TP model ızgarası, geliştirme verisi) devam.
+- **Gerekçe:** Maliyet ve funding sonrası beklenti pozitif (B: +0.09R, 567 işlem, 6 coinin 4'ü pozitif). Drawdown (%38) ve PF (1.10) active eşiklerinin altında; aşama 4'te de böyle kalırsa bu kart değiştirilmez, filtreli yeni kart açılır veya emekli edilir. Rapor: `results/2026-10-04_donchian_breakout_ilk_backtest/rapor.md`.
+
+## 2026-10-04 — Ortak modül düzeltmesi (Model A break even kontrolü)
+- **Durum:** Model A'da girişten hemen sonraki ilk `custom_stoploss` çağrısında `max_rate/min_rate` henüz boştu ve hata veriyordu; o mumda planlanan stop kurulmuyordu.
+- **Karar:** Boşsa giriş fiyatı kullanılıyor. trend_ma raporu yeniden üretildi (A net -19.5% → -18.6%); emeklilik kararı değişmedi. Model B etkilenmedi.
+
+## 2026-10-04 — trend_ma emekliye ayrıldı
+- **Karar (proje sahibi onayladı):** `trend_ma` emekliye ayrıldı (`strategies/retired/`), Seviye 1'deki diğer strateji ailelerine geçiliyor.
+- **Gerekçe:** Geliştirme döneminde (2020-06 → 2024-12, 6 coin) iki TP modelinde de işlem başına -0.06R, profit factor 0.91-0.92, drawdown %43-47. Eşikler: PF ≥ 1.2, DD ≤ %25. Parametre veya yön ayarı geliştirme verisine uydurma olurdu. Rapor: `results/2026-10-04_trend_ma_ilk_backtest/rapor.md`.
+
+## 2026-10-04 — Geliştirme / doğrulama / kasa tarih sınırları
+- **Karar:** Geliştirme 2020-01-01 → 2024-12-31 (`--timerange 20200101-20250101`); doğrulama 2025-01-01 → 2026-03-31 (`20250101-20260401`); kasa (holdout) 2026-04-01 → 2026-09-30 (`20260401-20261001`).
+- **Gerekçe:** Veri 2020-01'den 2026-09 sonuna kadar (arşivde ay bitince eklenir). Kasa = son 6 ay (kural). Kalan ~5 yılın son 15 ayı doğrulama, öncesi geliştirme: geliştirmede hem yükseliş (2020-21, 2023-24) hem düşüş (2022) piyasası var. Sınırlar sabit kalır; yeni ay verisi eklense de kaydırılmaz (kasa ileride tekrar kullanılırsa ayrıca karar yazılır).
+
+## 2026-10-04 — Veri kaynağı: data.binance.vision arşivi
+- **Durum:** Ağ izni açıldı ama `fapi.binance.com` / `api.binance.com` bu sunucuya HTTP 451 veriyor (Binance'in ülke engeli). `data.binance.vision` çalışıyor.
+- **Karar:** Seviye 1 verisi (1h/4h futures OHLCV, 1h mark, funding) aylık arşivden indiriliyor (`FT_LOCAL=1 FT_OFFLINE=1 ./scripts/download_data.sh`). Aylık arşivde eksik günler (SOL ve XRP: 2022-02-26 → 28 ve 2022-04-01 → 02) günlük arşivden tamamlanıyor. Freqtrade market listesini API'den alamadığı için `scripts/offline_freqtrade.py` sabit liste veriyor (Binance tick/lot değerleri, 2026-10 itibarıyla, API'den doğrulanamadı; sadece yuvarlamayı etkiler).
+- **Veri doğrulama düzeltmesi:** `validate.py` daha önce eksik mumları göremiyordu, çünkü Freqtrade okurken boşlukları sıfır hacimli mumla dolduruyor. Artık `fill_missing=False` ile okuyor.
+- **Kalan uyarılar (gerçek piyasa olayları, düzeltilmedi):** her coinde 1 adet sıfır hacimli 1h mum; aşırı sıçramalar (ör. 2020-03-12 çöküşü, 2021 DOGE yükselişi).
+- **Eski not:** Aşağıdaki "Binance verisine bu çalışma ortamından erişilemiyor" kararı bununla çözüldü.
+
 ## 2026-10-04 — Bot tek bir gruba da yazabilir (kural 7 değişti)
 - **Karar:** Proje sahibi, botun arkadaşıyla olan bir gruba da yazmasını istedi. Kural 7 güncellendi: kişisel sohbet + `.env`'deki `TELEGRAM_GROUP_ID` ile seçilen **tek** grup. Kanal veya ikinci grup yok.
 - **Nasıl:** Grup ID'si boşsa bot eskisi gibi sadece kişisel sohbete yazar. Grupta sadece `/` ile başlayan komutlara cevap verir (normal sohbete karışmaz). Başka gruplar yok sayılır. Seviye 3'te otomatik sinyaller de bu iki sohbete gidecek.
@@ -44,3 +86,23 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-04 — trend_ma için ısınma süresi
 - **Karar:** `startup_candle_count = 1000`.
 - **Gerekçe:** `recursive-analysis` EMA200'ün 250 mumla ~%2 saptığını, 1000 mumla ~%0 saptığını gösterdi (sentetik veriyle; gerçek veriyle tekrar edilecek).
+
+## 2026-10-09 — Pusula 2. tur: sabit TP yerine trend çıkışı test edildi
+- **Karar:** `PusulaTrend` ve `PusulaTrendLong` sabit TP kullanmıyor: işlem, günlük kapanış EMA(20)'nin aleyhine geçince kapanır; stop aynı, 2R'de girişe çekilir. Aynı anda en fazla 3 açık işlem (`--max-open-trades 3`).
+- **Gerekçe:** Brief 7.5 "takip eden stop gibi alternatif kurallar test edilebilir, testten geçmeden kullanılmaz". Proje sahibi "teste devam, açıkları kapat" dedi. İlk turda kazananlar ortalama 13 gün sürüyordu, sabit 2R/4R onları erken kesiyordu.
+- **Sonuç:** Geliştirmede aynı girişlerle +0.11R → +0.43R (long+short) / +0.83R (sadece long). Doğrulamada +0.16R / +0.28R. Ayrıntı: `cards/pusula.md`.
+- **Not:** Sinyal mesajında TP1/TP2 yerine "trend bozulunca çıkış" yazacak. Bu, brief bölüm 7.3'teki iki TP'li yapıdan bir sapmadır; strateji "active" olmadan önce proje sahibinin onayı gerekir.
+
+## 2026-10-10 — Pusula kasa testi
+- **Sonuç:** PusulaTrendLong (16 coin) kasa döneminde -0.02R, DD %6.2, 15 işlem. Geçme şartı > 0R olduğu için geçemedi; "active" olmadı.
+- **Karar:** Kurallar kasa sonucuna göre değiştirilmeyecek. Strateji `candidates/` altında kalıyor. 2020-01 → 2026-09 verisinin tamamı artık görüldü; bu stratejiyi yargılamanın tek temiz yolu yeni (ileriye dönük) veri.
+
+## 2026-10-10 — Kalabalık (funding tersine) yan strateji
+- **Sonuç:** Önceden sabitlenen tek varyant `Kalabalik_B` geliştirmede eşikleri geçti (+0.28R, DD %9.3, 123 işlem) ve doğrulamada da artıda (+0.29R, 26 işlem, hepsi long).
+- **Kasa (bir kez):** +0.05R, 13 işlem, DD %4.1. Eşiği kâğıt üstünde geçti ama başa baş. Dayanıklılık: komşular, masraf x2 ve hile testi geçti.
+- **Karar:** "active" yapılmıyor, `candidates/` altında kalıyor, kurallar değişmiyor. 2026-04..09 kasasında ikinci strateji de başa baş: bu dönemde iki farklı fikir de kazanamadı. Yargı ileriye dönük kağıt takiple (aylık, funding arşivi ay sonunda çıkıyor).
+
+## 2026-10-10 — Binance demo hesabında işlem (proje sahibi kararı)
+- **Karar:** Proje sahibi Pusula'yı Binance demo hesabında (demo.binance.com, oyun parası) takip etmek istedi ("şart") ve "hiç emir yok" kuralının kaldırılmasına onay verdi. Uygulanan: sadece `config/demo.json` dry_run'ı kapatabilir, o da `exchange.demo_trading: true` ile. Başlatma yalnızca `scripts/demo_freqtrade.py` ile; program tüm Binance API adreslerinin `demo-*` olduğunu kontrol etmeden başlamaz. Anahtarlar sadece proje sahibinin bilgisayarındaki `.env` dosyasında.
+- **Gerçek para:** Proje sahibi kuralın "hepten" kaldırılmasını istedi. Gerçek hesapta işlem açmak bu değişiklikle hâlâ mümkün değil. Bu ayrı ve geri alınamaz bir adım; demo sonuçları görülmeden ve strateji "active" olmadan yapılmaması önerildi.
+- **Not:** Binance demo ayrı bir piyasadır (kendi emir defteri); sonuçlar kağıt takipten biraz farklı çıkabilir. Bulut ortamı Binance'e (demo dahil) bağlanamadığı için bot proje sahibinin bilgisayarında çalışır.

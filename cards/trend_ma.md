@@ -1,6 +1,6 @@
 # trend_ma — Hareketli ortalama kesişimi + trend filtresi
 
-Kod: [`strategies/candidates/trend_ma.py`](../strategies/candidates/trend_ma.py) (`TrendMA_B` = Model B, `TrendMA_A` = Model A)
+Kod: [`strategies/retired/trend_ma.py`](../strategies/retired/trend_ma.py) (`TrendMA_B` = Model B, `TrendMA_A` = Model A)
 
 ## Hipotez
 Fiyat güçlü bir yöne gittiğinde (trend), bir süre o yönde gitmeye devam etme eğilimindedir. Kısa vadeli ortalama orta vadeli ortalamayı kestiğinde yeni bir hareket başlıyor olabilir; bunu sadece uzun vadeli trendle aynı yöndeyse alırız ki ters yöndeki gürültüye girmeyelim.
@@ -42,16 +42,20 @@ Fiyat güçlü bir yöne gittiğinde (trend), bir süre o yönde gitmeye devam e
 | ATR periyodu | 14 | sabit |
 | Isınma (startup) | 1000 mum | EMA200'ün oturması için |
 
-## Durum: candidate
+## Durum: retired (2026-10-04)
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
 | 2026-10-04 | Boru hattı testi (**sentetik veri**) | Kod uçtan uca çalışıyor; lookahead yok. Rakamlar anlamsız (rastgele veri). | [tests/smoke/ornek_rapor_SENTETIK](../tests/smoke/ornek_rapor_SENTETIK/rapor.md) |
+| 2026-10-04 | Lookahead + recursive (gerçek veri, 4h) | 60 sinyalde bias yok; 1000 mum ısınma yeterli (EMA200 sapması %0). | — |
+| 2026-10-04 | İlk backtest, A vs B (gerçek veri, geliştirme 2020-06 → 2024-12, 6 coin) | A: -0.06R/işlem, PF 0.91, DD %47 (stop düzeltmesi sonrası -18.6%, DD %46.7). B: -0.06R/işlem, PF 0.92, DD %43. 2020-2022 kârlı, 2023-2024 long ve short zararda. Eşikleri geçmedi. | [results/2026-10-04_trend_ma_ilk_backtest](../results/2026-10-04_trend_ma_ilk_backtest/rapor.md) |
 
 ## Notlar / öğrenilenler
 - `recursive-analysis`: EMA200 için 250 mumluk ısınma yetersizdi (~%2 sapma), 1000'e çıkarıldı.
-- Gerçek veriyle ilk backtest, veri erişimi açılınca yapılacak.
+- `recursive-analysis` gerçek veride tekrarlandı: 1000 mumla sapma yok.
+- Gerçek veride işlem yönetimi beklendiği gibi: stop ortalama -1.05R, TP2 ortalama +3.9R (maliyet + funding dahil). Kaybın sebebi girişler.
+- Sadece short'u bırakmak cazip görünüyor (PF 1.15) ama short kârının hepsi 2021-2022 düşüş piyasasından; 2023-2024'te short da zararda. Sonuca bakıp yön seçmek aşırı uyum olur, yapılmadı.
 
 ## Emeklilik gerekçesi (varsa)
-—
+2026-10-04, proje sahibinin onayıyla. Test hattının 2. aşaması (ilk backtest, geliştirme verisi 2020-06 → 2024-12) geçilemedi: iki TP modelinde de işlem başına -0.06R, profit factor 0.91-0.92 (eşik ≥ 1.2), drawdown %43-47 (eşik ≤ %25). Sadece 2020 ortası - 2022 ortası kârlı; 2023-2024'te long ve short zararda. Parametre veya yön ayarı geliştirme verisine uydurma olacağı için düzeltme denenmedi. Rapor: [results/2026-10-04_trend_ma_ilk_backtest](../results/2026-10-04_trend_ma_ilk_backtest/rapor.md).

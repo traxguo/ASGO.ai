@@ -1,0 +1,23 @@
+{
+  "$comment": "Level 1 coins + unseen coins (16), pusula wide-list test 2026-10-09. Pass after pairs_level1.json.",
+  "exchange": {
+    "pair_whitelist": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "XRP/USDT:USDT",
+      "BNB/USDT:USDT",
+      "DOGE/USDT:USDT",
+      "ADA/USDT:USDT",
+      "LINK/USDT:USDT",
+      "LTC/USDT:USDT",
+      "DOT/USDT:USDT",
+      "AVAX/USDT:USDT",
+      "TRX/USDT:USDT",
+      "ATOM/USDT:USDT",
+      "BCH/USDT:USDT",
+      "ETC/USDT:USDT",
+      "XLM/USDT:USDT"
+    ]
+  }
+}
