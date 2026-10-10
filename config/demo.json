@@ -1,5 +1,5 @@
 {
-  "$comment": "Binance DEMO TRADING only (play money, demo.binance.com). Owner decision 2026-10-10, docs/decisions.md. Use ONLY through scripts/demo_freqtrade.py, which checks that every API host is demo-*. Keys come from .env, never from this file. Pass after config/base.json.",
+  "$comment": "Binance DEMO TRADING only (play money, demo.binance.com). Owner decision 2026-10-10, docs/decisions.md. Use ONLY through scripts/demo_freqtrade.py, which checks that every API host is demo-*. Keys come from .env, never from this file. Pass after config/base.json. Stops are placed on the exchange so open trades stay protected while the computer is off.",
   "dry_run": false,
   "max_open_trades": 3,
   "exchange": {
@@ -38,5 +38,12 @@
     "verbosity": "error",
     "enable_openapi": false,
     "CORS_origins": []
+  },
+  "order_types": {
+    "entry": "limit",
+    "exit": "limit",
+    "stoploss": "market",
+    "stoploss_on_exchange": true,
+    "stoploss_on_exchange_interval": 60
   }
 }
