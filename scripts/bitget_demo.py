@@ -531,9 +531,75 @@ def load_all(pub, pair_list: list[str], now: datetime) -> dict:
     return candles
 
 
+SMOKE_PAIRS = ("SUI/USDT:USDT", "NEAR/USDT:USDT", "APT/USDT:USDT")  # outside Pusula's list, so no clash
+SMOKE_NOTIONAL = 50.0  # USDT
+SMOKE_STOP = 0.05      # stop 5% under the fill
+
+
+def smoke_test(ex, pairs_in_use: list[str], now: datetime, rec: Recorder) -> None:
+    """Owner-requested pipeline check: one tiny long with a stop on a coin Pusula does not trade.
+    Not a strategy trade: it goes only to events.csv, never to state or trades.csv."""
+    pair = next((p for p in SMOKE_PAIRS if p in ex.markets and p not in pairs_in_use), None)
+    if pair is None:
+        raise SystemExit("smoke test: no spare coin available")
+    price = float(ex.fetch_ticker(pair)["last"])
+    market = ex.market(pair)
+    min_amount = float((market.get("limits", {}).get("amount") or {}).get("min") or 0)
+    amount = float(ex.amount_to_precision(pair, max(min_amount, SMOKE_NOTIONAL / price)))
+    stop = float(ex.price_to_precision(pair, price * (1 - SMOKE_STOP)))
+    try:
+        ex.set_margin_mode("isolated", pair, PRODUCT)
+    except Exception as e:  # already isolated
+        print(f"{pair}: margin mode unchanged ({e})")
+    ex.set_leverage(2, pair, {**PRODUCT, "marginMode": "isolated"})
+    order = ex.create_order(pair, "market", "buy", amount, None,
+                            {**PRODUCT, "marginMode": "isolated", "clientOrderId": f"smoke{now:%Y%m%d%H%M}",
+                             "stopLoss": {"triggerPrice": stop}})
+    rec.event(now, pair, "smoke test opened", f"amount {amount} near {price:.6g}, stop {stop:.6g}, order {order['id']}")
+    positions = [p for p in ex.fetch_positions([pair], PRODUCT) if float(p.get("contracts") or 0) > 0]
+    stops = stop_orders(ex, pair)
+    rec.event(now, pair, "smoke test check",
+              f"open positions {len(positions)}, stop orders {len(stops)}"
+              + (f", entry {positions[0].get('entryPrice')}" if positions else ""))
+
+
+EVENT_TR = {
+    "entry order placed": "Giriş emri kondu",
+    "entry filled": "İşleme girildi",
+    "entry cancelled": "Giriş emri iptal",
+    "stop moved to break even": "Stop girişe çekildi",
+    "closed": "İşlem kapandı",
+    "smoke test opened": "Deneme işlemi açıldı",
+    "smoke test check": "Deneme kontrolü",
+}
+
+
+def notify_telegram(events: list[str]) -> None:
+    """Sends the run's trade events to the owner's personal Telegram chat, if the secrets are set.
+    Routine lines (no signal, no balance, skipped signals) are not sent. Never stops the run."""
+    from signals.dispatcher.telegram_client import TelegramClient, parse_chat_id
+
+    lines = []
+    for e in events:
+        pair, _, rest = e.partition(": ")
+        what = next((k for k in EVENT_TR if rest.startswith(k)), None)
+        if what:
+            lines.append(f"• {pair.split('/')[0]}: {EVENT_TR[what]}{rest[len(what):]}")
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    if not lines or not token:
+        return
+    try:
+        client = TelegramClient(token, parse_chat_id(os.environ.get("TELEGRAM_CHAT_ID")), timeout=20)
+        client.send_message("Bitget demo (Pusula)\n" + "\n".join(lines))
+    except Exception as e:  # noqa: BLE001 - a message problem must not stop trading
+        print(f"telegram message not sent: {e}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     ap.add_argument("--check", action="store_true", help="no keys: fetch data and print the last candle's signals")
+    ap.add_argument("--smoke-test", action="store_true",
+                    help="also open one tiny long with a stop on a coin Pusula does not trade (pipeline check)")
     a = ap.parse_args()
     now = datetime.now(timezone.utc)
     pair_list = pairs()
@@ -566,7 +632,11 @@ def main() -> None:
         print(f"position mode unchanged ({e})")
     state = load_state()
     before = json.dumps(state, sort_keys=True)
-    run_once(ex, pub, analyzed, state, now, Recorder())
+    rec = Recorder()
+    if a.smoke_test:
+        smoke_test(ex, pair_list, now, rec)
+    run_once(ex, pub, analyzed, state, now, rec)
+    notify_telegram(rec.events)
     if json.dumps(state, sort_keys=True) != before:  # the workflow commits only real changes
         save_state(state)
 

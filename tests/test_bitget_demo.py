@@ -297,3 +297,52 @@ def test_demo_exchange_uses_classic_futures_account():
     ex = bd.demo_exchange("k", "s", "p")
     uta, _ = ex.handle_uta_and_params({}, "fetchBalance", False)
     assert uta is False
+
+
+def test_smoke_test_opens_tiny_long_with_stop_off_the_strategy_books(tmp_path):
+    ex = FakeExchange()
+    ex.markets = {"SUI/USDT:USDT": {}}
+    ex.fetch_ticker = lambda pair: {"last": 2.5}
+    ex.market = lambda pair: {"limits": {"amount": {"min": 1.0}}}
+    ex.price_to_precision = lambda pair, price: f"{price:.4f}"
+    rec = bd.Recorder(tmp_path)
+    bd.smoke_test(ex, ["BTC/USDT:USDT"], NOW, rec)
+    create = [c for c in ex.calls if c[0] == "create"][0]
+    assert create[1:4] == ("SUI/USDT:USDT", "market", "buy")
+    assert create[4] == 20.0                                    # 50 USDT / 2.5
+    assert create[6]["stopLoss"]["triggerPrice"] == 2.375       # 5% under
+    assert not (tmp_path / bd.TRADES_FILE.name).exists()        # not a Pusula trade
+    assert "smoke test opened" in (tmp_path / bd.EVENTS_FILE.name).read_text()
+
+
+def test_smoke_test_never_uses_a_pusula_coin():
+    ex = FakeExchange()
+    ex.markets = {"SUI/USDT:USDT": {}}
+    with pytest.raises(SystemExit):
+        bd.smoke_test(ex, ["SUI/USDT:USDT"], NOW, None)
+
+
+def test_telegram_message_only_for_trade_events(monkeypatch):
+    sent = []
+
+    class FakeClient:
+        def __init__(self, token, chat_id, timeout=0):
+            self.chat_id = chat_id
+
+        def send_message(self, text):
+            sent.append(text)
+
+    import signals.dispatcher.telegram_client as tc
+    monkeypatch.setattr(tc, "TelegramClient", FakeClient)
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:x")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
+    bd.notify_telegram(["BTC/USDT:USDT: signal skipped size below the exchange minimum", "-: no demo balance found"])
+    assert sent == []
+    bd.notify_telegram(["ETH/USDT:USDT: entry order placed limit 2500 stop 2400"])
+    assert sent == ["Bitget demo (Pusula)\n• ETH: Giriş emri kondu limit 2500 stop 2400"]
+
+
+def test_telegram_problem_never_stops_the_run(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:x")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-5")  # a group id: refused, but only printed
+    bd.notify_telegram(["ETH/USDT:USDT: closed +1.2R"])

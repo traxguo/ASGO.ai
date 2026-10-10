@@ -113,3 +113,8 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - **Karar:** Proje sahibi karar kartında "Evet, Bitget" seçti. `scripts/bitget_demo.py` + `.github/workflows/bitget_demo.yml` her 4 saatlik mum kapanışından sonra GitHub'ın ücretsiz sunucusunda bir kez çalışır. PusulaV2'nin kendi kodunu Bitget'in gerçek piyasa mumlarında çalıştırır ve Bitget **demo** hesabında emir verir. Stop emri girişle birlikte borsaya konur. Kayıtlar `forward/bitget_demo/` altına yazılır ve projeye kaydedilir.
 - **Güvenlik:** Anahtarlar sadece GitHub Secrets'ta. Program `PAPTRADING: 1` demo başlığını taşımayan hiçbir imzalı isteği göndermez. Demo anahtarı gerçek hesapta çalışmaz. Gerçek para hâlâ kapalı.
 - **Farklar (analizde hesaba katılır):** Çıkışlar piyasa emriyle yapılır. Stopun girişe çekilmesi en fazla 4 saat gecikebilir. Bitget demo fiyatları gerçek piyasadan biraz farklı olabilir.
+
+## 2026-10-10 — Telegram komutları Cloudflare Workers'ta (proje sahibi kararı)
+- Karar: Telegram komutları (/durum, /gecmis, /fiyat, /kapat) ücretsiz Cloudflare Workers'ta çalışır, cevap anında gelir. Pusula'nın işlem mesajları 4 saatlik GitHub botundan gider.
+- Gerekçe: GitHub'ın ücretsiz süresi (ayda 2.000 dakika) sık komut kontrolüne yetmiyor; Cloudflare kart istemiyor. Proje sahibi karar kartında "Cloudflare"ı seçti.
+- Sınırlar: Bot sadece sahibin özel sohbetine cevap verir. Sadece Bitget demo hesabına bağlanır (her istekte `paptrading: 1`). `/kapat` sadece demo işlemini kapatır. Bot seviye üretmez.

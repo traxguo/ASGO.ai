@@ -15,6 +15,7 @@ Her stratejinin **kodlanmadan önce** bir kartı olur. Kart, stratejinin "kimlik
 | Kart | Durum | Ne yapar (tek cümle) |
 |---|---|---|
 | [trend_ma](trend_ma.md) | candidate | Kısa ve orta hareketli ortalama kesişince, uzun vadeli trend yönünde işleme girer. |
+| [nabiz](nabiz.md) | retired | Günlük trend güçlüyken 1 saatlik geri çekilmenin bitişinde trend yönünde girer (hızlı aday, elendi). |
 
 ## Strateji eklemek
 1. `_SABLON.md` dosyasını kopyala, `cards/<strateji_adi>.md` olarak kaydet ve doldur (ya da Claude'a "şu fikirle yeni bir strateji kartı aç" de).

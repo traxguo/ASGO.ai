@@ -1,0 +1,5 @@
+# Cloudflare Worker for the Telegram commands. Deployed by .github/workflows/telegram_worker.yml.
+name = "asgo-telegram"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
