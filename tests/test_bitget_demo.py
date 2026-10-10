@@ -320,3 +320,29 @@ def test_smoke_test_never_uses_a_pusula_coin():
     ex.markets = {"SUI/USDT:USDT": {}}
     with pytest.raises(SystemExit):
         bd.smoke_test(ex, ["SUI/USDT:USDT"], NOW, None)
+
+
+def test_telegram_message_only_for_trade_events(monkeypatch):
+    sent = []
+
+    class FakeClient:
+        def __init__(self, token, chat_id, timeout=0):
+            self.chat_id = chat_id
+
+        def send_message(self, text):
+            sent.append(text)
+
+    import signals.dispatcher.telegram_client as tc
+    monkeypatch.setattr(tc, "TelegramClient", FakeClient)
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:x")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
+    bd.notify_telegram(["BTC/USDT:USDT: signal skipped size below the exchange minimum", "-: no demo balance found"])
+    assert sent == []
+    bd.notify_telegram(["ETH/USDT:USDT: entry order placed limit 2500 stop 2400"])
+    assert sent == ["Bitget demo (Pusula)\n• ETH: Giriş emri kondu limit 2500 stop 2400"]
+
+
+def test_telegram_problem_never_stops_the_run(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:x")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-5")  # a group id: refused, but only printed
+    bd.notify_telegram(["ETH/USDT:USDT: closed +1.2R"])
