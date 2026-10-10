@@ -74,3 +74,8 @@ def test_demo_hosts_guard():
         df.assert_demo_hosts(api)
     api.enable_demo_trading(True)
     df.assert_demo_hosts(api)
+
+
+def test_demo_config_path_is_os_independent():
+    from pathlib import PureWindowsPath
+    assert PureWindowsPath("config\\demo.json").as_posix() == sc.DEMO_CONFIG

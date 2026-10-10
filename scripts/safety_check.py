@@ -86,7 +86,7 @@ def check_configs(errors: list[str]) -> None:
             errors.append(f"{rel}: dry_run is not set (must be true)")
         exch = data.get("exchange", {}) if isinstance(data, dict) else {}
         # Owner decision 2026-10-10: only the Binance demo config may turn dry_run off.
-        demo_ok = (str(rel) == DEMO_CONFIG and exch.get("name") == "binance"
+        demo_ok = (rel.as_posix() == DEMO_CONFIG and exch.get("name") == "binance"
                    and exch.get("demo_trading") is True)
         for p, v in found:
             if v is not True and not (demo_ok and p == "dry_run" and v is False):
