@@ -265,3 +265,12 @@ def test_no_more_than_three_trades(tmp_path):
 def test_demo_balance_accepts_susdt():
     assert bd.demo_balance({"SUSDT": {"total": 3000.0, "free": 2500.0}}) == (3000.0 * 0.99, 2500.0)
     assert bd.demo_balance({"USDT": {"total": 0}, "SUSDT": {"total": 0}}) == (0.0, 0.0)
+
+
+def test_real_key_is_reported_clearly():
+    class Live:
+        def fetch_balance(self, params=None):
+            raise RuntimeError('bitget {"code":"40099","msg":"exchange environment is incorrect"}')
+
+    with pytest.raises(SystemExit, match="not a Bitget DEMO key"):
+        bd.check_demo_key(Live())

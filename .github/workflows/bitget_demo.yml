@@ -58,6 +58,7 @@ jobs:
       - name: Save the trade log
         if: always() && github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
         run: |
+          if [ ! -d forward/bitget_demo ]; then echo "no log yet"; exit 0; fi
           git add forward/bitget_demo
           if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
           git config user.name "github-actions[bot]"

@@ -295,6 +295,18 @@ def demo_balance(balance: dict) -> tuple[float, float]:
     return 0.0, 0.0
 
 
+def check_demo_key(ex) -> None:
+    """Bitget answers 40099 when a real-account key is used with the demo header."""
+    try:
+        ex.fetch_balance({"type": "swap", **PRODUCT})
+    except Exception as e:
+        if "40099" in str(e):
+            raise SystemExit("STOP: this API key is not a Bitget DEMO key (40099 exchange environment is "
+                             "incorrect). Nothing was traded. Create the key in Demo mode "
+                             "(docs/bitget_demo_kurulum.md).")
+        raise
+
+
 def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder) -> None:
     from strategies.common import trade_management as tm
 
@@ -456,6 +468,7 @@ def main() -> None:
                          "(GitHub: Settings > Secrets and variables > Actions; steps: docs/bitget_demo_kurulum.md).")
     ex = demo_exchange(key, secret, phrase)
     ex.load_markets()
+    check_demo_key(ex)
     try:
         ex.set_position_mode(False, None, PRODUCT)  # one-way, like the backtest
     except Exception as e:  # fails while positions are open; then it is already set
