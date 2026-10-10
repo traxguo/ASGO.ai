@@ -80,6 +80,13 @@ Denenen çözümler (geliştirme verisi, sonra yeni coinler):
 - Açık: en uzun kayıp serisi 26 işlem (2024-03 → 2025-07), DD %26.
 - `PusulaTrendLongStrictBTC` (BTC puanı +3 şartı): toplam R aynı, DD bir listede iyi bir listede kötü; eklenmedi.
 
+## Kasa testi planı (2026-10-10, test öncesi yazıldı)
+Proje sahibi "devam" dedi; önerilen "sadece long" seçeneğiyle ilerleniyor.
+- **Ana karar:** `PusulaTrendLong`, 16 coin (`config/pairs_wide16.json`), en fazla 3 işlem, 4h + 1h detay, 2026-04-01 → 2026-09-30. Ayarlar 4. turdaki haliyle, hiçbir değişiklik yok.
+- **Geçme şartı:** maliyet ve funding sonrası ortalama > 0R ve düşüş ≤ %25. 6 ayda işlem sayısı az olacağı için (tahmini 10-20) "en az 100 işlem" şartı burada uygulanamaz; sonuç küçük örnek olarak yorumlanır.
+- **Sadece bilgi için, aynı tek kullanımda:** `PusulaTrend` (long+short, 16 coin) ve `PusulaTrendLong` (6 coin). Karar bunlara göre verilmez.
+- Kasa sonucu ne olursa olsun kurallar bu veriye göre değiştirilmez.
+
 ## Durum: candidate
 - `Pusula_B` (sabit TP): geçemedi.
 - `PusulaTrend` (long+short): doğrulamayı geçti, geliştirmede DD %31 > %25.
