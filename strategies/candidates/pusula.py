@@ -87,9 +87,12 @@ def daily_regime_frame(daily: DataFrame, market_daily: DataFrame | None, fast: i
     out["score"] = regime_score(daily, fast, slow, mom_days)
     if market_daily is None:
         out["mkt_score"] = out["score"]
+        out["mkt_mom"] = out["mom"]
     else:
+        mclose = market_daily["close"]
         mkt = pd.DataFrame({"date": market_daily["date"],
-                            "mkt_score": regime_score(market_daily, fast, slow, mom_days)})
+                            "mkt_score": regime_score(market_daily, fast, slow, mom_days),
+                            "mkt_mom": mclose / mclose.shift(mom_days) - 1})
         out = out.merge(mkt, on="date", how="left")
     return out
 
@@ -180,6 +183,20 @@ class PusulaTrend(PusulaBase):
 
     def adjust_trade_position(self, trade, current_time, current_rate, current_profit, min_stake, max_stake, **kwargs):
         return None  # no TP orders: the exit comes from the daily trend rule or the stop
+
+
+class PusulaTrendRS(PusulaTrend):
+    """
+    Improvement round 1 (2026-10-10, research/queue/pusula_kuyruk.md): shorts only
+    when the coin is weaker than Bitcoin over the momentum window (coin 90-day
+    return below BTC's). Longs unchanged. On BTC itself the two are equal, so BTC
+    is never shorted. Judged against PusulaTrend on the old 16 and the new 20 coins.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["short"]["weaker_than_btc"] = df[f"mom_{REGIME_TF}"] < df[f"mkt_mom_{REGIME_TF}"]
+        return conds
 
 
 class PusulaNoBTC_B(PusulaBase):

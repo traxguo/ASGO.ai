@@ -5,7 +5,6 @@ Her tur bir **geliştirme** içerir (proje sahibi: "yerinde saymayalım, sürekl
 Kural: dondurulmuş `PusulaTrendLong` kağıt takipte değişmez; her yeni fikir ayrı sınıf veya ayrı test olur. Sonuca bakıp kural değiştirilmez.
 
 ## Sırada
-2. [ ] Geliştirme: short'u sadece Bitcoin'e göre zayıf coinlerde aç (20 yeni coinde short'lar +0.12R, eski coinlerde eksi; fark coinin Bitcoin'e göre gücü olabilir).
 2b. [ ] Kalabalık 20 yeni coinde (funding verisi gerekiyor).
 3. [ ] Batmış / listeden çıkmış coinler testi (LUNA, FTT vb.): bugün listede olan coinleri seçmenin yarattığı iyimserliği ölçmek.
 4. [ ] Pusula + Kalabalık birlikte, tek kasada: düşüşler birbirini dengeliyor mu?
@@ -17,4 +16,5 @@ Kural: dondurulmuş `PusulaTrendLong` kağıt takipte değişmez; her yeni fikir
 10. [ ] Pusula'nın haftalık grafikte rejim okuma versiyonu (daha yavaş, daha az işlem).
 
 ## Yapıldı
+- 2026-10-10 tur 1: short sadece Bitcoin'den zayıf coinlerde (`PusulaTrendRS`). **Red**: eski 16'da +0.57R → +0.52R, yeni 20'de +0.27R → +0.26R. Şart neredeyse hiç işlem değiştirmedi. `results/2026-10-10_pusula_gelistirme1_rs_ozet.md`
 - 2026-10-10: Pusula 20 yeni coinde. Sadece long +0.44R (150 işlem, DD %25), long+short +0.27R. En iyi 10 işlem dışında eksi. 9/20 coin artıda. Rapor: `results/2026-10-10_pusula_yeni20coin/rapor.md`. Yeni fikir eklendi (madde 2).
