@@ -9,3 +9,5 @@ time,pair,event,detail
 2026-10-10T13:25:19.773766+00:00,-,no demo balance found,neither USDT nor SUSDT in the futures account
 2026-10-10T13:38:44.878938+00:00,-,no demo balance found,neither USDT nor SUSDT in the futures account
 2026-10-10T13:41:47.884138+00:00,-,no demo balance found,neither USDT nor SUSDT in the futures account
+2026-10-10T13:50:15.584305+00:00,NEAR/USDT:USDT,smoke test opened,"amount 9.0 near 5.444, stop 5.1718, order 1492812839621427201"
+2026-10-10T13:50:15.584305+00:00,NEAR/USDT:USDT,smoke test check,"open positions 1, stop orders 1, entry 5.471"
