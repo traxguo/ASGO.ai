@@ -26,7 +26,7 @@
 5. Anlamlı bir mesajla commit at.
 
 ## Değişmez kurallar (kısa)
-- Gerçek emir yok; `dry_run: true`. Her Freqtrade komutu `scripts/ft.sh` ile (önce `safety_check.py` çalışır).
+- Gerçek emir yok; `dry_run: true` (tek istisna: Binance demo hesabı, `config/demo.json` + `scripts/demo_freqtrade.py`, bkz. `docs/decisions.md` 2026-10-10). Her Freqtrade komutu `scripts/ft.sh` ile (önce `safety_check.py` çalışır).
 - Key/token/şifre repoya girmez; `.env` (gitignore'da). `.env.example` boş şablondur.
 - Sinyal seviyeleri sadece test edilmiş kurallardan gelir; sonradan yorumla değiştirilmez. TP1 ≥ 1R.
 - Başarısız strateji silinmez, `strategies/retired/` + kartında emeklilik gerekçesi.
