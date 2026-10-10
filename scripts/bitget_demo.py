@@ -286,6 +286,15 @@ def move_stop(ex, pair: str, amount: float, new_stop: float) -> None:
         ex.cancel_order(o["id"], pair, {**PRODUCT, "trigger": True, "planType": "profit_loss"})
 
 
+def demo_balance(balance: dict) -> tuple[float, float]:
+    """(usable equity, free margin). The demo account may report its play money as SUSDT."""
+    for coin in ("USDT", "SUSDT"):
+        total = float((balance.get(coin) or {}).get("total") or 0)
+        if total > 0:
+            return total * TRADABLE_BALANCE_RATIO, float((balance.get(coin) or {}).get("free") or 0)
+    return 0.0, 0.0
+
+
 def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder) -> None:
     from strategies.common import trade_management as tm
 
@@ -357,8 +366,11 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
     if slots <= 0:
         return
     balance = ex.fetch_balance({"type": "swap", **PRODUCT})
-    equity = float(balance.get("USDT", {}).get("total") or 0) * TRADABLE_BALANCE_RATIO
-    free = float(balance.get("USDT", {}).get("free") or 0)
+    equity, free = demo_balance(balance)
+    print(f"demo balance: equity {equity:.2f}, free {free:.2f}")
+    if equity <= 0:
+        rec.event(now, "-", "no demo balance found", "neither USDT nor SUSDT in the futures account")
+        return
     for pair, df in analyzed.items():
         if slots <= 0:
             break

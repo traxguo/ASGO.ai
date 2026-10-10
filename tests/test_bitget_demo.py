@@ -260,3 +260,8 @@ def test_no_more_than_three_trades(tmp_path):
     analyzed = {p: frame([(SIGNAL, 99, 101, 1, 0)]) for p in pairs}
     bd.run_once(ex, None, analyzed, state, NOW, bd.Recorder(tmp_path))
     assert sorted(t["pair"] for t in state["trades"].values()) == pairs[:3]
+
+
+def test_demo_balance_accepts_susdt():
+    assert bd.demo_balance({"SUSDT": {"total": 3000.0, "free": 2500.0}}) == (3000.0 * 0.99, 2500.0)
+    assert bd.demo_balance({"USDT": {"total": 0}, "SUSDT": {"total": 0}}) == (0.0, 0.0)
