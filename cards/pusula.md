@@ -96,6 +96,7 @@ Proje sahibi "devam" dedi; önerilen "sadece long" seçeneğiyle ilerleniyor.
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-10 | Geliştirme 3a: hacim onayı 1.5x; 3b: 10 günlük süre stopu (temel PusulaV2) | İkisi de red. 3a yeni 20'de iyi (+0.76R) ama eski 16'da kötü (DD %33). | `results/2026-10-10_pusula_gelistirme3_ozet.md` |
 | 2026-10-10 | Geliştirme 2a: BTC skoru ≤ -1 olunca long çıkışı; 2b: long sadece BTC'den güçlü coinde | 2a kabul (16: +0.95→+1.20R, 20: +0.44→+0.46R, 10 işlem değişti) → `PusulaV2`. 2b red. | `results/2026-10-10_pusula_gelistirme2_ozet.md` |
 | 2026-10-10 | Geliştirme 1: short sadece BTC'den zayıf coinde (`PusulaTrendRS`), 16 + 20 coin | Red: iki listede de temelden kötü (+0.57→+0.52R, +0.27→+0.26R). | `results/2026-10-10_pusula_gelistirme1_rs_ozet.md` |
 | 2026-10-10 | 20 yeni coin (hiç görülmemiş), 2020-01 → 2026-09 | Long +0.44R (150), DD %24.7, 9/20 coin artıda, en iyi 10 işlem dışında eksi. Long+short +0.27R (short +0.12R). | `results/2026-10-10_pusula_yeni20coin/rapor.md` |

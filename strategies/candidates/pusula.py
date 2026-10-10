@@ -352,6 +352,52 @@ class PusulaV2(PusulaTrendLongBtcExit):
     """
 
 
+class PusulaV2Vol(PusulaV2):
+    """
+    Improvement round 3a (2026-10-10, fixed before testing): long breakout only
+    when the breakout 4h candle's volume is at least 1.5x the average volume of
+    the previous 20 candles.
+    """
+
+    volume_mult = 1.5
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        df["vol_avg20"] = df["volume"].rolling(20).mean().shift(1)
+        return df
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["volume_confirm"] = df["volume"] >= self.volume_mult * df["vol_avg20"]
+        return conds
+
+
+class PusulaV2Time(PusulaV2):
+    """
+    Improvement round 3b (2026-10-10, fixed before testing): time stop. A long
+    that has never been 1R in profit after 10 days is closed. Winners last about
+    14 days on average, losers about 4; a trade going nowhere for 10 days ties up
+    one of the 3 slots.
+    """
+
+    time_stop_days = 10
+    time_stop_min_r = 1.0
+
+    def custom_exit(self, pair, trade, current_time, current_rate, current_profit, **kwargs):
+        if (current_time - trade.open_date_utc).days < self.time_stop_days:
+            return None
+        plan = self._plan_for_trade(trade)
+        if plan is None:
+            return None
+        risk = abs(plan["entry"] - plan["stop"])
+        if risk <= 0:
+            return None
+        best_r = ((trade.max_rate or trade.open_rate) - trade.open_rate) / risk
+        if best_r < self.time_stop_min_r:
+            return "time_stop"
+        return None
+
+
 class TwoSpeedExitMixin:
     """
     Round 3 (fixed before testing, card section "3. tur"): two-speed exit.

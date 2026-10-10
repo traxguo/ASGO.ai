@@ -11,10 +11,11 @@ Kural: dondurulmuş `PusulaTrendLong` kağıt takipte değişmez; her yeni fikir
 5. [ ] Güçlü/zayıf coin sepeti: önce kart, kurallar sabitlenir, sonra test.
 6. [ ] Geliştirme: kazanan işlemde pozisyon büyütme yok, ama aynı coinde trend sürerken ikinci kırılımda yeniden giriş.
 7. [ ] Geliştirme: coin seçimi. Aynı anda 3'ten fazla sinyal varsa en güçlü 90 günlük getiriye sahip olanı seç.
-8. [ ] Geliştirme: stop mesafesine göre işlem atlama (çok geniş stoplu kırılımlar).
 10. [ ] Pusula'nın haftalık grafikte rejim okuma versiyonu (daha yavaş, daha az işlem).
 
 ## Yapıldı
+- 2026-10-10 tur 3a: hacim onayı 1.5x (`PusulaV2Vol`). **Red**: yeni 20'de +0.46→+0.76R, ama eski 16'da +1.20→+1.17R ve DD %26→%33.
+- 2026-10-10 tur 3b: 10 günde 1R'ye ulaşmayan işlemi kapat (`PusulaV2Time`). **Red**: iki listede de kötü.
 - 2026-10-10: `PusulaV2` kağıt takibe dondurulmuş sürümün yanına eklendi (`research/forward/pusula_paper.py`).
 - 2026-10-10 tur 2a: Bitcoin skoru ≤ -1 olunca long'u kapat (`PusulaTrendLongBtcExit`). **Kabul** (16: +0.95→+1.20R, 20: +0.44→+0.46R; sadece 10 işlem değişti, 9'u iyileşti). `PusulaV2`'ye girdi.
 - 2026-10-10 tur 2b: long sadece Bitcoin'den güçlü coinde (`PusulaTrendLongRS`). **Red** (16: +0.72R, 20: +0.27R).

@@ -20,3 +20,4 @@
 - 20 yeni coin (`config/pairs_new20.json`): PusulaTrendLong +0.44R, PusulaTrend +0.27R (short +0.12R).
 - Tur 1, `PusulaTrendRS` (short sadece BTC'den zayıf coinde): red.
 - Tur 2: BTC dönüş çıkışı kabul (PusulaV2), 'BTC'den güçlü coin' long filtresi red.
+- Tur 3: hacim onayı ve süre stopu, ikisi de red.
