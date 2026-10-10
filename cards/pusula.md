@@ -90,7 +90,7 @@ Proje sahibi "devam" dedi; önerilen "sadece long" seçeneğiyle ilerleniyor.
 ## Durum: candidate
 - `Pusula_B` (sabit TP): geçemedi.
 - `PusulaTrend` (long+short): doğrulamayı geçti, geliştirmede DD %31 > %25.
-- `PusulaTrendLong`: iki dönemde de eşikleri geçti (sonradan eklendi, doğrulamada 31 işlem) ve hiç görmediği 10 coinde de artıda (+1.05R). Kasa testi için proje sahibinin seçimi bekleniyor.
+- `PusulaTrendLong`: iki dönemde de eşikleri geçti ve hiç görmediği 10 coinde de artıda (+1.05R). **Kasa testi (2026-04 → 2026-09, 16 coin): -0.02R, DD %6.2, 15 işlem, kıl payı geçemedi.** Active olamaz; emekli de edilmedi. Sonraki sınav yeni veri (dry-run kâğıt testi), proje sahibinin kararı bekleniyor.
 - `PusulaTrendLong2`, `PusulaTrendLongClose`, `PusulaTrendLongBE1`: 3. turda elendi.
 
 ## Test geçmişi
@@ -100,6 +100,7 @@ Proje sahibi "devam" dedi; önerilen "sadece long" seçeneğiyle ilerleniyor.
 | 2026-10-09 | 2. tur geliştirme (en fazla 3 işlem) | **PusulaTrend** +0.43R, PF 1.40, DD %31.0, 214 işlem (long +109.5R her yıl artıda, short -17.8R). Aynı girişlerle sabit TP: +0.11R. 5 işlemle +0.49R DD %33.7. Maliyet x2: +0.39R. Hile testi temiz. | [tur2_gelistirme_max3](../results/2026-10-09_PusulaTrend_Pusula_B_tur2_gelistirme_max3/rapor.md) |
 | 2026-10-09 | PusulaTrendLong (sonradan eklendi) geliştirme + ±%20 | +0.83R, PF 1.87, DD %20.2, 132 işlem. 8 parametre komşusunun hepsi +0.72R ile +1.45R. | [sadece_long](../results/2026-10-09_PusulaTrendLong_tur2_gelistirme_sadece_long/rapor.md), [dayanıklılık](../results/2026-10-09_pusula_trend_long_dayaniklilik/parametre_komsulari.md) |
 | 2026-10-09 | **Doğrulama, bir kez** (2025-01 → 2026-03) | PusulaTrend +0.16R, PF 1.27, DD %12.7, 64 işlem (short +0.04R). PusulaTrendLong +0.28R, PF 1.50, DD %7.7, 31 işlem. Al-tut -%40. | [tur2_dogrulama](../results/2026-10-09_PusulaTrend_PusulaTrendLong_tur2_dogrulama/rapor.md) |
+| 2026-10-10 | **Kasa, bir kez** (2026-04 → 2026-09, 16 coin, en fazla 3 işlem) | PusulaTrendLong -0.02R, PF 0.94, DD %6.2, 15 işlem (3 işlem dönem sonunda kârda açıktı). Long+short -0.07R. 6 coin -0.68R. Al-tut +%15.9. Geçemedi (> 0R şartı). | [kasa_16coin](../results/2026-10-10_pusula_kasa_16coin/rapor.md), [kasa_6coin_bilgi](../results/2026-10-10_pusula_kasa_6coin_bilgi/rapor.md) |
 
 ## Notlar / öğrenilenler
 - Geliştirmede iyi görünen üç ek değişiklik (BE 1R, kapanıştan giriş, iki vitesli çıkış) yeni coinlerde tutmadı. Basit sürüm kazandı.

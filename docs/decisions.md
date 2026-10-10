@@ -92,3 +92,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - **Gerekçe:** Brief 7.5 "takip eden stop gibi alternatif kurallar test edilebilir, testten geçmeden kullanılmaz". Proje sahibi "teste devam, açıkları kapat" dedi. İlk turda kazananlar ortalama 13 gün sürüyordu, sabit 2R/4R onları erken kesiyordu.
 - **Sonuç:** Geliştirmede aynı girişlerle +0.11R → +0.43R (long+short) / +0.83R (sadece long). Doğrulamada +0.16R / +0.28R. Ayrıntı: `cards/pusula.md`.
 - **Not:** Sinyal mesajında TP1/TP2 yerine "trend bozulunca çıkış" yazacak. Bu, brief bölüm 7.3'teki iki TP'li yapıdan bir sapmadır; strateji "active" olmadan önce proje sahibinin onayı gerekir.
+
+## 2026-10-10 — Pusula kasa testi
+- **Sonuç:** PusulaTrendLong (16 coin) kasa döneminde -0.02R, DD %6.2, 15 işlem. Geçme şartı > 0R olduğu için geçemedi; "active" olmadı.
+- **Karar:** Kurallar kasa sonucuna göre değiştirilmeyecek. Strateji `candidates/` altında kalıyor. 2020-01 → 2026-09 verisinin tamamı artık görüldü; bu stratejiyi yargılamanın tek temiz yolu yeni (ileriye dönük) veri.
