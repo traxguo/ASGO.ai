@@ -318,6 +318,40 @@ class PusulaTrendLong(PusulaTrend):
         return conds
 
 
+class PusulaTrendLongBtcExit(PusulaTrendLong):
+    """
+    Improvement round 2a (2026-10-10): also close longs when the market turns,
+    i.e. the last closed daily BTC regime score is -1 or lower (the same level
+    that would allow shorts). Entries are unchanged.
+    """
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_exit_trend(df, metadata)
+        df.loc[df[f"mkt_score_{REGIME_TF}"] <= -1, "exit_long"] = 1
+        return df
+
+
+class PusulaTrendLongRS(PusulaTrendLong):
+    """
+    Improvement round 2b (2026-10-10): long only when the coin is at least as
+    strong as Bitcoin over the momentum window (coin 90-day return >= BTC's).
+    BTC itself always passes. Exits unchanged.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["stronger_than_btc"] = df[f"mom_{REGIME_TF}"] >= df[f"mkt_mom_{REGIME_TF}"]
+        return conds
+
+
+class PusulaV2(PusulaTrendLongBtcExit):
+    """
+    Collects the improvements accepted in the background rounds (better on both
+    the old 16 and the new 20 coins). Accepted so far: round 2a (BTC-turn exit).
+    The frozen PusulaTrendLong in the paper test is not changed.
+    """
+
+
 class TwoSpeedExitMixin:
     """
     Round 3 (fixed before testing, card section "3. tur"): two-speed exit.

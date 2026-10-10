@@ -96,6 +96,7 @@ Proje sahibi "devam" dedi; önerilen "sadece long" seçeneğiyle ilerleniyor.
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-10 | Geliştirme 2a: BTC skoru ≤ -1 olunca long çıkışı; 2b: long sadece BTC'den güçlü coinde | 2a kabul (16: +0.95→+1.20R, 20: +0.44→+0.46R, 10 işlem değişti) → `PusulaV2`. 2b red. | `results/2026-10-10_pusula_gelistirme2_ozet.md` |
 | 2026-10-10 | Geliştirme 1: short sadece BTC'den zayıf coinde (`PusulaTrendRS`), 16 + 20 coin | Red: iki listede de temelden kötü (+0.57→+0.52R, +0.27→+0.26R). | `results/2026-10-10_pusula_gelistirme1_rs_ozet.md` |
 | 2026-10-10 | 20 yeni coin (hiç görülmemiş), 2020-01 → 2026-09 | Long +0.44R (150), DD %24.7, 9/20 coin artıda, en iyi 10 işlem dışında eksi. Long+short +0.27R (short +0.12R). | `results/2026-10-10_pusula_yeni20coin/rapor.md` |
 | 2026-10-09 | Birim testleri (rejim puanı sadece geçmiş veriyi kullanıyor) + ilk backtest (geliştirme 2020-03 → 2024-12) | Pusula_B +0.08R, PF 1.07, DD %35.0, 269 işlem (long +21.3R, short -0.1R). Kârın tamamı 2020 long'ları; 2021-2024 ≈ -1.6R. BTC filtresiz: +0.06R, DD %38.2. Geçemedi; doğrulamaya bakılmadı. | [results/2026-10-09_Pusula_B_PusulaNoBTC_B_ilk_backtest_gelistirme](../results/2026-10-09_Pusula_B_PusulaNoBTC_B_ilk_backtest_gelistirme/rapor.md) |
