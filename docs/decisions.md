@@ -101,3 +101,8 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - **Sonuç:** Önceden sabitlenen tek varyant `Kalabalik_B` geliştirmede eşikleri geçti (+0.28R, DD %9.3, 123 işlem) ve doğrulamada da artıda (+0.29R, 26 işlem, hepsi long).
 - **Kasa (bir kez):** +0.05R, 13 işlem, DD %4.1. Eşiği kâğıt üstünde geçti ama başa baş. Dayanıklılık: komşular, masraf x2 ve hile testi geçti.
 - **Karar:** "active" yapılmıyor, `candidates/` altında kalıyor, kurallar değişmiyor. 2026-04..09 kasasında ikinci strateji de başa baş: bu dönemde iki farklı fikir de kazanamadı. Yargı ileriye dönük kağıt takiple (aylık, funding arşivi ay sonunda çıkıyor).
+
+## 2026-10-10 — Binance demo hesabında işlem (proje sahibi kararı)
+- **Karar:** Proje sahibi Pusula'yı Binance demo hesabında (demo.binance.com, oyun parası) takip etmek istedi ("şart") ve "hiç emir yok" kuralının kaldırılmasına onay verdi. Uygulanan: sadece `config/demo.json` dry_run'ı kapatabilir, o da `exchange.demo_trading: true` ile. Başlatma yalnızca `scripts/demo_freqtrade.py` ile; program tüm Binance API adreslerinin `demo-*` olduğunu kontrol etmeden başlamaz. Anahtarlar sadece proje sahibinin bilgisayarındaki `.env` dosyasında.
+- **Gerçek para:** Proje sahibi kuralın "hepten" kaldırılmasını istedi. Gerçek hesapta işlem açmak bu değişiklikle hâlâ mümkün değil. Bu ayrı ve geri alınamaz bir adım; demo sonuçları görülmeden ve strateji "active" olmadan yapılmaması önerildi.
+- **Not:** Binance demo ayrı bir piyasadır (kendi emir defteri); sonuçlar kağıt takipten biraz farklı çıkabilir. Bulut ortamı Binance'e (demo dahil) bağlanamadığı için bot proje sahibinin bilgisayarında çalışır.
