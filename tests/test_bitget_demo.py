@@ -291,3 +291,9 @@ def test_unlisted_demo_coin_is_skipped(tmp_path):
     mapped = bd.SymbolMap(ex, {})
     bd.run_once(mapped, None, {PAIR: frame([(SIGNAL, 99, 101, 1, 0)])}, state, NOW, bd.Recorder(tmp_path))
     assert state["trades"] == {}
+
+
+def test_demo_exchange_uses_classic_futures_account():
+    ex = bd.demo_exchange("k", "s", "p")
+    uta, _ = ex.handle_uta_and_params({}, "fetchBalance", False)
+    assert uta is False

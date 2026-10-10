@@ -85,6 +85,9 @@ def demo_exchange(key: str, secret: str, passphrase: str):
     ex = ccxt.bitget({"options": {"defaultType": "swap"}, "enableRateLimit": True})
     ex.apiKey, ex.secret, ex.password = key, secret, passphrase
     ex.set_sandbox_mode(True)
+    # the demo account answers the unified-account check, but its play money sits in the classic
+    # futures account; without this ccxt reads the empty unified balance
+    ex.options["uta"] = False
     original_sign = ex.sign
 
     def sign_demo_only(*args, **kwargs):
