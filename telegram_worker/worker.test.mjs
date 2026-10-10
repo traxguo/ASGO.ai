@@ -30,8 +30,9 @@ test("every signed request carries the demo header and a valid signature", async
   assert.equal(h["ACCESS-SIGN"], expected);
 });
 
-test("strangers get no answer", async () => {
-  assert.equal(await answer(env, 7, "/durum", fakeFetch({})), null);
+test("strangers learn only their own id in private and nothing in groups", async () => {
+  assert.equal(await answer(env, 7, "/durum", fakeFetch({})), "Bu bot özel. Senin numaran: 7");
+  assert.equal(await answer(env, -7, "/durum", fakeFetch({}), 7, "supergroup"), null);
 });
 
 test("status lists balance and open positions", async () => {
@@ -79,6 +80,6 @@ test("group: members read, only the owner closes; owner can ask an unknown group
     "/api/v2/mix/order/close-positions": {} });
   assert.match(await answer(env, -100, "/kapat near", f, 42), /kapatıldı/);
   assert.match(await answer(env, -555, "/grupid", f, 42), /-555/);
-  assert.equal(await answer(env, -555, "/grupid", f, 7), null);
-  assert.equal(await answer(env, -555, "/durum", f, 42), null);
+  assert.equal(await answer(env, -555, "/grupid", f, 7, "group"), null);
+  assert.equal(await answer(env, -555, "/durum", f, 42, "group"), null);
 });

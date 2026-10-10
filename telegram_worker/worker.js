@@ -110,7 +110,7 @@ async function closePosition(env, word, fetchFn) {
   return `${coin(symbol)} demo işlemi piyasa fiyatından kapatıldı. /durum ile kontrol edebilirsin.`;
 }
 
-export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId) {
+export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId, chatType = "private") {
   const ownerChat = String(chatId) === String(env.TELEGRAM_CHAT_ID);
   const ownerSpeaking = String(fromId) === String(env.TELEGRAM_CHAT_ID);
   const group = env.TELEGRAM_GROUP_ID && String(chatId) === String(env.TELEGRAM_GROUP_ID);
@@ -120,7 +120,11 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
   if (cmd === "/grupid" && ownerSpeaking && !ownerChat) {
     return `Bu grubun numarası: ${chatId}\nBunu GitHub Secrets'a TELEGRAM_GROUP_ID adıyla ekle, sonra kurulumu tekrar çalıştır.`;
   }
-  if (!ownerChat && !group) return null;  // strangers get no answer at all
+  if (!ownerChat && !group) {
+    // a private chat that is not the owner's: say only the sender's own id, so the owner can
+    // spot a wrong TELEGRAM_CHAT_ID secret; nothing about the account is shared; groups stay silent
+    return chatType === "private" ? `Bu bot özel. Senin numaran: ${chatId}` : null;
+  }
   try {
     switch (cmd) {
       case "/start": case "/yardim": case "/help": return HELP;
@@ -147,7 +151,7 @@ export default {
     const update = await request.json();
     const msg = update.message;
     if (!msg?.text) return new Response("ok");
-    const reply = await answer(env, msg.chat.id, msg.text, fetch, msg.from?.id);
+    const reply = await answer(env, msg.chat.id, msg.text, fetch, msg.from?.id, msg.chat.type);
     if (!reply) return new Response("ok");
     // answering inside the webhook response saves a separate call to Telegram
     return new Response(JSON.stringify({ method: "sendMessage", chat_id: msg.chat.id, text: reply }),
