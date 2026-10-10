@@ -6,7 +6,7 @@ Bu rehber, Pusula'nın senin bilgisayarından **Binance demo hesabında** (gerç
 
 ## Bilmen gerekenler
 - Demo hesap Binance'in **ayrı** bir piyasası. Fiyatlar gerçek piyasaya çok yakın ama birebir aynı değil. Bu yüzden demo sonuçları kağıt takipten biraz farklı çıkabilir.
-- Pusula ayda 2-3 işlem açar, bir işlem ortalama 11 gün sürer. Bilgisayar ve program açık kalmalı; kapalıyken yeni işlem açılmaz (açık işlemlerin stopu Binance'te durur).
+- Pusula ayda 2-3 işlem açar, bir işlem ortalama 11 gün sürer. Bilgisayar ve program açık kalmalı; kapalıyken yeni işlem açılmaz, trend bozulunca çıkış da yapılmaz. Açık işlemlerin stop emri Binance demo hesabında durur, yani bilgisayar kapalıyken de zarar sınırı korunur.
 - Çalışan sürüm: **Pusula v2** (arka plan turlarında kabul edilen geliştirmeler dahil).
 
 ## 1. Demo API anahtarı al
