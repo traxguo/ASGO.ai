@@ -1,0 +1,17 @@
+name: demo-reachability
+# One-off probe: can GitHub-hosted runners reach the Binance demo futures API?
+on:
+  push:
+    branches: [claude/project-thread-p81umz]
+    paths: [.github/workflows/demo_reachability.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe Binance hosts
+        run: |
+          for u in https://demo-fapi.binance.com/fapi/v1/ping https://demo-fapi.binance.com/fapi/v1/time https://fapi.binance.com/fapi/v1/ping https://data.binance.vision/; do
+            code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 20 "$u" || echo ERR)
+            echo "$u -> $code $(head -c 200 /tmp/body 2>/dev/null)"
+          done
+          curl -s --max-time 10 https://ipinfo.io/country || true
