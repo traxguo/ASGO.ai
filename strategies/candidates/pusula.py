@@ -398,6 +398,20 @@ class PusulaV2Time(PusulaV2):
         return None
 
 
+class PusulaV2NoBtcFilter(PusulaV2):
+    """
+    Removal round 1 (2026-10-10, research/queue/pusula_kuyruk.md item 2): PusulaV2
+    without the BTC entry filter (no "BTC score >= +1" condition for longs).
+    BTC daily data is still loaded, because the accepted BTC-turn exit (round 2a)
+    still uses it; only the entry condition is dropped.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"].pop("market_up", None)
+        return conds
+
+
 class TwoSpeedExitMixin:
     """
     Round 3 (fixed before testing, card section "3. tur"): two-speed exit.
