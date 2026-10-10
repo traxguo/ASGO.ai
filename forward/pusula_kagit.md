@@ -1,21 +1,33 @@
 # Pusula kâğıt takibi (para yok, emir yok)
 
-Güncelleme: 2026-10-10 06:11 UTC. Son veri mumu: 2026-10-08 20:00 UTC.
-Kurallar donduruldu: `PusulaTrendLong`, 16 coin, en fazla 3 işlem, başlangıç 2026-10-01.
+Güncelleme: 2026-10-10 10:03 UTC. Son veri mumu: 2026-10-08 20:00 UTC.
+16 coin, en fazla 3 işlem, başlangıç 2026-10-01. Dondurulmuş `PusulaTrendLong` hiç değişmez; `PusulaV2` arka plan turlarında kabul edilen geliştirmeleri taşır.
 
 ## GUO'ya not
-- Kâğıt takipte şu ana kadar 3 işlem kapandı, 0 işlem açık.
-- Kapanan işlemlerin toplamı: **-3.14R** (1R = kasanın %1'i; yaklaşık %-3.1).
+- **Dondurulmuş Pusula:** 3 işlem kapandı, 0 açık. Kapananların toplamı **-3.14R** (yaklaşık %-3.1).
+- **Pusula v2 (geliştirilmiş aday):** 3 işlem kapandı, 0 açık. Kapananların toplamı **-3.14R** (yaklaşık %-3.1).
+- Bitcoin'in günlük skoru şu an +3. -1 veya altına inerse v2 açık long'ları kapatır.
 - Bu strateji ayda 2-3 işlem açar; birkaç haftalık sonuç bir şey söylemez. Anlamlı karar için en az 2-3 ay gerekir.
 - İçinde bulunulan ayın funding verisi ay bitince gelir; o yüzden bu ayın rakamları geçicidir.
 
 ## İşlemler
+
+### Dondurulmuş Pusula (`PusulaTrendLong`)
 
 | Coin | Giriş (UTC) | Giriş fiyatı | Çıkış | Sebep | Sonuç (R) |
 |---|---|---|---|---|---|
 | BNB | 2026-10-03 20:00 | 789.24 | 2026-10-07 02:00 | stop | -1.05 |
 | BTC | 2026-10-02 08:00 | 85947.4 | 2026-10-07 13:00 | stop | -1.06 |
 | LTC | 2026-10-02 08:00 | 70.02 | 2026-10-07 21:00 | stop | -1.03 |
+
+### Pusula v2 (geliştirilmiş aday) (`PusulaV2`)
+
+| Coin | Giriş (UTC) | Giriş fiyatı | Çıkış | Sebep | Sonuç (R) |
+|---|---|---|---|---|---|
+| BNB | 2026-10-03 20:00 | 789.24 | 2026-10-07 02:00 | stop | -1.05 |
+| BTC | 2026-10-02 08:00 | 85947.4 | 2026-10-07 13:00 | stop | -1.06 |
+| LTC | 2026-10-02 08:00 | 70.02 | 2026-10-07 21:00 | stop | -1.03 |
+
 
 ## Coinlerin şu anki durumu (son kapanmış 4 saatlik mum)
 
