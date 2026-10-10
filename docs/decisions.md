@@ -96,3 +96,8 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-10 — Pusula kasa testi
 - **Sonuç:** PusulaTrendLong (16 coin) kasa döneminde -0.02R, DD %6.2, 15 işlem. Geçme şartı > 0R olduğu için geçemedi; "active" olmadı.
 - **Karar:** Kurallar kasa sonucuna göre değiştirilmeyecek. Strateji `candidates/` altında kalıyor. 2020-01 → 2026-09 verisinin tamamı artık görüldü; bu stratejiyi yargılamanın tek temiz yolu yeni (ileriye dönük) veri.
+
+## 2026-10-10 — Kalabalık (funding tersine) yan strateji
+- **Sonuç:** Önceden sabitlenen tek varyant `Kalabalik_B` geliştirmede eşikleri geçti (+0.28R, DD %9.3, 123 işlem) ve doğrulamada da artıda (+0.29R, 26 işlem, hepsi long).
+- **Kasa (bir kez):** +0.05R, 13 işlem, DD %4.1. Eşiği kâğıt üstünde geçti ama başa baş. Dayanıklılık: komşular, masraf x2 ve hile testi geçti.
+- **Karar:** "active" yapılmıyor, `candidates/` altında kalıyor, kurallar değişmiyor. 2026-04..09 kasasında ikinci strateji de başa baş: bu dönemde iki farklı fikir de kazanamadı. Yargı ileriye dönük kağıt takiple (aylık, funding arşivi ay sonunda çıkıyor).

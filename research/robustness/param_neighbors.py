@@ -32,7 +32,7 @@ def variants(params: list[str]):
         kind, value = spec.split(":")
         v = float(value)
         for mult in (0.8, 1.2):
-            nv = round(v * mult)
+            nv = round(v * mult) if v.is_integer() else round(v * mult, 6)
             out.append((f"{name}={nv}", name, kind, nv))
     return out
 

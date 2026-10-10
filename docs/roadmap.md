@@ -47,4 +47,5 @@ Seviye 0 çıkış şartı sağlandı (2026-10-04).
 **Çıkış şartı:** Her giriş sinyali tasarıma uygun görselle birkaç saniye içinde geliyor.
 
 ## Sıradaki adım
+0. (2026-10-10) Pusula (`PusulaTrendLong`, donduruldu) ileriye dönük kağıt takipte: `research/forward/pusula_paper.py`, rapor `forward/pusula_kagit.md`, her pazartesi güncellenir. Yan strateji Kalabalık (funding tersine) geliştirme + doğrulamayı geçti, kasada başa baş (+0.05R); aylık kağıt takibe alınacak. Sıradaki yan fikir: güçlü/zayıf coin sepeti.
 1. (2026-10-09) Pusula 2. tur: `PusulaTrend` ve `PusulaTrendLong` geliştirme ve doğrulamayı büyük ölçüde geçti (`cards/pusula.md`). Proje sahibi kasa testine girecek versiyonu seçecek; kasa testi geçerse Seviye 1 çıkış şartı sağlanır.

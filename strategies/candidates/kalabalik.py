@@ -33,10 +33,10 @@ def first_true(cond: Series) -> Series:
     return cond & ~cond.shift(1, fill_value=False)
 
 
-def funding_features(funding: DataFrame) -> DataFrame:
+def funding_features(funding: DataFrame, prints: int = FUNDING_PRINTS) -> DataFrame:
     """funding: columns date, funding_rate (one row per 8h print). Past-only features per print."""
     f = funding[["date", "funding_rate"]].sort_values("date").reset_index(drop=True)
-    f["funding_24h"] = f["funding_rate"].rolling(FUNDING_PRINTS).mean()
+    f["funding_24h"] = f["funding_rate"].rolling(prints).mean()
     prev = f["funding_24h"].shift(1)
     # share of the previous LOOKBACK_PRINTS values that are below the current one
     f["pct_rank"] = [
@@ -57,6 +57,9 @@ class Kalabalik_B(ManagedStrategy):
     tp_model_name = "B"
     swing_lookback = 10
     startup_candle_count = 400
+    channel = CHANNEL
+    extreme = EXTREME
+    funding_prints = FUNDING_PRINTS
     datadir = _REPO_ROOT / "user_data" / "data" / "binance" / "futures"
 
     def _funding(self, pair: str) -> DataFrame:
@@ -67,9 +70,9 @@ class Kalabalik_B(ManagedStrategy):
         df["atr"] = ta.ATR(df, timeperiod=14)
         df["swing_low"] = df["low"].rolling(self.swing_lookback).min()
         df["swing_high"] = df["high"].rolling(self.swing_lookback).max()
-        df["high10"] = df["high"].rolling(CHANNEL).max().shift(1)
-        df["low10"] = df["low"].rolling(CHANNEL).min().shift(1)
-        feats = funding_features(self._funding(metadata["pair"]))
+        df["high10"] = df["high"].rolling(self.channel).max().shift(1)
+        df["low10"] = df["low"].rolling(self.channel).min().shift(1)
+        feats = funding_features(self._funding(metadata["pair"]), self.funding_prints)
         index = df.index
         df = attach_funding(df.reset_index(drop=True), feats)
         df.index = index
@@ -82,11 +85,11 @@ class Kalabalik_B(ManagedStrategy):
         rank, f24 = df["pct_rank"], df["funding_24h"]
         return {
             "long": {
-                "crowded_short": rank <= EXTREME,
+                "crowded_short": rank <= self.extreme,
                 "turn_up": first_true(df["close"] > df["high10"]),
             },
             "short": {
-                "crowded_long": (rank >= 1 - EXTREME) & (f24 > 0),
+                "crowded_long": (rank >= 1 - self.extreme) & (f24 > 0),
                 "turn_down": first_true(df["close"] < df["low10"]),
             },
         }
