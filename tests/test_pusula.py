@@ -67,3 +67,14 @@ def test_commentary_no_trade_when_mixed_or_market_disagrees():
     assert pusula.commentary(_row(1, 2), "ETH/USDT:USDT")["side"] is None
     assert pusula.commentary(_row(-3, 1), "ETH/USDT:USDT")["side"] is None
     assert pusula.commentary(_row(-3, -2), "ETH/USDT:USDT")["side"] == "short"
+
+
+def test_kalabalik_funding_rank_uses_only_past_prints():
+    from strategies.candidates import kalabalik as k
+    n = k.LOOKBACK_PRINTS + 50
+    rates = np.linspace(-0.0001, 0.0003, n)
+    f = pd.DataFrame({"date": pd.date_range("2021-01-01", periods=n, freq="8h", tz="UTC"), "funding_rate": rates})
+    full = k.funding_features(f)
+    cut = k.funding_features(f.iloc[: n - 20])
+    pd.testing.assert_frame_equal(full.iloc[: n - 20], cut)
+    assert full["pct_rank"].iloc[-1] == 1.0  # rising rates: newest is the highest of the past year

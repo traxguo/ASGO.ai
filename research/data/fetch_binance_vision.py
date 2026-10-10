@@ -10,8 +10,11 @@ API (PROJECT_BRIEF section 2). It downloads monthly archives of
 for USD-M perpetuals and stores them in Freqtrade's feather format, so the
 backtest reads them exactly like data from download-data.
 
-The current (unfinished) month is not in the monthly archive; run
-`freqtrade download-data` later to top up when the API is reachable.
+The current (unfinished) month is not in the monthly archive. With
+--current-month the candles (klines + mark) of the current month are added from
+the daily archives up to yesterday. Funding has no daily archive, so the current
+month has no funding data until the month is over (results for those days are
+provisional).
 
 Usage:
   python research/data/fetch_binance_vision.py --pairs BTC/USDT:USDT ETH/USDT:USDT \
@@ -130,12 +133,24 @@ def fill_from_daily(df: pd.DataFrame, kind: str, sym: str, tf: str) -> pd.DataFr
     return pd.concat([df, extra]).drop_duplicates("date").sort_values("date").reset_index(drop=True)
 
 
+def add_current_month(df: pd.DataFrame, kind: str, sym: str, tf: str) -> pd.DataFrame:
+    """Candles of the current month, day by day from the daily archive, up to yesterday."""
+    today = date.today()
+    days = [date(today.year, today.month, d).isoformat() for d in range(1, today.day)]
+    extra = collect([f"{DAILY_BASE}/{kind}/{sym}/{tf}/{sym}-{tf}-{d}.zip" for d in days], parse_klines)
+    if extra.empty:
+        return df
+    return pd.concat([df, extra]).drop_duplicates("date").sort_values("date").reset_index(drop=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pairs", nargs="+", required=True)
     ap.add_argument("--timeframes", nargs="+", default=["1h", "4h"])
     ap.add_argument("--start", default="2019-09", help="first month, YYYY-MM")
     ap.add_argument("--datadir", default="user_data/data/binance")
+    ap.add_argument("--current-month", action="store_true",
+                    help="also add the current month's candles from the daily archives (up to yesterday)")
     a = ap.parse_args()
 
     Path(a.datadir).mkdir(parents=True, exist_ok=True)
@@ -146,11 +161,15 @@ def main() -> None:
         for tf in a.timeframes:
             df = collect([f"{BASE}/klines/{sym}/{tf}/{sym}-{tf}-{m}.zip" for m in ms], parse_klines)
             df = fill_from_daily(df, "klines", sym, tf)
+            if a.current_month:
+                df = add_current_month(df, "klines", sym, tf)
             print(f"{pair} {tf} futures: {len(df)} candles")
             if not df.empty:
                 dh.ohlcv_store(pair, tf, df, CandleType.FUTURES)
         mark = collect([f"{BASE}/markPriceKlines/{sym}/1h/{sym}-1h-{m}.zip" for m in ms], parse_klines)
         mark = fill_from_daily(mark, "markPriceKlines", sym, "1h")
+        if a.current_month:
+            mark = add_current_month(mark, "markPriceKlines", sym, "1h")
         print(f"{pair} 1h mark: {len(mark)} candles")
         if not mark.empty:
             dh.ohlcv_store(pair, "1h", mark, CandleType.MARK)

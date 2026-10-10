@@ -201,7 +201,15 @@ REGIME_TEXT = {
 
 
 def _fmt(x: float) -> str:
-    return f"{x:,.6g}".replace(",", ".") if abs(x) >= 1000 else f"{x:.6g}"
+    """Turkish number format: 79.535,1 (dot for thousands, comma for decimals)."""
+    x = float(x)
+    if abs(x) >= 1000:
+        text = f"{x:,.1f}"
+    elif abs(x) >= 1:
+        text = f"{x:,.4g}" if abs(x) < 100 else f"{x:,.2f}"
+    else:
+        text = f"{x:.4g}"
+    return text.replace(",", "_").replace(".", ",").replace("_", ".")
 
 
 def trigger_plan(side: str, trigger: float, atr: float, swing: float, mgmt, model) -> dict:
@@ -214,7 +222,8 @@ def trigger_plan(side: str, trigger: float, atr: float, swing: float, mgmt, mode
     return {"zone_low": float(low), "zone_high": float(high), "stop": float(stop), "tp1": float(tp1), "tp2": float(tp2)}
 
 
-def commentary(row, pair: str, mgmt=None, model=None, market_filter: bool = True) -> dict:
+def commentary(row, pair: str, mgmt=None, model=None, market_filter: bool = True, trend_exit: bool = False,
+               long_only: bool = False) -> dict:
     """
     View for one coin from the last analysed 4h row: regime, market, the trigger
     level for the allowed side and the plan it would produce. Never invents a
@@ -233,8 +242,9 @@ def commentary(row, pair: str, mgmt=None, model=None, market_filter: bool = True
     if regime == "unknown":
         view["text"] = lines[0]
         return view
-    lines.append(f"Fiyat {_fmt(row['close'])}. Günlük 50 ortalama {_fmt(row[f'ema_slow_{REGIME_TF}'])}, "
-                 f"90 günlük değişim %{row[f'mom_{REGIME_TF}'] * 100:.0f}.")
+    daily_close = row.get(f"close_{REGIME_TF}", row["close"])
+    lines.append(f"Son günlük kapanış {_fmt(daily_close)}, günlük 50 ortalama {_fmt(row[f'ema_slow_{REGIME_TF}'])}, "
+                 f"90 günlük değişim %{row[f'mom_{REGIME_TF}'] * 100:.0f}. Son 4 saatlik kapanış {_fmt(row['close'])}.")
     if market_filter and not pd.isna(mkt):
         lines.append(f"Bitcoin puanı {int(mkt):+d}/3.")
 
@@ -245,21 +255,34 @@ def commentary(row, pair: str, mgmt=None, model=None, market_filter: bool = True
         market_ok = False
     else:
         market_ok = (side == "long" and mkt >= 1) or (side == "short" and mkt <= -1)
-    if side is None:
+    if side == "short" and long_only:
+        lines.append("İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).")
+    elif side is None:
         lines.append("İşlem önermiyorum: trend yönü belli değil. "
                      f"Long için puanın +3, short için -3 olması gerekir.")
     elif not market_ok:
         lines.append(f"{'Long' if side == 'long' else 'Short'} önermiyorum: Bitcoin aynı tarafta değil.")
+    elif trend_exit and side == "long" and row.get(f"close_{REGIME_TF}", np.inf) <= row.get(f"ema_fast_{REGIME_TF}", -np.inf):
+        lines.append("Şimdilik long yok: günlük kapanış 20 günlük ortalamanın "
+                     f"({_fmt(row[f'ema_fast_{REGIME_TF}'])}) altında. Üstüne çıkınca tetik devreye girer.")
+    elif trend_exit and side == "short" and row.get(f"close_{REGIME_TF}", -np.inf) >= row.get(f"ema_fast_{REGIME_TF}", np.inf):
+        lines.append("Şimdilik short yok: günlük kapanış 20 günlük ortalamanın "
+                     f"({_fmt(row[f'ema_fast_{REGIME_TF}'])}) üstünde.")
     else:
         trigger = row["dc_upper"] if side == "long" else row["dc_lower"]
         swing = row["swing_low"] if side == "long" else row["swing_high"]
         plan = trigger_plan(side, float(trigger), float(row["atr"]), float(swing), mgmt, model)
         view.update(side=side, plan=plan, trigger=float(trigger))
         word = "üstünde" if side == "long" else "altında"
+        if trend_exit:
+            exit_text = ("hedef yok: günlük kapanış 20 günlük ortalamanın altına inince çıkılır, "
+                         "fiyat 2R lehte gidince stop girişe çekilir")
+        else:
+            exit_text = f"TP1 {_fmt(plan['tp1'])}, TP2 {_fmt(plan['tp2'])}"
         lines.append(
             f"{side.upper()} tetiği {_fmt(trigger)}: 4 saatlik mum bunun {word} kapanırsa "
             f"giriş {_fmt(plan['zone_low'])} - {_fmt(plan['zone_high'])}, stop {_fmt(plan['stop'])}, "
-            f"TP1 {_fmt(plan['tp1'])}, TP2 {_fmt(plan['tp2'])} (yaklaşık; kesin rakamlar kırılım mumunun kapanışından)."
+            f"{exit_text} (yaklaşık; kesin rakamlar kırılım mumunun kapanışından)."
         )
         lines.append(f"{'Short' if side == 'long' else 'Long'} yok: trende karşı işlem açmıyorum.")
     view["text"] = "\n".join(lines)
