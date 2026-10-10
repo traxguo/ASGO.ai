@@ -5,7 +5,9 @@ Her tur bir **geliştirme** içerir (proje sahibi: "yerinde saymayalım, sürekl
 Kural: dondurulmuş `PusulaTrendLong` kağıt takipte değişmez; her yeni fikir ayrı sınıf veya ayrı test olur. Sonuca bakıp kural değiştirilmez.
 
 ## Sırada
-1. [ ] **Öncelik (GUO 2026-10-10: "daha çok scalp tarafındayız, sürekli işlem ve sürekli analiz edilebilecek data")**: hızlı strateji adayı. 1 saatlik mumda, 36 coinde (`config/pairs_all36.json`) günde yaklaşık 1 işlem hedefi. Önce kart (`cards/`), kurallar sabitlenir, maliyet + funding dahil geliştirme dönemi testi. Geçerse doğrulama, sonra Bitget demoya Pusula'nın yanına ayrı sınıf olarak eklenir. Sınırlar: GitHub ücretsiz sunucusu en sık 5 dakikada bir ve gecikmeli çalışır, aylık 2000 dakika; 1 saatlik çalışma sığar, 1-5 dakikalık scalp sığmaz. Daha önceki 5m/1m denemeleri (Aslan v1-v7, Gemini) masraftan önce bile ~0R'di: dar stopta masraf işlem başına 0.2-0.4R yiyor.
+1. [x] **Öncelik (GUO 2026-10-10: "daha çok scalp tarafındayız, sürekli işlem ve sürekli analiz edilebilecek data")**: hızlı strateji adayı. 1 saatlik mumda, 36 coinde (`config/pairs_all36.json`) günde yaklaşık 1 işlem hedefi. Önce kart (`cards/`), kurallar sabitlenir, maliyet + funding dahil geliştirme dönemi testi. Geçerse doğrulama, sonra Bitget demoya Pusula'nın yanına ayrı sınıf olarak eklenir. Sınırlar: GitHub ücretsiz sunucusu en sık 5 dakikada bir ve gecikmeli çalışır, aylık 2000 dakika; 1 saatlik çalışma sığar, 1-5 dakikalık scalp sığmaz. Daha önceki 5m/1m denemeleri (Aslan v1-v7, Gemini) masraftan önce bile ~0R'di: dar stopta masraf işlem başına 0.2-0.4R yiyor.
+   → 2026-10-10 yapıldı: `Nabiz` (1h RSI geri çekilme, günlük trend yönünde). **Elendi**, bkz. Yapıldı.
+1b. [ ] **Hızlı aday 2 (Nabız elendikten sonra eklendi):** geri çekilme yerine **kırılım**. Günlük Pusula puanı +3/-3 ve BTC aynı tarafta iken, 1 saatlik kapanış önceki 24 mumun (1 gün) tepesini/dibini ilk kez geçince trend yönünde gir; ortak modül, Model B (sabit 2R/4R), en fazla 3 işlem, 36 coin. Gerekçe: Pusula'nın aynı kırılım tetiği 1h grafikte de kârlıydı (tur 4 stres: 378 işlem, +0.80R, ama trend çıkışıyla ve az işlemle); sabit hedef işlem sıklığını artırır. Nabız masrafsız bile ≈0R'di, yani geri çekilmeden almak işe yaramıyor; kırılım farklı bir davranış. Önce kart, kurallar sabit; long ve short ayrı.
 2b. [ ] Kalabalık 20 yeni coinde (funding verisi gerekiyor).
 3. [ ] Batmış / listeden çıkmış coinler testi (LUNA, FTT vb.): bugün listede olan coinleri seçmenin yarattığı iyimserliği ölçmek.
 4. [ ] Pusula + Kalabalık birlikte, tek kasada: düşüşler birbirini dengeliyor mu?
@@ -15,6 +17,7 @@ Kural: dondurulmuş `PusulaTrendLong` kağıt takipte değişmez; her yeni fikir
 10. [ ] Pusula'nın haftalık grafikte rejim okuma versiyonu (daha yavaş, daha az işlem).
 
 ## Yapıldı
+- 2026-10-10 kuyruk 1: hızlı aday `Nabiz` (1h RSI(14) 35/65 dönüşü, günlük Pusula puanı ±3 + BTC filtresi, Model B, 36 coin, en fazla 3 işlem). Geliştirme 2020-2024: 2509 işlem (günde 1.4), **-0.09R**, PF 0.93, DD %97; long -0.07R, short -0.11R; masraf x2 -0.15R; masrafsız ≈0R. **Elendi** (`strategies/retired/nabiz.py`), doğrulamaya bakılmadı. Rapor: `results/2026-10-10_nabiz_gelistirme_36coin/rapor.md`. Yeni fikir eklendi (madde 1b).
 - 2026-10-10: PusulaV2 36 coinde birlikte (`config/pairs_all36.json`, en fazla 3 işlem): 233 işlem, +0.86R, DD %30.5. Eski 16'da 210 işlem, +1.20R, DD %26. **Demo 16 coinde kalıyor**: 3 işlem sınırı dolu olduğu için coin eklemek işlem sayısını neredeyse artırmıyor (ayda ~3), sonucu kötüleştiriyor.
 - 2026-10-10 tur 3a: hacim onayı 1.5x (`PusulaV2Vol`). **Red**: yeni 20'de +0.46→+0.76R, ama eski 16'da +1.20→+1.17R ve DD %26→%33.
 - 2026-10-10 tur 3b: 10 günde 1R'ye ulaşmayan işlemi kapat (`PusulaV2Time`). **Red**: iki listede de kötü.
