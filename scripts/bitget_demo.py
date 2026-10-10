@@ -364,7 +364,24 @@ def choose_demo_product(ex, pairs: list[str]):
             print(f"demo contracts: {len(mapping)}/{len(pairs)} coins" + (f", missing {missing}" if missing else ""))
             return SymbolMap(ex, mapping)
     PRODUCT["productType"] = "USDT-FUTURES"
+    diagnose_empty_account(ex)
     return ex
+
+
+def diagnose_empty_account(ex) -> None:
+    """Read-only look at the other Bitget account views, printed to the log, when no futures balance is found."""
+    checks = {
+        "unified account settings": lambda: ex.privateUtaGetV3AccountSettings(),
+        "unified account assets": lambda: ex.privateUtaGetV3AccountAssets(),
+        "spot assets": lambda: ex.privateSpotGetV2SpotAccountAssets(),
+        "USDT-FUTURES positions": lambda: ex.privateMixGetV2MixPositionAllPosition({"productType": "USDT-FUTURES"}),
+        "SUSDT-FUTURES positions": lambda: ex.privateMixGetV2MixPositionAllPosition({"productType": "SUSDT-FUTURES"}),
+    }
+    for name, call in checks.items():
+        try:
+            print(f"diagnose {name}: {str(call())[:400]}")
+        except Exception as e:  # noqa: BLE001 - diagnostics only, never fatal
+            print(f"diagnose {name}: error {str(e)[:300]}")
 
 
 def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder) -> None:
