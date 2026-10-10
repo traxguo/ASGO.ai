@@ -89,6 +89,10 @@ def demo_exchange(key: str, secret: str, passphrase: str):
 
     def sign_demo_only(*args, **kwargs):
         request = original_sign(*args, **kwargs)
+        headers = request.get("headers")
+        if headers and "ACCESS-KEY" in headers:
+            # ccxt leaves the demo header off for the play-money S-contracts; send it on every signed request
+            headers["PAPTRADING"] = "1"
         assert_demo_request(request)
         return request
 
@@ -307,6 +311,62 @@ def check_demo_key(ex) -> None:
         raise
 
 
+MAPPED_FIRST = {"fetch_my_trades", "fetch_funding_history", "fetch_open_orders", "create_order",
+                "amount_to_precision"}
+MAPPED_SECOND = {"cancel_order", "fetch_order", "set_margin_mode", "set_leverage"}
+
+
+class SymbolMap:
+    """Lets the rest of the code keep the backtest pair names (BTC/USDT:USDT) while orders go
+    to the demo account's own contract names (SBTC/SUSDT:SUSDT) when it only has those."""
+
+    def __init__(self, ex, mapping: dict[str, str]):
+        self.ex, self.mapping = ex, mapping
+        self.back = {v: k for k, v in mapping.items()}
+
+    def __getattr__(self, name):
+        attr = getattr(self.ex, name)
+        if name in MAPPED_FIRST:
+            return lambda pair, *a, **k: attr(self.mapping.get(pair, pair), *a, **k)
+        if name in MAPPED_SECOND:
+            return lambda x, pair, *a, **k: attr(x, self.mapping.get(pair, pair), *a, **k)
+        if name == "fetch_positions":
+            def fetch_positions(pairs, *a, **k):
+                rows = attr([self.mapping.get(p, p) for p in pairs], *a, **k)
+                return [{**r, "symbol": self.back.get(r.get("symbol"), r.get("symbol"))} for r in rows]
+            return fetch_positions
+        return attr
+
+
+def demo_symbols(markets: dict, pairs: list[str]) -> dict[str, str]:
+    """BTC/USDT:USDT -> SBTC/SUSDT:SUSDT for every pair the demo account lists."""
+    out = {}
+    for pair in pairs:
+        s = f"S{pair.split('/')[0]}/SUSDT:SUSDT"
+        if s in markets:
+            out[pair] = s
+    return out
+
+
+def choose_demo_product(ex, pairs: list[str]):
+    """Finds where the demo play money is. Returns the exchange to trade with (S-names mapped if needed)."""
+    for product in ("USDT-FUTURES", "SUSDT-FUTURES"):
+        PRODUCT["productType"] = product
+        balance = ex.fetch_balance({"type": "swap", **PRODUCT})
+        info = balance.get("info")
+        print(f"{product}: balance coins {[c for c in balance if c.isupper() and c not in ('USD',)][:8]} "
+              f"raw {str(info)[:300]}")
+        if demo_balance(balance)[0] > 0:
+            if product == "USDT-FUTURES":
+                return ex
+            mapping = demo_symbols(ex.markets, pairs)
+            missing = sorted(set(pairs) - set(mapping))
+            print(f"demo contracts: {len(mapping)}/{len(pairs)} coins" + (f", missing {missing}" if missing else ""))
+            return SymbolMap(ex, mapping)
+    PRODUCT["productType"] = "USDT-FUTURES"
+    return ex
+
+
 def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder) -> None:
     from strategies.common import trade_management as tm
 
@@ -389,6 +449,9 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
         plan = signal_plan(df, signal_time)
         if plan is None or pair in busy_pairs:
             continue
+        if isinstance(ex, SymbolMap) and pair not in ex.mapping:
+            rec.event(now, pair, "signal skipped", "coin not listed on the demo account")
+            continue
         cid = client_id(pair, signal_time)
         if cid in trades:
             continue
@@ -469,6 +532,7 @@ def main() -> None:
     ex = demo_exchange(key, secret, phrase)
     ex.load_markets()
     check_demo_key(ex)
+    ex = choose_demo_product(ex, pair_list)
     try:
         ex.set_position_mode(False, None, PRODUCT)  # one-way, like the backtest
     except Exception as e:  # fails while positions are open; then it is already set
