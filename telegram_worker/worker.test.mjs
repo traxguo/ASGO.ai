@@ -1,92 +1,59 @@
 // Run: node --test telegram_worker/
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import worker, { answer, bitgetRequest, symbolOf, HELP } from "./worker.js";
+import worker, { answer, HELP } from "./worker.js";
 
-const env = {
-  BITGET_DEMO_API_KEY: "k", BITGET_DEMO_API_SECRET: "s", BITGET_DEMO_API_PASSPHRASE: "p",
-  TELEGRAM_CHAT_ID: "42", TELEGRAM_GROUP_ID: "-100", WEBHOOK_SECRET: "w",
-};
+const env = { TELEGRAM_CHAT_ID: "42", TELEGRAM_GROUP_ID: "-100", WEBHOOK_SECRET: "w", GH_DISPATCH_TOKEN: "t" };
 
-function fakeFetch(routes, calls = []) {
+function fakeGitHub(calls = [], status = 204) {
   return async (url, opts = {}) => {
     calls.push({ url, opts });
-    const path = new URL(url).pathname;
-    const data = routes[path];
-    if (typeof data === "string") return { status: 403, text: async () => data };
-    const body = data instanceof Error ? { code: "40001", msg: data.message } : { code: "00000", data };
-    return { status: 200, text: async () => JSON.stringify(body), json: async () => body };
+    return { status, text: async () => (status === 204 ? "" : "Bad credentials") };
   };
 }
 
-test("every signed request carries the demo header and a valid signature", async () => {
+test("account commands start the GitHub job with who asked and where", async () => {
   const calls = [];
-  await bitgetRequest(env, "GET", "/api/v2/mix/account/accounts", { productType: "USDT-FUTURES" }, null,
-    fakeFetch({ "/api/v2/mix/account/accounts": [] }, calls));
-  const h = calls[0].opts.headers;
-  assert.equal(h.paptrading, "1");
-  assert.equal(h["ACCESS-KEY"], "k");
-  const { createHmac } = await import("node:crypto");
-  const expected = createHmac("sha256", "s")
-    .update(h["ACCESS-TIMESTAMP"] + "GET/api/v2/mix/account/accounts?productType=USDT-FUTURES").digest("base64");
-  assert.equal(h["ACCESS-SIGN"], expected);
+  assert.match(await answer(env, 42, "/durum", fakeGitHub(calls)), /Bakıyorum/);
+  assert.equal(calls[0].url, "https://api.github.com/repos/traxguo/ASGO.ai/actions/workflows/telegram_command.yml/dispatches");
+  assert.equal(calls[0].opts.headers.Authorization, "Bearer t");
+  assert.deepEqual(JSON.parse(calls[0].opts.body),
+    { ref: "main", inputs: { cmd: "/durum", arg: "", chat: "42", sender: "42" } });
 });
 
 test("strangers learn only their own id in private and nothing in groups", async () => {
-  assert.equal(await answer(env, 7, "/durum", fakeFetch({})), "Bu bot özel. Senin numaran: 7");
-  assert.equal(await answer(env, -7, "/durum", fakeFetch({}), 7, "supergroup"), null);
-});
-
-test("status lists balance and open positions", async () => {
-  const f = fakeFetch({
-    "/api/v2/mix/account/accounts": [{ marginCoin: "USDT", accountEquity: "9999.5", available: "9950", unrealizedPL: "-0.5" }],
-    "/api/v2/mix/position/all-position": [{ symbol: "NEARUSDT", holdSide: "long", total: "9", openPriceAvg: "5.471",
-      markPrice: "5.46", unrealizedPL: "-0.1" }],
-  });
-  const text = await answer(env, 42, "/durum", f);
-  assert.match(text, /9\.999,50 USDT/);
-  assert.match(text, /NEAR long: 9 adet, giriş 5\.471/);
-});
-
-test("close only from the owner chat and only when a position exists", async () => {
   const calls = [];
-  const f = fakeFetch({ "/api/v2/mix/position/all-position": [{ symbol: "NEARUSDT" }],
-    "/api/v2/mix/order/close-positions": {} }, calls);
-  assert.match(await answer(env, -100, "/kapat near", f, 7), /sadece hesap sahibi/);
-  assert.match(await answer(env, 42, "/kapat btc", f), /açık demo işlemi yok/);
-  assert.match(await answer(env, 42, "/kapat near", f), /kapatıldı/);
-  const post = calls.find((c) => c.url.endsWith("/close-positions"));
-  assert.deepEqual(JSON.parse(post.opts.body), { symbol: "NEARUSDT", productType: "USDT-FUTURES" });
-  assert.equal(post.opts.headers.paptrading, "1");
+  assert.equal(await answer(env, 7, "/durum", fakeGitHub(calls)), "Bu bot özel. Senin numaran: 7");
+  assert.equal(await answer(env, -7, "/durum", fakeGitHub(calls), 7, "supergroup"), null);
+  assert.equal(calls.length, 0);
 });
 
-test("errors are reported, not thrown", async () => {
-  const f = fakeFetch({ "/api/v2/mix/position/history-position": new Error("bad key") });
-  assert.match(await answer(env, 42, "/gecmis", f), /Bir sorun oldu: Bitget 40001: bad key/);
+test("only the owner can close, also in the group", async () => {
+  const calls = [];
+  assert.match(await answer(env, -100, "/kapat near", fakeGitHub(calls), 7, "group"), /sadece hesap sahibi/);
+  assert.equal(calls.length, 0);
+  await answer(env, -100, "/kapat near", fakeGitHub(calls), 42, "group");
+  assert.deepEqual(JSON.parse(calls[0].opts.body).inputs, { cmd: "/kapat", arg: "near", chat: "-100", sender: "42" });
 });
 
-test("help, symbol names and the group stays quiet on unknown text", async () => {
-  assert.equal(await answer(env, 42, "/yardim@asgo_bot", fakeFetch({})), HELP);
-  assert.equal(symbolOf("near"), "NEARUSDT");
-  assert.equal(symbolOf("BTCUSDT"), "BTCUSDT");
-  assert.equal(await answer(env, -100, "selam", fakeFetch({})), null);
+test("owner can ask an unknown group for its id; others cannot", async () => {
+  assert.match(await answer(env, -555, "/grupid", fakeGitHub(), 42, "group"), /-555/);
+  assert.equal(await answer(env, -555, "/grupid", fakeGitHub(), 7, "group"), null);
+  assert.equal(await answer(env, -555, "/durum", fakeGitHub(), 42, "group"), null);
+});
+
+test("problems are reported, not thrown", async () => {
+  assert.match(await answer(env, 42, "/gecmis", fakeGitHub([], 401)), /Bir sorun oldu: GitHub 401 Bad credentials/);
+  assert.match(await answer({ ...env, GH_DISPATCH_TOKEN: "none" }, 42, "/durum", fakeGitHub()), /GH_DISPATCH_TOKEN/);
+});
+
+test("help, missing coin and the group stays quiet on unknown text", async () => {
+  assert.equal(await answer(env, 42, "/yardim@asgo_bot", fakeGitHub()), HELP);
+  assert.match(await answer(env, 42, "/fiyat", fakeGitHub()), /Hangi coin/);
+  assert.equal(await answer(env, -100, "selam", fakeGitHub(), 7, "group"), null);
 });
 
 test("webhook refuses calls without Telegram's secret token", async () => {
   const req = new Request("https://x", { method: "POST", body: "{}", headers: { "X-Telegram-Bot-Api-Secret-Token": "no" } });
   assert.equal((await worker.fetch(req, env)).status, 403);
-});
-
-test("group: members read, only the owner closes; owner can ask an unknown group for its id", async () => {
-  const f = fakeFetch({ "/api/v2/mix/position/all-position": [{ symbol: "NEARUSDT" }],
-    "/api/v2/mix/order/close-positions": {} });
-  assert.match(await answer(env, -100, "/kapat near", f, 42), /kapatıldı/);
-  assert.match(await answer(env, -555, "/grupid", f, 42), /-555/);
-  assert.equal(await answer(env, -555, "/grupid", f, 7, "group"), null);
-  assert.equal(await answer(env, -555, "/durum", f, 42, "group"), null);
-});
-
-test("a non-JSON or unexpected Bitget answer is shown readably", async () => {
-  const f = fakeFetch({ "/api/v2/mix/account/accounts": "<html>Access denied</html>" });
-  assert.match(await answer(env, 42, "/durum", f), /Bitget HTTP 403: <html>Access denied/);
 });

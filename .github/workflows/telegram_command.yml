@@ -1,0 +1,47 @@
+# Answers one Telegram command about the Bitget DEMO account. Started by the Cloudflare bot
+# (telegram_worker/), because Bitget blocks Cloudflare's servers but answers GitHub runners.
+name: Telegram komutu
+
+on:
+  workflow_dispatch:
+    inputs:
+      cmd:
+        description: "Command, e.g. /durum"
+        required: true
+      arg:
+        description: "Argument, e.g. NEAR"
+        required: false
+        default: ""
+      chat:
+        description: "Telegram chat id to answer"
+        required: true
+      sender:
+        description: "Telegram user id who asked"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  answer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            signals/dispatcher
+      - name: Answer
+        env:
+          BITGET_DEMO_API_KEY: ${{ secrets.BITGET_DEMO_API_KEY }}
+          BITGET_DEMO_API_SECRET: ${{ secrets.BITGET_DEMO_API_SECRET }}
+          BITGET_DEMO_API_PASSPHRASE: ${{ secrets.BITGET_DEMO_API_PASSPHRASE }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
+          CMD: ${{ inputs.cmd }}
+          ARG: ${{ inputs.arg }}
+          CHAT: ${{ inputs.chat }}
+          SENDER: ${{ inputs.sender }}
+        run: python3 scripts/telegram_command.py --cmd "$CMD" --arg "$ARG" --chat "$CHAT" --sender "$SENDER"

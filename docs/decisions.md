@@ -118,3 +118,8 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - Karar: Telegram komutları (/durum, /gecmis, /fiyat, /kapat) ücretsiz Cloudflare Workers'ta çalışır, cevap anında gelir. Pusula'nın işlem mesajları 4 saatlik GitHub botundan gider.
 - Gerekçe: GitHub'ın ücretsiz süresi (ayda 2.000 dakika) sık komut kontrolüne yetmiyor; Cloudflare kart istemiyor. Proje sahibi karar kartında "Cloudflare"ı seçti.
 - Sınırlar: Bot sadece sahibin özel sohbetine cevap verir. Sadece Bitget demo hesabına bağlanır (her istekte `paptrading: 1`). `/kapat` sadece demo işlemini kapatır. Bot seviye üretmez.
+
+## 2026-10-10 — Telegram hesap komutları GitHub üzerinden cevaplanır
+- Karar: Cloudflare botu sadece kimin sorduğunu kontrol eder ve yardım mesajını kendisi verir. /durum, /gecmis, /fiyat ve /kapat komutlarını GitHub'daki "Telegram komutu" işine iletir. O iş Bitget demo hesabına sorup cevabı Telegram'a yollar (yaklaşık 30 saniye).
+- Gerekçe: Bitget, Cloudflare sunucularından gelen istekleri engelliyor (HTTP 403, Cloudflare block). GitHub sunucularına ise cevap veriyor. Her komut yaklaşık yarım dakika GitHub süresi harcıyor, aylık 2.000 dakika buna yetiyor.
+- Sınırlar: Bitget anahtarları artık Cloudflare'de tutulmaz, sadece GitHub Secrets'ta durur. GitHub anahtarı (GH_DISPATCH_TOKEN) sadece bu depoda ve sadece "Actions" iznine sahiptir. Demo başlığı (`paptrading: 1`) her istekte zorunludur. /kapat'ı sadece sahip kullanabilir.
