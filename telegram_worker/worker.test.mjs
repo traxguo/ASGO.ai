@@ -13,7 +13,9 @@ function fakeFetch(routes, calls = []) {
     calls.push({ url, opts });
     const path = new URL(url).pathname;
     const data = routes[path];
-    return { json: async () => (data instanceof Error ? { code: "40001", msg: data.message } : { code: "00000", data }) };
+    if (typeof data === "string") return { status: 403, text: async () => data };
+    const body = data instanceof Error ? { code: "40001", msg: data.message } : { code: "00000", data };
+    return { status: 200, text: async () => JSON.stringify(body), json: async () => body };
   };
 }
 
@@ -82,4 +84,9 @@ test("group: members read, only the owner closes; owner can ask an unknown group
   assert.match(await answer(env, -555, "/grupid", f, 42), /-555/);
   assert.equal(await answer(env, -555, "/grupid", f, 7, "group"), null);
   assert.equal(await answer(env, -555, "/durum", f, 42, "group"), null);
+});
+
+test("a non-JSON or unexpected Bitget answer is shown readably", async () => {
+  const f = fakeFetch({ "/api/v2/mix/account/accounts": "<html>Access denied</html>" });
+  assert.match(await answer(env, 42, "/durum", f), /Bitget HTTP 403: <html>Access denied/);
 });

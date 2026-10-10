@@ -43,8 +43,13 @@ export async function bitgetRequest(env, method, path, query = {}, body = null, 
   };
   if (headers.paptrading !== "1") throw new Error("STOP: request without the demo header");
   const res = await fetchFn(BITGET + requestPath, { method, headers, body: bodyText || undefined });
-  const data = await res.json();
-  if (data.code !== "00000") throw new Error(`Bitget ${data.code}: ${data.msg}`);
+  const raw = await res.text();
+  let data = null;
+  try { data = JSON.parse(raw); } catch { /* not JSON, e.g. a block page */ }
+  if (data?.code !== "00000") {
+    const why = data?.msg || data?.message || raw.replace(/\s+/g, " ").slice(0, 150);
+    throw new Error(`Bitget ${data?.code ?? `HTTP ${res.status}`}: ${why}`);
+  }
   return data.data;
 }
 
