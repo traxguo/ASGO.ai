@@ -1,0 +1,4 @@
+# Bitget demo runner on GitHub Actions (.github/workflows/bitget_demo.yml).
+# Same Freqtrade version as the backtests, so the strategy code runs identically.
+freqtrade==2026.9
+pytest

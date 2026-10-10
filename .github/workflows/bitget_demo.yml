@@ -1,0 +1,67 @@
+# Runs PusulaV2 on the Bitget DEMO account (play money) after every 4h candle.
+# Keys live in GitHub Secrets (Settings > Secrets and variables > Actions), never in the repo.
+# Without keys the trading step is skipped. Steps for the owner: docs/bitget_demo_kurulum.md
+name: Pusula Bitget demo
+
+on:
+  schedule:
+    - cron: "7 0,4,8,12,16,20 * * *"  # UTC, 7 minutes after each 4h candle closes
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/bitget_demo.py
+      - tests/test_bitget_demo.py
+      - strategies/**
+      - requirements-demo.txt
+      - .github/workflows/bitget_demo.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bitget-demo
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HAS_KEYS: ${{ secrets.BITGET_DEMO_API_KEY != '' && secrets.BITGET_DEMO_API_SECRET != '' && secrets.BITGET_DEMO_API_PASSPHRASE != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-demo.txt
+      - run: pip install -r requirements-demo.txt
+
+      - name: Check data and signals (no keys)
+        if: github.event_name == 'pull_request'
+        run: |
+          python -m pytest -q tests/test_bitget_demo.py
+          python scripts/bitget_demo.py --check
+
+      - name: Keys missing
+        if: github.event_name != 'pull_request' && env.HAS_KEYS != 'true'
+        run: echo "::notice::Bitget demo keys are not set yet, nothing traded (docs/bitget_demo_kurulum.md)."
+
+      - name: Trade on the Bitget demo account
+        if: github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
+        env:
+          BITGET_DEMO_API_KEY: ${{ secrets.BITGET_DEMO_API_KEY }}
+          BITGET_DEMO_API_SECRET: ${{ secrets.BITGET_DEMO_API_SECRET }}
+          BITGET_DEMO_API_PASSPHRASE: ${{ secrets.BITGET_DEMO_API_PASSPHRASE }}
+        run: python scripts/bitget_demo.py
+
+      - name: Save the trade log
+        if: always() && github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
+        run: |
+          git add forward/bitget_demo
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Bitget demo log: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0; sleep 5; done
+          exit 1
