@@ -11,6 +11,8 @@ Bu rehberle Pusula, GitHub'ın ücretsiz sunucusunda **4 saatte bir** kendi kend
 - Her işlem `forward/bitget_demo/` klasörüne yazılır. Ben bunları kağıt takip gibi inceleyip haftalık raporda sana anlatırım.
 
 ## 1. Bitget demo anahtarı al
+> **Önce kimlik doğrulaması (KYC) gerekir.** Bitget, demo API anahtarını sadece kimliği doğrulanmış hesaplara verir. KYC yoksa API sayfası sadece **gerçek hesap** anahtarı oluşturur; o anahtarla program "demo anahtarı değil" deyip durur (Bitget hata 40099). Önce Identity verification adımını tamamla.
+
 1. https://www.bitget.com adresinde hesabına gir (hesabın yoksa e-posta ile aç).
 2. Üstte **Futures** (Vadeli) sayfasına geç, sağ üstte **Demo trading** (Demo işlem) moduna geç. Demo hesapta oyun parası (SUSDT/USDT) olduğunu gör.
 3. Demo modundayken profil → **API Key Management** (API Yönetimi) → **Create Demo API Key** (Demo API anahtarı oluştur).

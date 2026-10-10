@@ -31,13 +31,6 @@ def test_demo_exchange_signs_with_demo_header():
     assert req["headers"]["PAPTRADING"] == "1"
 
 
-def test_demo_exchange_refuses_demo_coin_products_without_header():
-    # ccxt leaves the header off for the old S-USDT demo products; the guard must stop that
-    ex = bd.demo_exchange("k", "s", "p")
-    with pytest.raises(SystemExit):
-        ex.sign("v2/mix/order/place-order", ["private", "mix"], "POST", {"productType": "SUSDT-FUTURES"})
-
-
 # ------------------------------------------------------------------ candles
 
 
@@ -265,3 +258,36 @@ def test_no_more_than_three_trades(tmp_path):
 def test_demo_balance_accepts_susdt():
     assert bd.demo_balance({"SUSDT": {"total": 3000.0, "free": 2500.0}}) == (3000.0 * 0.99, 2500.0)
     assert bd.demo_balance({"USDT": {"total": 0}, "SUSDT": {"total": 0}}) == (0.0, 0.0)
+
+
+def test_real_key_is_reported_clearly():
+    class Live:
+        def fetch_balance(self, params=None):
+            raise RuntimeError('bitget {"code":"40099","msg":"exchange environment is incorrect"}')
+
+    with pytest.raises(SystemExit, match="not a Bitget DEMO key"):
+        bd.check_demo_key(Live())
+
+
+def test_play_money_requests_also_carry_demo_header():
+    ex = bd.demo_exchange("k", "s", "p")
+    req = ex.sign("v2/mix/order/place-order", ["private", "mix"], "POST",
+                  {"productType": "SUSDT-FUTURES", "symbol": "SBTCSUSDT"})
+    assert req["headers"]["PAPTRADING"] == "1"
+
+
+def test_symbol_map_translates_both_ways(tmp_path):
+    ex = FakeExchange()
+    mapped = bd.SymbolMap(ex, {PAIR: "SETH/SUSDT:SUSDT"})
+    mapped.create_order(PAIR, "limit", "buy", 1.0, 100.0, {})
+    assert ex.calls[-1][1] == "SETH/SUSDT:SUSDT"
+    ex.positions["SETH/SUSDT:SUSDT"] = 2.0
+    assert bd.position_size(mapped, PAIR) == 2.0
+    assert bd.demo_symbols({"SETH/SUSDT:SUSDT": {}}, [PAIR, "XLM/USDT:USDT"]) == {PAIR: "SETH/SUSDT:SUSDT"}
+
+
+def test_unlisted_demo_coin_is_skipped(tmp_path):
+    ex, state = FakeExchange(), {"trades": {}}
+    mapped = bd.SymbolMap(ex, {})
+    bd.run_once(mapped, None, {PAIR: frame([(SIGNAL, 99, 101, 1, 0)])}, state, NOW, bd.Recorder(tmp_path))
+    assert state["trades"] == {}
