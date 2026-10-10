@@ -1,0 +1,79 @@
+# Deploys the Telegram command bot (telegram_worker/) to Cloudflare Workers and points Telegram at it.
+# Needs GitHub Secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+# and the three BITGET_DEMO_API_* secrets. Owner steps: docs/telegram_cloudflare_kurulum.md
+name: Telegram bot (Cloudflare)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - telegram_worker/**
+      - .github/workflows/telegram_worker.yml
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - telegram_worker/**
+      - .github/workflows/telegram_worker.yml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HAS_KEYS: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' && secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test
+        run: node --test telegram_worker/worker.test.mjs
+
+      - name: Keys missing
+        if: github.event_name != 'pull_request' && env.HAS_KEYS != 'true'
+        run: echo "::notice::Cloudflare or Telegram secrets are not set yet, nothing deployed (docs/telegram_cloudflare_kurulum.md)."
+
+      - name: Webhook secret
+        if: github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          s=$(printf '%s' "asgo-webhook-$TELEGRAM_BOT_TOKEN" | sha256sum | cut -c1-48)
+          echo "::add-mask::$s"
+          echo "WEBHOOK_SECRET=$s" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloudflare
+        id: deploy
+        if: github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: telegram_worker
+          secrets: |
+            BITGET_DEMO_API_KEY
+            BITGET_DEMO_API_SECRET
+            BITGET_DEMO_API_PASSPHRASE
+            TELEGRAM_CHAT_ID
+            WEBHOOK_SECRET
+        env:
+          BITGET_DEMO_API_KEY: ${{ secrets.BITGET_DEMO_API_KEY }}
+          BITGET_DEMO_API_SECRET: ${{ secrets.BITGET_DEMO_API_SECRET }}
+          BITGET_DEMO_API_PASSPHRASE: ${{ secrets.BITGET_DEMO_API_PASSPHRASE }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Point Telegram at the worker
+        if: github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          if [ -z "$URL" ]; then echo "::error::Cloudflare gave no worker address (is the workers.dev subdomain set up?)"; exit 1; fi
+          curl -sS --fail-with-body "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+            --data-urlencode "url=${URL}" \
+            --data-urlencode "secret_token=${WEBHOOK_SECRET}" \
+            --data-urlencode 'allowed_updates=["message"]' | sed 's/bot[0-9]*:[A-Za-z0-9_-]*//g'
+          echo
+          curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands" \
+            --data-urlencode 'commands=[{"command":"durum","description":"Bakiye ve açık işlemler"},{"command":"gecmis","description":"Son kapanan işlemler"},{"command":"fiyat","description":"Güncel fiyat, ör. /fiyat BTC"},{"command":"kapat","description":"Demo işlemini kapat, ör. /kapat NEAR"},{"command":"yardim","description":"Komut listesi"}]' > /dev/null
+          echo "Telegram now sends messages to the worker."
