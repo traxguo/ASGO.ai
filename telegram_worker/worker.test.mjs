@@ -49,7 +49,7 @@ test("close only from the owner chat and only when a position exists", async () 
   const calls = [];
   const f = fakeFetch({ "/api/v2/mix/position/all-position": [{ symbol: "NEARUSDT" }],
     "/api/v2/mix/order/close-positions": {} }, calls);
-  assert.match(await answer(env, -100, "/kapat near", f), /sadece sahibin/);
+  assert.match(await answer(env, -100, "/kapat near", f, 7), /sadece hesap sahibi/);
   assert.match(await answer(env, 42, "/kapat btc", f), /açık demo işlemi yok/);
   assert.match(await answer(env, 42, "/kapat near", f), /kapatıldı/);
   const post = calls.find((c) => c.url.endsWith("/close-positions"));
@@ -72,4 +72,13 @@ test("help, symbol names and the group stays quiet on unknown text", async () =>
 test("webhook refuses calls without Telegram's secret token", async () => {
   const req = new Request("https://x", { method: "POST", body: "{}", headers: { "X-Telegram-Bot-Api-Secret-Token": "no" } });
   assert.equal((await worker.fetch(req, env)).status, 403);
+});
+
+test("group: members read, only the owner closes; owner can ask an unknown group for its id", async () => {
+  const f = fakeFetch({ "/api/v2/mix/position/all-position": [{ symbol: "NEARUSDT" }],
+    "/api/v2/mix/order/close-positions": {} });
+  assert.match(await answer(env, -100, "/kapat near", f, 42), /kapatıldı/);
+  assert.match(await answer(env, -555, "/grupid", f, 42), /-555/);
+  assert.equal(await answer(env, -555, "/grupid", f, 7), null);
+  assert.equal(await answer(env, -555, "/durum", f, 42), null);
 });

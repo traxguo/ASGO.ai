@@ -110,12 +110,17 @@ async function closePosition(env, word, fetchFn) {
   return `${coin(symbol)} demo işlemi piyasa fiyatından kapatıldı. /durum ile kontrol edebilirsin.`;
 }
 
-export async function answer(env, chatId, text, fetchFn = fetch) {
-  const owner = String(chatId) === String(env.TELEGRAM_CHAT_ID);
+export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId) {
+  const ownerChat = String(chatId) === String(env.TELEGRAM_CHAT_ID);
+  const ownerSpeaking = String(fromId) === String(env.TELEGRAM_CHAT_ID);
   const group = env.TELEGRAM_GROUP_ID && String(chatId) === String(env.TELEGRAM_GROUP_ID);
-  if (!owner && !group) return null;  // strangers get no answer at all
   const [cmdRaw, arg] = (text || "").trim().split(/\s+/);
   const cmd = (cmdRaw || "").toLowerCase().split("@")[0];
+  // the owner can ask any group for its id once, to add it as the TELEGRAM_GROUP_ID secret
+  if (cmd === "/grupid" && ownerSpeaking && !ownerChat) {
+    return `Bu grubun numarası: ${chatId}\nBunu GitHub Secrets'a TELEGRAM_GROUP_ID adıyla ekle, sonra kurulumu tekrar çalıştır.`;
+  }
+  if (!ownerChat && !group) return null;  // strangers get no answer at all
   try {
     switch (cmd) {
       case "/start": case "/yardim": case "/help": return HELP;
@@ -123,10 +128,10 @@ export async function answer(env, chatId, text, fetchFn = fetch) {
       case "/gecmis": return await history(env, fetchFn);
       case "/fiyat": return await price(arg, fetchFn);
       case "/kapat":
-        if (!owner) return "İşlem kapatma sadece sahibin özel sohbetinden yapılabilir.";
+        if (!ownerSpeaking) return "İşlem kapatmayı sadece hesap sahibi yapabilir.";
         return await closePosition(env, arg, fetchFn);
       default:
-        return group ? null : "Bu komutu tanımıyorum. /yardim yaz.";
+        return ownerChat ? "Bu komutu tanımıyorum. /yardim yaz." : null;
     }
   } catch (e) {
     return `Bir sorun oldu: ${String(e.message || e).slice(0, 200)}`;
@@ -142,7 +147,7 @@ export default {
     const update = await request.json();
     const msg = update.message;
     if (!msg?.text) return new Response("ok");
-    const reply = await answer(env, msg.chat.id, msg.text);
+    const reply = await answer(env, msg.chat.id, msg.text, fetch, msg.from?.id);
     if (!reply) return new Response("ok");
     // answering inside the webhook response saves a separate call to Telegram
     return new Response(JSON.stringify({ method: "sendMessage", chat_id: msg.chat.id, text: reply }),
