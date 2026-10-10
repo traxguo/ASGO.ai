@@ -7,6 +7,11 @@ on:
   schedule:
     - cron: "7 0,4,8,12,16,20 * * *"  # UTC, 7 minutes after each 4h candle closes
   workflow_dispatch:
+    inputs:
+      smoke_test:
+        description: "Also open one tiny test long with a stop (pipeline check, not a Pusula trade)"
+        type: boolean
+        default: false
   pull_request:
     paths:
       - scripts/bitget_demo.py
@@ -53,7 +58,8 @@ jobs:
           BITGET_DEMO_API_KEY: ${{ secrets.BITGET_DEMO_API_KEY }}
           BITGET_DEMO_API_SECRET: ${{ secrets.BITGET_DEMO_API_SECRET }}
           BITGET_DEMO_API_PASSPHRASE: ${{ secrets.BITGET_DEMO_API_PASSPHRASE }}
-        run: python scripts/bitget_demo.py
+          SMOKE_TEST: ${{ github.event_name == 'workflow_dispatch' && inputs.smoke_test && '--smoke-test' || '' }}
+        run: python scripts/bitget_demo.py $SMOKE_TEST
 
       - name: Save the trade log
         if: always() && github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
