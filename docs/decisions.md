@@ -123,3 +123,8 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - Karar: Cloudflare botu sadece kimin sorduğunu kontrol eder ve yardım mesajını kendisi verir. /durum, /gecmis, /fiyat ve /kapat komutlarını GitHub'daki "Telegram komutu" işine iletir. O iş Bitget demo hesabına sorup cevabı Telegram'a yollar (yaklaşık 30 saniye).
 - Gerekçe: Bitget, Cloudflare sunucularından gelen istekleri engelliyor (HTTP 403, Cloudflare block). GitHub sunucularına ise cevap veriyor. Her komut yaklaşık yarım dakika GitHub süresi harcıyor, aylık 2.000 dakika buna yetiyor.
 - Sınırlar: Bitget anahtarları artık Cloudflare'de tutulmaz, sadece GitHub Secrets'ta durur. GitHub anahtarı (GH_DISPATCH_TOKEN) sadece bu depoda ve sadece "Actions" iznine sahiptir. Demo başlığı (`paptrading: 1`) her istekte zorunludur. /kapat'ı sadece sahip kullanabilir.
+
+## 2026-10-10 — Gerçek paraya "hazırız" şartları (proje sahibi kararı)
+- Karar: Demo hesapta **1 ay** çalıştıktan sonra (2026-11-10 civarı) Claude net bir karar raporu verir: "hazırız" ya da "hazır değiliz, neden". "Hazırız" demek için şunlar gerekir: komisyon ve funding sonrası ortalama sonuç artıda olacak, en büyük düşüş testlerdeki sınırı aşmayacak, demodaki dolum fiyatları beklenene yakın olacak ve işlem sayısı karar vermeye yetecek (hedef ≥ 30). İşlem sayısı yetmezse karar "henüz erken" olur ve süre uzar.
+- Gerekçe: Proje sahibi 3 ayı uzun buldu, 1 ay istedi. Not: Pusula ayda yaklaşık 3 işlem açıyor; 1 ayda tek başına 30 işleme ulaşamaz. Bu yüzden daha sık işlem açan bir yan strateji (kuyruk 1b) bu süreyi kısaltmanın asıl yolu.
+- Sınırlar: "Hazırız" kararından sonra bile gerçek para ayrı ve açık bir sahip onayı ister, çok küçük tutarla başlar. Geliştirme turları ekleme kadar kural çıkarmayı da dener.
