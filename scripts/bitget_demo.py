@@ -51,15 +51,30 @@ sys.path.insert(0, str(REPO / "strategies" / "candidates"))
 
 import pandas as pd  # noqa: E402
 
-STRATEGY = "PusulaV2"
-TF, DAILY_TF, DETAIL_TF = "4h", "1d", "1h"
-TF_HOURS = 4
-MAX_OPEN_TRADES = 3
+# Two bots share the demo account; DEMO_BOT picks one (default: the original Pusula bot).
+#   pusula: PusulaV2, 4h candles, 16 coins, 1% risk, max 3 trades, stop to break even at 2R
+#   dalga : Dalga, 1h candles, 36 coins, dynamic risk (cards/dalga.md), max 8 trades, stop never moves
+# A bot never trades a coin the other bot holds or waits on (one-way positions would merge).
+BOTS = {
+    "pusula": {"module": "pusula", "strategy": "PusulaV2", "tf": "4h", "tf_hours": 4, "max_open": 3,
+               "pairs": "pairs_wide16.json", "out": "bitget_demo", "cid": "pv2", "breakeven": True,
+               "dynamic_risk": False, "title": "Pusula"},
+    "dalga": {"module": "dalga", "strategy": "Dalga", "tf": "1h", "tf_hours": 1, "max_open": 8,
+              "pairs": "pairs_all36.json", "out": "bitget_demo_dalga", "cid": "dlg", "breakeven": False,
+              "dynamic_risk": True, "title": "Dalga"},
+}
+BOT_NAME = os.environ.get("DEMO_BOT", "pusula").strip() or "pusula"
+BOT = BOTS[BOT_NAME]
+OTHER_STATE_FILES = [REPO / "forward" / b["out"] / "state.json" for n, b in BOTS.items() if n != BOT_NAME]
+STRATEGY = BOT["strategy"]
+TF, DAILY_TF, DETAIL_TF = BOT["tf"], "1d", "1h"
+TF_HOURS = BOT["tf_hours"]
+MAX_OPEN_TRADES = BOT["max_open"]
 TRADABLE_BALANCE_RATIO = 0.99  # same as config/base.json
-CANDLES_4H = 300
+CANDLES_4H = 300  # candles of the bot's own timeframe
 CANDLES_1D = 400
-PAIRS_FILE = REPO / "config" / "pairs_wide16.json"
-OUT_DIR = REPO / "forward" / "bitget_demo"
+PAIRS_FILE = REPO / "config" / BOT["pairs"]
+OUT_DIR = REPO / "forward" / BOT["out"]
 STATE_FILE = OUT_DIR / "state.json"
 TRADES_FILE = OUT_DIR / "trades.csv"
 EVENTS_FILE = OUT_DIR / "events.csv"
@@ -153,9 +168,10 @@ class _Provider:
 
 
 def make_strategy():
-    import pusula
+    import importlib
 
-    strategy = getattr(pusula, STRATEGY)({"timeframe": TF, "stake_currency": "USDT", "dry_run": True,
+    module = importlib.import_module(BOT["module"])
+    strategy = getattr(module, BOT["strategy"])({"timeframe": BOT["tf"], "stake_currency": "USDT", "dry_run": True,
                                           "trading_mode": "futures", "margin_mode": "isolated"})
     return strategy
 
@@ -185,7 +201,7 @@ def signal_plan(df: pd.DataFrame, signal_time: datetime) -> dict | None:
     if row.get("enter_long") != 1:
         return None
     return {"entry": float(row["long_entry"]), "stop": float(row["long_stop"]),
-            "signal_time": signal_time.isoformat()}
+            "score": row.get("score_1d"), "signal_time": signal_time.isoformat()}
 
 
 def exit_signal(df: pd.DataFrame, signal_time: datetime) -> bool:
@@ -194,6 +210,17 @@ def exit_signal(df: pd.DataFrame, signal_time: datetime) -> bool:
 
 
 # ------------------------------------------------------------------ records
+
+
+def other_bot_pairs() -> set[str]:
+    """Coins the other demo bot holds or waits on (read from its saved state)."""
+    out = set()
+    for path in OTHER_STATE_FILES:
+        if path.is_file():
+            for t in json.loads(path.read_text(encoding="utf-8")).get("trades", {}).values():
+                if t.get("status") in ("pending", "open"):
+                    out.add(t["pair"])
+    return out
 
 
 def load_state(path: Path = STATE_FILE) -> dict:
@@ -236,7 +263,7 @@ class Recorder:
 
 
 def client_id(pair: str, signal_time: datetime) -> str:
-    return f"pv2{pair.split('/')[0].lower()}{signal_time:%Y%m%d%H}"
+    return f"{BOT['cid']}{pair.split('/')[0].lower()}{signal_time:%Y%m%d%H}"
 
 
 def position_size(ex, pair: str) -> float:
@@ -399,7 +426,7 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
 
     strategy = make_strategy()
     mgmt, model = strategy.mgmt, strategy.tp_model
-    signal_time = last_closed_open(now, TF_HOURS)
+    signal_time = last_closed_open(now, BOT["tf_hours"])
     trades = state.setdefault("trades", {})
 
     # 1. pending entries: filled, cancelled, or still waiting
@@ -409,7 +436,7 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
         order = ex.fetch_order(t["order_id"], t["pair"], PRODUCT)
         filled = float(order.get("filled") or 0)
         sig = datetime.fromisoformat(t["signal_time"])
-        expired = now >= sig + timedelta(hours=TF_HOURS * (1 + mgmt.valid_for_candles))
+        expired = now >= sig + timedelta(hours=BOT["tf_hours"] * (1 + mgmt.valid_for_candles))
         df = analyzed.get(t["pair"])
         after = df[df["date"] > pd.Timestamp(sig)] if df is not None else pd.DataFrame()
         touched_stop = (not after.empty) and float(after["low"].min()) <= t["plan_stop"]
@@ -446,7 +473,7 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
                             {**PRODUCT, "reduceOnly": True, "marginMode": "isolated"})
             finish_trade(ex, rec, now, cid, t, "exit_signal")
             continue
-        if not t.get("breakeven_moved"):
+        if BOT["breakeven"] and not t.get("breakeven_moved"):
             fill_time = datetime.fromisoformat(t["fill_time"])
             hours_open = int((now - fill_time).total_seconds() // 3600) + 2
             detail = fetch_candles(pub, pair, DETAIL_TF, hours_open, now)
@@ -460,8 +487,8 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
 
     # 3. new signals on the candle that just closed
     active = [t for t in trades.values() if t["status"] in ("pending", "open")]
-    busy_pairs = {t["pair"] for t in active}
-    slots = MAX_OPEN_TRADES - len(active)
+    busy_pairs = {t["pair"] for t in active} | other_bot_pairs()
+    slots = BOT["max_open"] - len(active)
     if slots <= 0:
         return
     balance = ex.fetch_balance({"type": "swap", **PRODUCT})
@@ -470,11 +497,16 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
     if equity <= 0:
         rec.event(now, "-", "no demo balance found", "neither USDT nor SUSDT in the futures account")
         return
+    if BOT["dynamic_risk"]:
+        state["equity_peak"] = max(float(state.get("equity_peak") or 0), equity)
     for pair, df in analyzed.items():
         if slots <= 0:
             break
         plan = signal_plan(df, signal_time)
         if plan is None or pair in busy_pairs:
+            continue
+        if exit_signal(df, signal_time):  # never open a trade the exit rule would close at once
+            rec.event(now, pair, "signal skipped", "exit rule already true")
             continue
         if isinstance(ex, SymbolMap) and pair not in ex.mapping:
             rec.event(now, pair, "signal skipped", "coin not listed on the demo account")
@@ -482,8 +514,17 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
         cid = client_id(pair, signal_time)
         if cid in trades:
             continue
+        risk_mgmt = mgmt
+        if BOT["dynamic_risk"]:
+            import dataclasses
+            import dalga
+
+            risk = dalga.dynamic_risk(float(plan["score"]), equity, float(state["equity_peak"]))
+            if risk <= 0:
+                continue
+            risk_mgmt = dataclasses.replace(mgmt, risk_per_trade=risk)
         lev = tm.safe_leverage("long", plan["entry"], plan["stop"], mgmt) or 1.0
-        notional = tm.position_notional(equity, plan["entry"], plan["stop"], mgmt)
+        notional = tm.position_notional(equity, plan["entry"], plan["stop"], risk_mgmt)
         if notional / lev > free:
             rec.event(now, pair, "signal skipped", "not enough free margin for a full 1R position")
             continue
@@ -590,7 +631,7 @@ def notify_telegram(events: list[str]) -> None:
         return
     try:
         client = TelegramClient(token, parse_chat_id(os.environ.get("TELEGRAM_CHAT_ID")), timeout=20)
-        client.send_message("Bitget demo (Pusula)\n" + "\n".join(lines))
+        client.send_message(f"Bitget demo ({BOT['title']})\n" + "\n".join(lines))
     except Exception as e:  # noqa: BLE001 - a message problem must not stop trading
         print(f"telegram message not sent: {e}")
 
@@ -606,7 +647,7 @@ def main() -> None:
     pub = public_exchange()
     analyzed = analyze(load_all(pub, pair_list, now), pair_list)
     signal_time = last_closed_open(now, TF_HOURS)
-    print(f"last closed 4h candle: {signal_time:%Y-%m-%d %H:%M} UTC, pairs analysed: {len(analyzed)}/{len(pair_list)}")
+    print(f"bot {BOT_NAME}, last closed {BOT['tf']} candle: {signal_time:%Y-%m-%d %H:%M} UTC, pairs analysed: {len(analyzed)}/{len(pair_list)}")
     for pair, df in analyzed.items():
         last = df.iloc[-1]
         print(f"  {pair:16} close {last['close']:<12.6g} score_1d {last.get('score_1d')}  "

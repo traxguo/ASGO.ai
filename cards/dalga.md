@@ -49,7 +49,7 @@ Geliştirme 2020-01-01 → 2024-12-31, 36 coin, normal masraf (%0.1/emir + fundi
 İlk eleme şartları: ortalama > 0R, PF ≥ 1.2, en büyük düşüş ≤ %25, masraf x2'de > 0R, günde ≥ 0.5 işlem.
 Dürüstlük notu: 2020-2024 ve 2025-2026 verisi Pusula ailesinde çok kullanıldı; Dalga'nın kuralları bu bilgiyle seçildi. Gerçek sınav ileriye dönük kağıt takip olur.
 
-## Durum: candidate
+## Durum: candidate — Bitget demoda (2026-10-11, Pusula ile birlikte)
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
