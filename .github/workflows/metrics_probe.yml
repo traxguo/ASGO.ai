@@ -3,10 +3,6 @@ name: Metrics probe (Akis)
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - research/live/bitget_metrics_probe.py
-      - .github/workflows/metrics_probe.yml
 
 permissions:
   contents: read
