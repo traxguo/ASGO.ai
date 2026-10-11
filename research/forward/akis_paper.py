@@ -1,5 +1,5 @@
 """
-Akis paper test (cards/akis.md): the frozen rules on NEW days only, from Binance's
+Akis paper test (cards/akis.md; RETIRED 2026-10-11, kept for the record): the frozen rules on NEW days only, from Binance's
 public archive (data.binance.vision publishes each day a day later, so this runs
 once a day and judges the day before yesterday). No orders, no keys.
 
@@ -64,8 +64,7 @@ def load(coin: str, day: date) -> pd.DataFrame:
     px = px[~px.index.duplicated()]
     h = m.resample("1h").last()
     taker = m["sum_taker_long_short_vol_ratio"].resample("1h").mean()
-    h.index = h.index - pd.Timedelta("1h")  # value at the end of the candle that opened an hour earlier
-    taker.index = taker.index - pd.Timedelta("1h")
+    # resample label H already holds values known by the close of candle H (no shift)
     df = px.copy()
     oi = h["sum_open_interest"].reindex(df.index)
     ls = h["count_long_short_ratio"].reindex(df.index)

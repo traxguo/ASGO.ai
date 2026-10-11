@@ -1,4 +1,6 @@
-# OI / long-short / taker-ratio features vs forward 4h return. Dev 2022-2024, val 2025-01..2026-03.
+# OI / long-short / taker-ratio features vs forward 4h return.
+# 2026-10-11: the first version shifted the hourly metrics one hour too early, so each
+# feature saw ~55 minutes of the future (lookahead). Fixed below; with the fix the edge is gone. Dev 2022-2024, val 2025-01..2026-03.
 import glob,zipfile,io,numpy as np,pandas as pd
 coins="BTC ETH SOL XRP BNB DOGE ADA LINK AVAX LTC DOT TRX".split()
 out=[]
@@ -16,7 +18,7 @@ for c in coins:
     taker=m.sum_taker_long_short_vol_ratio.resample("1h").mean()
     px=pd.read_feather(f"user_data/data/binance/futures/{c}_USDT_USDT-1h-futures.feather").set_index("date")
     # features use info up to hour close; label h stamps hour start -> shift so feature at index t is known at close of candle t
-    h.index=h.index-pd.Timedelta("1h"); taker.index=taker.index-pd.Timedelta("1h")
+    pass  # FIXED: resample label H already holds values known by the close of candle H
     df=pd.DataFrame(index=px.index)
     oi=h.sum_open_interest.reindex(df.index)
     df["oi4"]=oi.pct_change(4); df["oi24"]=oi.pct_change(24)

@@ -25,7 +25,7 @@ Long (hepsi):
 ## Zaman dilimi ve parametreler
 1h; 12 coin (BTC ETH SOL XRP BNB DOGE ADA LINK AVAX LTC DOT TRX).
 
-## Durum: candidate — veri toplanıyor (Bitget geçmişi ~30 saat; z-skor için 30 gün birikmeli)
+## Durum: retired (2026-10-11)
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
@@ -37,3 +37,4 @@ Long (hepsi):
 - Bitget'in long/short oranı Binance'tekinden farklı seviyede (ör. SOL ~4.8); z-skor bu yüzden kullanılıyor ama eşiklerin Bitget'te aynı davrandığı henüz doğrulanmadı.
 
 ## Emeklilik gerekçesi (varsa)
+2026-10-11: İlk taramada bir zaman hatası vardı: saatlik açık pozisyon, long/short ve alıcı-satıcı verisi bir saat erkene kaydırılmıştı, yani her sinyal ~55 dakika sonrasını görüyordu. Hata, Binance metrics alıcı/satıcı oranının 5 dakikalık mumla birebir aynı olduğu (bir mum kayık) kontrol edilirken bulundu. Düzeltilince: geliştirme -0.08R, doğrulama -0.09R, kasa dönemi -0.22R (normal masraf); düşük masrafta da eksi. Avantaj yok. Toplama ve kağıt takip işleri kaldırıldı (PR'a girmeden).
