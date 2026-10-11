@@ -7,9 +7,13 @@ It is PusulaV2NoBe (strategies/candidates/pusula.py) moved to 1h candles:
   daily regime : coin score >= +1 from the last CLOSED daily candle, long only
   1h trigger   : first close above the previous 24-candle high, daily close above EMA20
   exit         : daily close below daily EMA20, or BTC daily score <= -1; stop never moves
-  sizing       : 0.5% risk per trade, run with --max-open-trades 8 (36 coins)
+  sizing       : dynamic risk per trade (owner's request 2026-10-11, fixed before testing):
+                 0.75% when the daily score is +3, 0.35% when it is +1; halved while
+                 equity is 10% or more below its peak, quartered at 20% or more.
+                 Run with --max-open-trades 8 (36 coins).
 """
 
+import dataclasses
 import sys
 from pathlib import Path
 
@@ -21,8 +25,22 @@ from strategies.candidates.pusula import PusulaV2NoBe  # noqa: E402
 from strategies.common import trade_management as tm  # noqa: E402
 
 
-class Dalga(PusulaV2NoBe):
-    """Main version (the card decides on this one). Run with --max-open-trades 8."""
+RISK_BY_SCORE = {3: 0.0075, 1: 0.0035}
+DD_BRAKES = ((0.20, 0.25), (0.10, 0.5))  # (drawdown from peak, risk multiplier), deepest first
+
+
+def dynamic_risk(score: float, equity: float, peak: float) -> float:
+    """Risk fraction for a new trade from the daily score and the equity drawdown."""
+    risk = RISK_BY_SCORE.get(int(score), 0.0) if score == score else 0.0
+    dd = 1 - equity / peak if peak > 0 else 0.0
+    for level, mult in DD_BRAKES:
+        if dd >= level:
+            return risk * mult
+    return risk
+
+
+class DalgaFixed(PusulaV2NoBe):
+    """Diagnostic variant (declared on the card): fixed 0.5% risk. Run with --max-open-trades 8."""
 
     timeframe = "1h"
     channel = 24
@@ -31,7 +49,22 @@ class Dalga(PusulaV2NoBe):
     mgmt = tm.ManagementParams(risk_per_trade=0.005)
 
 
-class Dalga3(Dalga):
-    """Diagnostic variant (declared on the card): 1% risk, run with --max-open-trades 3."""
+class Dalga(DalgaFixed):
+    """Main version (the card decides on this one): dynamic risk. Run with --max-open-trades 8."""
 
-    mgmt = tm.ManagementParams(risk_per_trade=0.01)
+    _peak = 0.0
+
+    def custom_stake_amount(self, pair, current_time, current_rate, proposed_stake, min_stake, max_stake,
+                            leverage, entry_tag, side, **kwargs) -> float:
+        row = self._last_row(pair)
+        if row is None:
+            return 0.0
+        equity = self.wallets.get_total_stake_amount()
+        self._peak = max(self._peak, equity)
+        risk = dynamic_risk(float(row["score_1d"]), equity, self._peak)
+        if risk <= 0:
+            return 0.0
+        params = dataclasses.replace(self.mgmt, risk_per_trade=risk)
+        notional = tm.position_notional(equity, float(row[f"{side}_entry"]), float(row[f"{side}_stop"]), params)
+        stake = notional / leverage
+        return 0.0 if stake > max_stake else stake
