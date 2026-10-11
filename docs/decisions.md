@@ -128,3 +128,8 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - Karar: Demo hesapta **1 ay** çalıştıktan sonra (2026-11-10 civarı) Claude net bir karar raporu verir: "hazırız" ya da "hazır değiliz, neden". "Hazırız" demek için şunlar gerekir: komisyon ve funding sonrası ortalama sonuç artıda olacak, en büyük düşüş testlerdeki sınırı aşmayacak, demodaki dolum fiyatları beklenene yakın olacak ve işlem sayısı karar vermeye yetecek (hedef ≥ 30). İşlem sayısı yetmezse karar "henüz erken" olur ve süre uzar.
 - Gerekçe: Proje sahibi 3 ayı uzun buldu, 1 ay istedi. Not: Pusula ayda yaklaşık 3 işlem açıyor; 1 ayda tek başına 30 işleme ulaşamaz. Bu yüzden daha sık işlem açan bir yan strateji (kuyruk 1b) bu süreyi kısaltmanın asıl yolu.
 - Sınırlar: "Hazırız" kararından sonra bile gerçek para ayrı ve açık bir sahip onayı ister, çok küçük tutarla başlar. Geliştirme turları ekleme kadar kural çıkarmayı da dener.
+
+## 2026-10-11 — Üç scalp stratejisi emekli, Pusula turu günde 1 (proje sahibi kararı)
+- Karar: SFP sweep, FVG+OB ve VWAP+EMA20 `strategies/retired/` altına alındı. Otomatik Pusula geliştirme turu 6 saatte birden günde bire (İstanbul 09:13) indirildi.
+- Gerekçe: Üçü de masrafsız bile eksi. Aslan'ın "bu kadar kötü olması normal değil" itirazı üzerine SFP, Freqtrade kullanmadan sıfırdan yazılmış ayrı bir simülasyonla BTC 2022-2024'te yeniden ölçüldü: masrafsız -0.05/-0.07R, Freqtrade sonucuyla aynı → uygulama hatası yok. Asıl sorun aritmetik: 5m'de stop ~%0.3, gidiş-dönüş masraf %0.2 → işlem başına ~0.6R masraf. Tur sıklığı kullanım hakkını korumak için azaltıldı.
+- Ders: Yeni hızlı strateji arayışında stop mesafesi en az ~%1 olmalı (masraf ≤ 0.2R) ya da beklenen kazanç masraftan belirgin büyük olmalı.

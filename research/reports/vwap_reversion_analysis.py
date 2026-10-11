@@ -36,7 +36,7 @@ _spec = importlib.util.spec_from_file_location("make_report", REPO / "scripts" /
 mr = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(mr)
 
-from strategies.candidates import vwap_reversion as vr  # noqa: E402
+from strategies.retired import vwap_reversion as vr  # noqa: E402
 
 START_BALANCE = 10000.0
 YEARS = [2022, 2023, 2024]

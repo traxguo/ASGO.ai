@@ -1,6 +1,6 @@
 # fvg_ob — 15 dk MSS + Order Block + 3 dk FVG geri dönüşü (limit emir)
 
-Kod: [`strategies/candidates/fvg_ob.py`](../strategies/candidates/fvg_ob.py)
+Kod: [`strategies/retired/fvg_ob.py`](../strategies/retired/fvg_ob.py)
 
 **Bu kart 2026-10-11'de, hiçbir backtest çalıştırılmadan önce yazıldı.** Koşullar, parametreler, varyant ve geçme şartı sonuçlara bakmadan sabitlendi.
 
@@ -84,8 +84,8 @@ Giriş anındaki ek koşul (emir dolarken kontrol edilir):
 - `FvgObLookahead` sınıfı varyant değildir; sadece Freqtrade lookahead-analysis aracı için (araç kasayı 1 milyar yaptığından %1 riskli boyut borsa sınırını aşıyor; aynı sinyaller, sabit boyut). Test sonrası eklendi, kurallara dokunmaz.
 - Bekleyen emir yuvayı tuttuğu için, tek yuvayla başka bir coinin sinyali kaçabilir (gerçek tek-pozisyon kuralıyla aynı).
 
-## Durum: candidate — ilk elemede başarısız, emeklilik önerildi (2026-10-11)
-Normal masrafla -0.95R, masrafsız bile -0.20R; her yıl, her coin, iki yön de eksi. Emekliye ayırma kararı proje sahibinin; kod şimdilik `strategies/candidates/` altında.
+## Durum: retired (2026-10-11)
+Emekli (proje sahibi onayı 2026-10-11); gerekçe aşağıda.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
@@ -103,3 +103,4 @@ Normal masrafla -0.95R, masrafsız bile -0.20R; her yıl, her coin, iki yön de 
 - Aslan/AMS ailesiyle uyumlu: masraf öncesi avantaj yok (orada ~0R, burada -0.20R).
 
 ## Emeklilik gerekçesi (varsa)
+2026-10-11: Geliştirme döneminde normal masrafla -0.95R, masrafsız bile -0.20R; her yıl, her coin, iki yön de eksi. Dar stop (5m/3m) yüzünden masraf işlem başına 0.5R'den fazla. Proje sahibi onayıyla emekli. Kod `strategies/retired/fvg_ob.py`.

@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from strategies.candidates import fvg_ob  # noqa: E402
+from strategies.retired import fvg_ob  # noqa: E402
 
 DATA = Path("user_data/data/binance/futures")
 

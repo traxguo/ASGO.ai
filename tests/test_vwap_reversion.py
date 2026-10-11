@@ -7,7 +7,7 @@ import pytest
 
 pytest.importorskip("freqtrade")
 
-from strategies.candidates import vwap_reversion as v  # noqa: E402
+from strategies.retired import vwap_reversion as v  # noqa: E402
 
 
 def _frame(rows, start="2023-01-01 00:00"):

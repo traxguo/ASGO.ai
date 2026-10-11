@@ -1,6 +1,6 @@
 # vwap_reversion — VWAP/EMA20'den aşırı uzaklaşan fiyatın geri dönüşü (5m)
 
-Kod: [`strategies/candidates/vwap_reversion.py`](../strategies/candidates/vwap_reversion.py)
+Kod: [`strategies/retired/vwap_reversion.py`](../strategies/retired/vwap_reversion.py)
 
 **Bu kart ilk backtest'ten ÖNCE yazıldı (2026-10-11).** Koşullar, parametreler, varyantlar ve ilk eleme şartı test öncesi sabitlendi; sonuca bakıp değiştirilmez.
 
@@ -85,8 +85,8 @@ Ortak modülün (`strategies/common/freqtrade_mixin.py`, `ManagedStrategy`) iske
 - **İlk eleme şartı ("şansı hak ediyor mu")**, normal masrafla, ana sürüm, BTC/ETH/SOL: ortalama R > 0, PF ≥ 1.1, max DD ≤ %35, coinlerin en az yarısı artıda (≥ 2/3), 3 yılın en az 2'sinde artı. GUO'nun hedefi günde ~3 işlem; günde işlem sayısı dürüstçe raporlanır (şart değil).
 - Sonuca bakıp kural, eşik veya varyant değiştirilmez.
 
-## Durum: candidate — emeklilik önerisi (2026-10-11)
-İlk elemeyi hiçbir şartta geçemedi (ana koşu -0.43R, PF 0.31, kasa 2022'de bitti; sabit riskli teşhiste -0.65R, 0/3 coin, 0/3 yıl; masrafsız bile -0.07R). Emekliye ayırma (`strategies/retired/`) proje sahibinin onayına sunuldu; onaya kadar kod `strategies/candidates/` altında kalıyor.
+## Durum: retired (2026-10-11)
+Emekli (proje sahibi onayı 2026-10-11); gerekçe aşağıda.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
@@ -109,4 +109,4 @@ Ortak modülün (`strategies/common/freqtrade_mixin.py`, `ManagedStrategy`) iske
 - Doğrulama yapılmadı, kasaya dokunulmadı.
 
 ## Emeklilik gerekçesi (varsa)
-(Öneri, onay bekliyor) Geliştirme döneminde normal masrafla -0.43R / -0.65R, PF 0.31-0.32; masrafsız bile eksi; her yıl, her coin, her iki yönde eksi.
+2026-10-11: Geliştirme döneminde normal masrafla -0.43R / -0.65R, PF 0.31-0.32; masrafsız bile eksi; her yıl, her coin, her iki yönde eksi. Proje sahibi onayıyla emekli. Kod `strategies/retired/vwap_reversion.py`.

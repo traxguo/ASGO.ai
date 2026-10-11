@@ -1,6 +1,6 @@
 # sfp_sweep — Swing Failure Pattern (SFP): tepe/dip likiditesi alınıp geri dönülmesi
 
-Kod: [`strategies/candidates/sfp_sweep.py`](../strategies/candidates/sfp_sweep.py)
+Kod: [`strategies/retired/sfp_sweep.py`](../strategies/retired/sfp_sweep.py)
 
 **Bu kart ilk testten ÖNCE yazıldı (2026-10-11).** Kurallar, parametreler, varyant ve geçme şartı sonuçlar görülmeden sabitlendi; sonuca bakıp değiştirilmez.
 
@@ -73,8 +73,8 @@ Long (hepsi): aynası — [sweep_swing_low] low < güncel 15 dk dibi (ilk dokunu
 - Doğrulama (2025+) bu turda YAPILMAZ. Kasaya (2026-04 sonrası) dokunulmaz.
 - Sonuca bakıp kural, eşik veya varyant değiştirilmez.
 
-## Durum: candidate — emeklilik önerildi (2026-10-11, karar proje sahibinde)
-Normal masrafla ilk elemenin hiçbir şartını geçemedi (-0.65R, PF 0.35, kasa 2022'de bitti); masrafsız bile -0.07R. Kod proje sahibi karar verene kadar `strategies/candidates/` altında kalıyor.
+## Durum: retired (2026-10-11)
+Emekli (proje sahibi onayı 2026-10-11); gerekçe aşağıda.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
@@ -95,3 +95,4 @@ Normal masrafla ilk elemenin hiçbir şartını geçemedi (-0.65R, PF 0.35, kasa
 - Doğrulama yapılmadı, kasaya dokunulmadı.
 
 ## Emeklilik gerekçesi (varsa)
+2026-10-11: Geliştirme döneminde (2022-2024, BTC/ETH/SOL, 5m) normal masrafla -0.65R, PF 0.35, kasa 2022'de bitti; masrafsız bile -0.07R. Bağımsız kontrol (Freqtrade'siz, sıfırdan yazılmış basit simülasyon, BTC 2022-2024): masrafsız -0.05/-0.07R, ortanca stop %0.28 → aynı sonuç, uygulama hatası yok. Stop çok dar olduğu için masraf işlem başına ~0.5-0.8R yiyor. Proje sahibi onayıyla emekli. Kod `strategies/retired/sfp_sweep.py`.

@@ -7,7 +7,7 @@ import pytest
 
 pytest.importorskip("freqtrade")
 
-from strategies.candidates import fvg_ob as f  # noqa: E402
+from strategies.retired import fvg_ob as f  # noqa: E402
 
 # 15m candles (open, close, high, low); 3m candles are a straight path open -> close.
 CANDLES_15M = [

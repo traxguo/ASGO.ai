@@ -6,7 +6,7 @@ import pytest
 
 pytest.importorskip("freqtrade")
 
-from strategies.candidates import sfp_sweep as m  # noqa: E402
+from strategies.retired import sfp_sweep as m  # noqa: E402
 
 T0 = datetime(2023, 1, 1, tzinfo=timezone.utc)
 
