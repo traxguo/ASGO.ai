@@ -97,6 +97,7 @@ Proje sahibi "devam" dedi; önerilen "sadece long" seçeneğiyle ilerleniyor.
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-11 | Çıkarma 2: long için günlük puan eşiği +3 → +1 (`PusulaV2NoBtcScore1`, temel PusulaV2NoBtcFilter) | **Kabul**: 16: 210→238 işlem, +1.20→+1.30R, DD %26.1→%21.5; 20: 150→201 işlem, +0.46→+0.52R, DD %24.6→%22.2. Kazanç birkaç coinde (SOL; ALGO+UNI). | `results/2026-10-11_pusula_cikarma2_puan/rapor.md` |
 | 2026-10-10 | Çıkarma 1: BTC giriş filtresi kaldırıldı (`PusulaV2NoBtcFilter`, temel PusulaV2) | **Kabul**: iki listede de aynı (16: 210 işlem +1.20R DD %26.1; 20: 150 işlem +0.46R DD %24.6). Filtre gereksiz: BTC-dönüş çıkışı aynı mumlarda girişi zaten engelliyor. | `results/2026-10-10_pusula_cikarma1_btcfiltre/rapor.md` |
 | 2026-10-10 | Geliştirme 3a: hacim onayı 1.5x; 3b: 10 günlük süre stopu (temel PusulaV2) | İkisi de red. 3a yeni 20'de iyi (+0.76R) ama eski 16'da kötü (DD %33). | `results/2026-10-10_pusula_gelistirme3_ozet.md` |
 | 2026-10-10 | Geliştirme 2a: BTC skoru ≤ -1 olunca long çıkışı; 2b: long sadece BTC'den güçlü coinde | 2a kabul (16: +0.95→+1.20R, 20: +0.44→+0.46R, 10 işlem değişti) → `PusulaV2`. 2b red. | `results/2026-10-10_pusula_gelistirme2_ozet.md` |

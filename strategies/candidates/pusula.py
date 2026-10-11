@@ -412,6 +412,20 @@ class PusulaV2NoBtcFilter(PusulaV2):
         return conds
 
 
+class PusulaV2NoBtcScore1(PusulaV2NoBtcFilter):
+    """
+    Removal round 2 (2026-10-11, research/queue/pusula_kuyruk.md item 2): the
+    accepted round-1 version with a looser daily regime threshold for longs:
+    coin score >= +1 instead of +3. The score can only be -3, -1, +1 or +3, so
+    "+2" in the queue means +1 in practice. Nothing else changes.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["regime_up"] = df[f"score_{REGIME_TF}"] >= 1
+        return conds
+
+
 class TwoSpeedExitMixin:
     """
     Round 3 (fixed before testing, card section "3. tur"): two-speed exit.
