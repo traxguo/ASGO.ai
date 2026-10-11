@@ -85,12 +85,28 @@ Ortak modülün (`strategies/common/freqtrade_mixin.py`, `ManagedStrategy`) iske
 - **İlk eleme şartı ("şansı hak ediyor mu")**, normal masrafla, ana sürüm, BTC/ETH/SOL: ortalama R > 0, PF ≥ 1.1, max DD ≤ %35, coinlerin en az yarısı artıda (≥ 2/3), 3 yılın en az 2'sinde artı. GUO'nun hedefi günde ~3 işlem; günde işlem sayısı dürüstçe raporlanır (şart değil).
 - Sonuca bakıp kural, eşik veya varyant değiştirilmez.
 
-## Durum: candidate (2026-10-11, test öncesi)
+## Durum: candidate — emeklilik önerisi (2026-10-11)
+İlk elemeyi hiçbir şartta geçemedi (ana koşu -0.43R, PF 0.31, kasa 2022'de bitti; sabit riskli teşhiste -0.65R, 0/3 coin, 0/3 yıl; masrafsız bile -0.07R). Emekliye ayırma (`strategies/retired/`) proje sahibinin onayına sunuldu; onaya kadar kod `strategies/candidates/` altında kalıyor.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-11 | Hile testi (lookahead-analysis, BTC/ETH/SOL, 2023-01, 30 sinyal, ana + Tp1R; boy ve 3-kayıp kuralını kapatan sarmalayıcıyla) | Geleceği görme yok. | — |
+| 2026-10-11 | Geliştirme 2022-2024, BTC/ETH/SOL, 1 yuva, normal masraf, %1 bileşik risk | 916 işlem (günde 0.84), -0.429R, PF 0.31, DD %99.8; long -0.154R, short -0.709R; 0/3 coin. Kasa 10 Nisan 2022'de %90 aşağıda. **İlk eleme: geçmedi.** | `results/2026-10-11_vwap_reversion_gelistirme/rapor.md` |
+| 2026-10-11 | Masraf x2 / düşük masraf %0.03 / masrafsız (bileşik) | -0.995R PF 0.13 / -0.122R PF 0.58 / -0.072R PF 0.79; hepsinde kasa eridi. | aynı rapor |
+| 2026-10-11 | Ters coin sırası (bileşik) | 1274 işlem, -0.797R, PF 0.34. | aynı rapor |
+| 2026-10-11 | 16 coin 1 yuva / 16 yuva (bileşik, teşhis) | -0.249R (1/16 coin) / -0.450R (2/16 coin), DD %100. | aynı rapor |
+| 2026-10-11 | `VwapReversionTp1R` (TP1 ≥ 1R) | Geçerli sinyallerin %37.7'sini eler. Bileşik -0.765R; sabit risk -0.695R. | aynı rapor |
+| 2026-10-11 | Sabit risk (100 USDT = 1R, bileşik değil; plan dışı teşhis, kasa erken bittiği için sonuçlar görüldükten sonra eklendi) | 3683 işlem (günde 3.36), -0.648R, PF 0.32, long -0.627 / short -0.669, her yıl ve her coinde eksi. Masraf x2 -1.207R, düşük masraf -0.247R, masrafsız -0.069R, ters sıra -0.625R, 16 coin -0.650R (0/16). | aynı rapor |
 
 ## Notlar / öğrenilenler
+- 5m'de stoplar çok yakın (medyan %0.4); giriş + çıkış masrafı ~0.5R. İşlemlerin ~%58'i stopla -1.55R kapanıyor; EMA20/VWAP hedefleri yakın olduğu için TP2 bile ortalama +1.3R.
+- Masrafsızken de eksi (-0.07R): sorun yalnızca masraf değil, bu dönüş kurallarının 5m'de avantajı yok.
+- Hiçbir mum kalıbı (pinbar, yutan, yıldız) artıda değil. Long ve short benzer şekilde eksi.
+- 1R pozisyon için işlemlerin ~%38'i 3x'ten fazla kaldıraç istiyor (proje kuralı en fazla 3x).
+- %1 bileşik riskle -0.4/-0.6R'lik bir sistem kasayı birkaç ayda bitiriyor; bundan sonra en küçük miktarlı işlemler istatistiği bozuyor. Sabit risk teşhisi bu yüzden eklendi.
+- 3 kayıp → 24 saat kuralı çalışıyor (ana koşularda duraklama içinde açılan işlem 0).
+- Doğrulama yapılmadı, kasaya dokunulmadı.
 
 ## Emeklilik gerekçesi (varsa)
+(Öneri, onay bekliyor) Geliştirme döneminde normal masrafla -0.43R / -0.65R, PF 0.31-0.32; masrafsız bile eksi; her yıl, her coin, her iki yönde eksi.
