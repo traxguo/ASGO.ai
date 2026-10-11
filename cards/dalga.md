@@ -54,6 +54,7 @@ Dürüstlük notu: 2020-2024 ve 2025-2026 verisi Pusula ailesinde çok kullanıl
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-11 | Geliştirme 2020-2024, 36 coin, 8 yuva | 859 işlem (günde 0.47), ort. +1.13R, PF 1.52, DD %26.2; masraf x2 +1.07R DD %28; en iyi 10 işlem hariç +0.44R; 2022 -0.85R (46 işlem), diğer yıllar artı. Sabit %0.5 risk: aynı R, DD %43.6 | [rapor](../results/2026-10-11_dalga_gelistirme_36coin/rapor.md) |
 
 ## Notlar / öğrenilenler
 
