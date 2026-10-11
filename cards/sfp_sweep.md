@@ -31,7 +31,7 @@ Long (hepsi): aynası — [sweep_swing_low] low < güncel 15 dk dibi (ilk dokunu
 
 ## İşlem yönetimi
 **Ortak modülün (`strategies/common/`) Freqtrade iskeleti (`ManagedStrategy`: stop, kısmi TP emirleri, kaldıraç, %1 risk) kullanılır; seviyeler ise proje sahibinin kuralından gelir (R katı değil).**
-- **Giriş:** kural "sinyal mumunun kapanışında" diyor. Freqtrade sinyali mum kapanınca görür, bu yüzden giriş **bir sonraki mumun açılışında piyasa emriyle** (pratikte kapanış fiyatına çok yakın). Not: genel kural "limit emir tercih" diyor; kapanışta giriş kuralına en yakın dürüst karşılık sonraki açılış olduğu için piyasa emri seçildi. Düşük masraf koşusu (%0.03/emir) limit emirli bir borsayı temsil eden teşhistir.
+- **Giriş:** kural "sinyal mumunun kapanışında" diyor. Freqtrade sinyali mum kapanınca görür, bu yüzden giriş **bir sonraki mumun açılışında piyasa emriyle** (pratikte kapanış fiyatına çok yakın). (Uygulama notu, test sırasında: Freqtrade piyasa giriş emri için ayrı fiyat ayarı istediği için emir sonraki açılış fiyatına konur ve hemen dolar; sonuç piyasa emriyle aynıdır, kural değişmedi.) Not: genel kural "limit emir tercih" diyor; kapanışta giriş kuralına en yakın dürüst karşılık sonraki açılış olduğu için piyasa emri seçildi. Düşük masraf koşusu (%0.03/emir) limit emirli bir borsayı temsil eden teşhistir.
 - Giriş anında fiyat EQ'nun yanlış tarafına ya da stopun ötesine geçmişse işlem açılmaz (`confirm_trade_entry`).
 - **Stop:** iğnenin ucunun **%0.1 ötesi** (short: high × 1.001, long: low × 0.999). Mum içinde kontrol edilir.
 - **TP1:** pozisyonun **%50'si EQ'da** (güncel tepe ile güncel dibin ortası), limit emir. TP1 dolunca **stop girişe (başa baş) çekilir** — tam giriş fiyatı, ek tampon yok (kural "breakeven" diyor; masraf yüzünden başa baş çıkış küçük bir eksidir).
@@ -73,12 +73,25 @@ Long (hepsi): aynası — [sweep_swing_low] low < güncel 15 dk dibi (ilk dokunu
 - Doğrulama (2025+) bu turda YAPILMAZ. Kasaya (2026-04 sonrası) dokunulmaz.
 - Sonuca bakıp kural, eşik veya varyant değiştirilmez.
 
-## Durum: candidate (test bekliyor)
+## Durum: candidate — emeklilik önerildi (2026-10-11, karar proje sahibinde)
+Normal masrafla ilk elemenin hiçbir şartını geçemedi (-0.65R, PF 0.35, kasa 2022'de bitti); masrafsız bile -0.07R. Kod proje sahibi karar verene kadar `strategies/candidates/` altında kalıyor.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-11 | Hile testi (lookahead-analysis, BTC/ETH/SOL, 2023-01, 30 sinyal; ayrıca coin başına 20 sinyal) | 3 kayıp duraklaması kapalıyken bias yok (ana + 1h). Duraklama açıkken araç tek coinle tekrar koştuğu için (duraklama 3 coinin ortak geçmişine bakıyor) yanlış alarm veriyor; tek coinlik testlerde bias yok. | `results/2026-10-11_sfp_sweep_gelistirme/rapor.md` |
+| 2026-10-11 | Geliştirme 2022-2024, BTC/ETH/SOL, 1 yuva, normal masraf, 10k kasa | 1024 işlem, -0.649R (zorla kapatılan 1 işlem hariç), PF 0.35, DD %99.9, long -0.66R / short -0.64R, 0/3 coin, 0/3 yıl. Kasa 2022-06'da %90 eridi; 2023-03'ten sonra yuva tek bir küçük işlemle kilitlendi. **İlk eleme: geçmedi.** | aynı rapor |
+| 2026-10-11 | Masraf x2 / %0.03 (teşhis) / masrafsız (teşhis) | -1.18R / -0.24R / -0.07R. Masrafsız bile her yıl ve her coin eksi. | aynı rapor |
+| 2026-10-11 | Büyük kasa (100M, teşhis: en küçük emir sınırı etkisi yok) | 2213 işlem (günde 2.0), -0.73R, her yıl eksi (2022 -0.60, 2023 -0.73, 2024 -0.57). Masrafsız -0.08R. | aynı rapor |
+| 2026-10-11 | `SfpSweep1h` (teşhis) | 999 işlem, -0.58R, PF 0.59; büyük kasada -0.55R. | aynı rapor |
+| 2026-10-11 | Coin sırası ters (teşhis) | 10k: -0.69R; büyük kasa: -0.74R. Sıra etkisi yok. | aynı rapor |
+| 2026-10-11 | 16 coin, 1 ve 16 yuva (teşhis) | -0.69R / -0.51R, 2/16 ve 0/16 coin artıda. | aynı rapor |
 
 ## Notlar / öğrenilenler
+- Stop ortanca %0.35-0.39: giriş + çıkış masrafı işlem başına ~0.5-0.6R. 5 dk'lık iğne-ucu stopta masraf belirleyici; ama masrafsız da -0.07R, yani kuralda kenar yok.
+- Kurala uyan sinyallerin %42'sinde TP1 < 1R (1h'de %22). TP1 ≥ 1R olanlar da aynı ölçüde eksi (-0.65R / -0.74R).
+- Aslan'ın likidite stratejileriyle (`aslan_liquidity`, `ams_liquidity_mss`) aynı sonuç: masrafsız ~0R, dar stop yüzünden masraflı eksi.
+- %1 risk + 10x kaldıraç + kasa erimesi: kasa birkaç dolara inince TP kısmi çıkışı en küçük emir sınırının altında kalıyor ve işlem açık kalıp tek yuvayı kilitliyor. Gelecekteki stratejilerde rapor bunu "veri sonunda zorla kapatılan" olarak ayırıyor.
+- Doğrulama yapılmadı, kasaya dokunulmadı.
 
 ## Emeklilik gerekçesi (varsa)
