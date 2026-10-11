@@ -81,14 +81,25 @@ Giriş anındaki ek koşul (emir dolarken kontrol edilir):
 ## Yaklaşımlar / sınırlar (Freqtrade'de birebir mümkün olmayanlar)
 - Hacim şartı ve "fiyatın geçmesi" dolum kuralı backtest motorunda emir dolum kontrolüne eklenen küçük bir sarmalayıcıyla uygulanır (sadece bu stratejide etkilidir). Dry-run'da hacim şartı her mum kapanışında emri geri çekme/yeniden koyma olarak uygulanmalıdır (bu turda dry-run yok).
 - 3 dk mum içindeki sıra bilinmez: aynı mumda hem giriş hem hedef → işlem açılır, hedef o mumda sayılmaz; stop sayılır. 1 dk detaylı koşu bunun etkisini ölçer.
+- `FvgObLookahead` sınıfı varyant değildir; sadece Freqtrade lookahead-analysis aracı için (araç kasayı 1 milyar yaptığından %1 riskli boyut borsa sınırını aşıyor; aynı sinyaller, sabit boyut). Test sonrası eklendi, kurallara dokunmaz.
 - Bekleyen emir yuvayı tuttuğu için, tek yuvayla başka bir coinin sinyali kaçabilir (gerçek tek-pozisyon kuralıyla aynı).
 
-## Durum: candidate (2026-10-11, test öncesi)
+## Durum: candidate — ilk elemede başarısız, emeklilik önerildi (2026-10-11)
+Normal masrafla -0.95R, masrafsız bile -0.20R; her yıl, her coin, iki yön de eksi. Emekliye ayırma kararı proje sahibinin; kod şimdilik `strategies/candidates/` altında.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-11 | Hile testi: kendi kesme testi (3 coin × 15 kesim × 2 mod) + Freqtrade lookahead-analysis (`FvgObLookahead`, 2023-01 → 02, 30 işlem) | Sinyal sütunlarında fark yok. Standart araç limit dolumlarını "bias" sayıyor (18/30); kontrol verisi dolumdan 2 mum sonra bitince (`research/robustness/lookahead_limit_fill.py`) 0/30, geleceği görme yok. | — |
+| 2026-10-11 | Geliştirme 2022-2024, BTC/ETH/SOL, 3m, 1 pozisyon, normal masraf | 1011 işlem (günde 0.92), kazanan %17.5, **-0.946R**, PF 0.37, DD %100 (hesap 2022'de sıfırlandı). Long -1.033R, short -0.867R. 0/3 coin, 0/3 yıl artı. Ortanca stop %0.31, masraf 0.73R/işlem. Al-tut +%34.5. **İlk eleme: hiçbir şart tutmadı.** | `results/2026-10-11_fvg_ob_gelistirme/rapor.md` |
+| 2026-10-11 | Masraf x2 / %0.03 / masrafsız (teşhis) | -1.641R / -0.389R / **-0.198R** (PF 0.73). Masrafsız da her yıl ve her coinde eksi. | aynı rapor |
+| 2026-10-11 | Ters coin sırası; 1 dk detaylı mum içi sıra (teşhis) | -0.914R; -0.936R. Sıra etkisi yok. | aynı rapor |
+| 2026-10-11 | `FvgObEdge` (FVG yakın kenarı) | 993 işlem, -0.801R, PF 0.45, DD %100. | aynı rapor |
 
 ## Notlar / öğrenilenler
+- Kural günde ~12 sinyal üretiyor (3 coin); tek pozisyon, 60 dk bekleyen emir ve 3 kayıp → 24 saat mola yüzünden günde ~1 işlem alınıyor.
+- Kazanma oranı %18; masrafsız başa baş ~%23 (kazanan +3.4R, kaybeden -1R). FVG ortasına dönen fiyat çoğu zaman OB'nin ötesine (stopa) de gidiyor.
+- Dar stop (ortanca %0.31) yüzünden %0.2 masraf işlem başına ~0.73R.
+- Aslan/AMS ailesiyle uyumlu: masraf öncesi avantaj yok (orada ~0R, burada -0.20R).
 
 ## Emeklilik gerekçesi (varsa)
