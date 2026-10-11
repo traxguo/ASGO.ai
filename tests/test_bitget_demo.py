@@ -407,3 +407,124 @@ def test_dalga_never_moves_stop_to_break_even(dalga_bot, tmp_path):
     bd.run_once(ex, Detail(high=120.0), {PAIR: df}, state, NOW_1H + timedelta(hours=1), bd.Recorder(tmp_path))
     (t,) = state["trades"].values()
     assert t["status"] == "open" and not t["breakeven_moved"]
+
+
+# ------------------------------------------------------------------ third bot (Kivilcim, trial)
+
+
+class MarketFakeExchange(FakeExchange):
+    """Market buys fill at once at 100; a position appears."""
+
+    def price_to_precision(self, pair, price):
+        return f"{price:.4f}"
+
+    def create_order(self, pair, type_, side, amount, price=None, params=None):
+        if type_ == "market" and side == "buy":
+            params = params or {}
+            self.calls.append(("create", pair, type_, side, amount, price, params))
+            oid = f"o{len(self.calls)}"
+            self.orders[oid] = {"id": oid, "status": "closed", "filled": float(amount), "average": 100.0,
+                                "price": None, "timestamp": int(NOW_1H.timestamp() * 1000),
+                                "lastTradeTimestamp": int(NOW_1H.timestamp() * 1000), "fee": {"cost": 0.5},
+                                "amount": float(amount)}
+            self.positions[pair] = float(amount)
+            return {"id": oid}
+        return super().create_order(pair, type_, side, amount, price, params)
+
+
+@pytest.fixture
+def kivilcim_bot(monkeypatch, tmp_path):
+    monkeypatch.setattr(bd, "BOT", bd.BOTS["kivilcim"])
+    monkeypatch.setattr(bd, "OTHER_STATE_FILES", [tmp_path / "other_state.json"])
+
+
+def kivilcim_frame():
+    df = frame([(SIGNAL, 99, 101, 1, 0)])
+    df["long_stop"], df["long_tp"], df["score_1d"] = 97.0, 103.0, 3
+    return df
+
+
+def test_kivilcim_enters_at_market_with_stop_and_take_profit(kivilcim_bot, tmp_path):
+    ex, state, rec = MarketFakeExchange(), {"trades": {}}, bd.Recorder(tmp_path)
+    bd.run_once(ex, None, {PAIR: kivilcim_frame()}, state, NOW_1H, rec)
+    (create,) = [c for c in ex.calls if c[0] == "create"]
+    assert create[2] == "market" and create[6]["stopLoss"]["triggerPrice"] == 97.0
+    assert create[6]["takeProfit"]["triggerPrice"] == 103.0
+    (t,) = state["trades"].values()
+    assert t["status"] == "open" and t["fill_price"] == 100.0 and t["plan_tp"] == 103.0
+    assert float(create[4]) == pytest.approx(9900 * 0.002 / 3, abs=1e-3)  # 0.2% risk, stop 3 away
+    assert any("entry filled" in e for e in rec.events)
+
+
+def test_kivilcim_closes_after_three_hours(kivilcim_bot, tmp_path):
+    ex, state = MarketFakeExchange(), {"trades": {}}
+    bd.run_once(ex, None, {PAIR: kivilcim_frame()}, state, NOW_1H, bd.Recorder(tmp_path))
+    later = NOW_1H + timedelta(hours=2, minutes=50)
+    bd.run_once(ex, None, {PAIR: kivilcim_frame()}, state, later, bd.Recorder(tmp_path))
+    assert next(iter(state["trades"].values()))["status"] == "open"
+    bd.run_once(ex, None, {PAIR: kivilcim_frame()}, state, NOW_1H + timedelta(hours=3, minutes=5),
+                bd.Recorder(tmp_path))
+    t = next(iter(state["trades"].values()))
+    assert t["status"] == "closed" and t["exit_reason"] == "time_exit"
+    assert [c for c in ex.calls if c[0] == "create"][-1][2:4] == ("market", "sell")
+
+
+def test_kivilcim_take_profit_is_named(kivilcim_bot, tmp_path):
+    ex, state = MarketFakeExchange(), {"trades": {}}
+    bd.run_once(ex, None, {PAIR: kivilcim_frame()}, state, NOW_1H, bd.Recorder(tmp_path))
+    ex.positions[PAIR] = 0.0  # the exchange's take profit closed it
+    ex.my_trades = [{"side": "sell", "amount": 1.0, "cost": 103.0, "fee": {"cost": 0.1}}]
+    bd.run_once(ex, None, {PAIR: kivilcim_frame()}, state, NOW_1H + timedelta(hours=1), bd.Recorder(tmp_path))
+    assert next(iter(state["trades"].values()))["exit_reason"] == "take_profit"
+
+
+def test_kivilcim_skips_stale_signal_and_caps_daily_entries(kivilcim_bot, tmp_path):
+    ex, state = MarketFakeExchange(), {"trades": {}}
+    bd.run_once(ex, None, {PAIR: kivilcim_frame()}, state, NOW_1H + timedelta(minutes=45), bd.Recorder(tmp_path))
+    assert state["trades"] == {}
+    day = f"{NOW_1H:%Y-%m-%d}"
+    state = {"trades": {f"k{i}": {"pair": f"X{i}/USDT:USDT", "status": "closed", "signal_time": day + "T00:00:00",
+                                  "fill_time": day + "T00:10:00"} for i in range(3)}}
+    bd.run_once(ex, None, {PAIR: kivilcim_frame()}, state, NOW_1H, bd.Recorder(tmp_path))
+    assert len(state["trades"]) == 3
+
+
+def test_kivilcim_signal_uses_yesterdays_daily_score():
+    import kivilcim
+
+    days = pd.date_range("2026-01-01", periods=120, freq="D", tz="UTC")
+    daily = pd.DataFrame({"date": days, "open": 1.0, "high": 1.0, "low": 1.0,
+                          "close": [100 + i for i in range(120)], "volume": 1.0})  # steady uptrend: score +3
+    hours = pd.date_range(days[-1], periods=48, freq="h", tz="UTC")
+    close = [200 - i * 0.5 for i in range(48)]  # falling hours: RSI low
+    h = pd.DataFrame({"date": hours, "open": close, "high": [c + 0.2 for c in close],
+                      "low": [c - 0.2 for c in close], "close": close, "volume": 1.0})
+    s = kivilcim.Kivilcim()
+    s.dp = bd._Provider({(PAIR, "1d"): daily, (PAIR, "1h"): h})
+    df = s.populate_exit_trend(s.populate_entry_trend(s.populate_indicators(h, {"pair": PAIR}), {}), {})
+    last = df.iloc[-1]
+    assert last["score_1d"] == 3 and last["enter_long"] == 1
+    assert last["long_stop"] < last["close"] < last["long_tp"]
+    # the first day's hours see the score of the day before the last daily candle
+    assert df.iloc[0]["score_1d"] == 3
+
+
+def test_telegram_also_goes_to_the_chosen_group_with_turkish_exit_reason(monkeypatch):
+    sent = []
+
+    class FakeClient:
+        def __init__(self, token, chat_id, timeout=0):
+            self.chat_id = chat_id
+
+        def send_message(self, text):
+            sent.append((self.chat_id, text))
+
+    import signals.dispatcher.telegram_client as tc
+    monkeypatch.setattr(tc, "TelegramClient", FakeClient)
+    monkeypatch.setattr(bd, "BOT", bd.BOTS["kivilcim"])
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:x")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
+    monkeypatch.setenv("TELEGRAM_GROUP_ID", "-100123")
+    bd.notify_telegram(["SOL/USDT:USDT: closed take_profit r=0.95"])
+    text = "Bitget demo (Kıvılcım - DENEME)\n• SOL: İşlem kapandı kâr alındı r=0.95"
+    assert sent == [(42, text), (-100123, text)]

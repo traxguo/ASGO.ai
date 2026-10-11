@@ -54,7 +54,8 @@ import pandas as pd  # noqa: E402
 # Two bots share the demo account; DEMO_BOT picks one (default: the original Pusula bot).
 #   pusula: PusulaV2, 4h candles, 16 coins, 1% risk, max 3 trades, stop to break even at 2R
 #   dalga : Dalga, 1h candles, 36 coins, dynamic risk (cards/dalga.md), max 8 trades, stop never moves
-# A bot never trades a coin the other bot holds or waits on (one-way positions would merge).
+#   kivilcim: TRIAL 1h pullback, market entry, stop + take profit 1.5 ATR, closed after 3h (cards/kivilcim.md)
+# A bot never trades a coin another bot holds or waits on (one-way positions would merge).
 BOTS = {
     "pusula": {"module": "pusula", "strategy": "PusulaV2", "tf": "4h", "tf_hours": 4, "max_open": 3,
                "pairs": "pairs_wide16.json", "out": "bitget_demo", "cid": "pv2", "breakeven": True,
@@ -62,6 +63,11 @@ BOTS = {
     "dalga": {"module": "dalga", "strategy": "Dalga", "tf": "1h", "tf_hours": 1, "max_open": 8,
               "pairs": "pairs_all36.json", "out": "bitget_demo_dalga", "cid": "dlg", "breakeven": False,
               "dynamic_risk": True, "title": "Dalga"},
+    # TRIAL short-hold bot (cards/kivilcim.md): its rule had no positive test, demo only to collect live fills
+    "kivilcim": {"module": "kivilcim", "strategy": "Kivilcim", "tf": "1h", "tf_hours": 1, "max_open": 2,
+                 "pairs": "pairs_all36.json", "out": "bitget_demo_kivilcim", "cid": "kvl", "breakeven": False,
+                 "dynamic_risk": False, "title": "Kıvılcım - DENEME", "market_entry": True,
+                 "max_hold_hours": 3, "daily_entries": 3, "fresh_minutes": 40},
 }
 BOT_NAME = os.environ.get("DEMO_BOT", "pusula").strip() or "pusula"
 BOT = BOTS[BOT_NAME]
@@ -200,8 +206,11 @@ def signal_plan(df: pd.DataFrame, signal_time: datetime) -> dict | None:
     row = rows.iloc[-1]
     if row.get("enter_long") != 1:
         return None
-    return {"entry": float(row["long_entry"]), "stop": float(row["long_stop"]),
+    plan = {"entry": float(row["long_entry"]), "stop": float(row["long_stop"]),
             "score": row.get("score_1d"), "signal_time": signal_time.isoformat()}
+    if "long_tp" in row.index and row["long_tp"] == row["long_tp"]:
+        plan["tp"] = float(row["long_tp"])
+    return plan
 
 
 def exit_signal(df: pd.DataFrame, signal_time: datetime) -> bool:
@@ -299,6 +308,8 @@ def finish_trade(ex, rec: Recorder, now: datetime, cid: str, t: dict, reason: st
     fees = float(t.get("entry_fees") or 0) + exit_fees
     pnl = (exit_price - t["fill_price"]) * t["amount"] - fees + (0 if funding != funding else funding)
     risk = t["amount"] * abs(t["fill_price"] - t["plan_stop"])
+    if reason == "stop" and t.get("plan_tp") and exit_price > t["fill_price"]:
+        reason = "take_profit"  # the position closed above the entry, so the take profit order did it
     t.update(status="closed", exit_time=now.isoformat(), exit_price=exit_price, exit_reason=reason,
              pnl_usdt=round(pnl, 4), fees_usdt=round(fees, 4), funding_usdt=funding,
              r=round(pnl / risk, 3) if risk > 0 else None)
@@ -466,12 +477,14 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
             finish_trade(ex, rec, now, cid, t, "stop_breakeven" if t.get("breakeven_moved") else "stop")
             continue
         df = analyzed.get(pair)
-        if df is not None and exit_signal(df, signal_time):
+        held = now - datetime.fromisoformat(t["fill_time"])
+        timed_out = bool(BOT.get("max_hold_hours")) and held >= timedelta(hours=BOT["max_hold_hours"])
+        if timed_out or (df is not None and exit_signal(df, signal_time)):
             for o in stop_orders(ex, pair):
                 ex.cancel_order(o["id"], pair, {**PRODUCT, "trigger": True, "planType": "profit_loss"})
             ex.create_order(pair, "market", "sell", t["amount"], None,
                             {**PRODUCT, "reduceOnly": True, "marginMode": "isolated"})
-            finish_trade(ex, rec, now, cid, t, "exit_signal")
+            finish_trade(ex, rec, now, cid, t, "time_exit" if timed_out else "exit_signal")
             continue
         if BOT["breakeven"] and not t.get("breakeven_moved"):
             fill_time = datetime.fromisoformat(t["fill_time"])
@@ -489,6 +502,13 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
     active = [t for t in trades.values() if t["status"] in ("pending", "open")]
     busy_pairs = {t["pair"] for t in active} | other_bot_pairs()
     slots = BOT["max_open"] - len(active)
+    if BOT.get("daily_entries"):
+        today = [t for t in trades.values() if t.get("fill_time", t["signal_time"])[:10] == f"{now:%Y-%m-%d}"
+                 and t["status"] != "cancelled"]
+        slots = min(slots, BOT["daily_entries"] - len(today))
+    if BOT.get("fresh_minutes") and now - (signal_time + timedelta(hours=BOT["tf_hours"])) > timedelta(
+            minutes=BOT["fresh_minutes"]):
+        slots = 0  # a market entry long after the candle closed would not be the tested entry
     if slots <= 0:
         return
     balance = ex.fetch_balance({"type": "swap", **PRODUCT})
@@ -540,16 +560,35 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
             ex.set_leverage(lev, pair, {**PRODUCT, "marginMode": "isolated"})
         except Exception:  # some account modes want the position side as well
             ex.set_leverage(lev, pair, {**PRODUCT, "marginMode": "isolated", "holdSide": "long"})
-        order = ex.create_order(pair, "limit", "buy", amount, plan["entry"],
-                                {**PRODUCT, "marginMode": "isolated", "clientOrderId": cid,
-                                 "stopLoss": {"triggerPrice": plan["stop"]}})
+        params = {**PRODUCT, "marginMode": "isolated", "clientOrderId": cid,
+                  "stopLoss": {"triggerPrice": plan["stop"]}}
+        if BOT.get("market_entry"):
+            params["stopLoss"] = {"triggerPrice": float(ex.price_to_precision(pair, plan["stop"]))}
+            if plan.get("tp"):
+                params["takeProfit"] = {"triggerPrice": float(ex.price_to_precision(pair, plan["tp"]))}
+            order = ex.create_order(pair, "market", "buy", amount, None, params)
+        else:
+            order = ex.create_order(pair, "limit", "buy", amount, plan["entry"], params)
         trades[cid] = {"pair": pair, "status": "pending", "order_id": order["id"],
                        "signal_time": plan["signal_time"], "plan_entry": plan["entry"],
-                       "plan_stop": plan["stop"], "leverage": lev, "breakeven_moved": False}
+                       "plan_stop": plan["stop"], "plan_tp": plan.get("tp"), "leverage": lev,
+                       "breakeven_moved": False}
         busy_pairs.add(pair)
         slots -= 1
         rec.event(now, pair, "entry order placed",
-                  f"{amount} @ {plan['entry']:.6g}, stop {plan['stop']:.6g}, {lev:g}x")
+                  f"{amount} @ {'market' if BOT.get('market_entry') else format(plan['entry'], '.6g')}, "
+                  f"stop {plan['stop']:.6g}" + (f", take profit {plan['tp']:.6g}" if plan.get("tp") else "")
+                  + f", {lev:g}x")
+        if BOT.get("market_entry"):  # a market order fills at once: record it now, not on the next run
+            filled_order = ex.fetch_order(order["id"], pair, PRODUCT)
+            filled = float(filled_order.get("filled") or 0)
+            if filled > 0:
+                fill_time = datetime.fromtimestamp(
+                    (filled_order.get("lastTradeTimestamp") or filled_order["timestamp"]) / 1000, tz=timezone.utc)
+                trades[cid].update(status="open", fill_price=float(filled_order.get("average") or plan["entry"]),
+                                   amount=filled, fill_time=fill_time.isoformat(),
+                                   entry_fees=float((filled_order.get("fee") or {}).get("cost") or 0))
+                rec.event(now, pair, "entry filled", f"{filled} @ {trades[cid]['fill_price']}")
 
 
 # ------------------------------------------------------------------ main
@@ -615,8 +654,13 @@ EVENT_TR = {
 }
 
 
+EXIT_TR = {"take_profit": "kâr alındı", "stop_breakeven": "girişte stop oldu", "stop": "stop oldu",
+           "time_exit": "3 saat doldu, piyasadan kapatıldı", "exit_signal": "çıkış kuralıyla"}
+
+
 def notify_telegram(events: list[str]) -> None:
-    """Sends the run's trade events to the owner's personal Telegram chat, if the secrets are set.
+    """Sends the run's trade events to the owner's personal Telegram chat and, when TELEGRAM_GROUP_ID is
+    set, to the one group the owner chose; only if the secrets are set.
     Routine lines (no signal, no balance, skipped signals) are not sent. Never stops the run."""
     from signals.dispatcher.telegram_client import TelegramClient, parse_chat_id
 
@@ -625,15 +669,25 @@ def notify_telegram(events: list[str]) -> None:
         pair, _, rest = e.partition(": ")
         what = next((k for k in EVENT_TR if rest.startswith(k)), None)
         if what:
-            lines.append(f"• {pair.split('/')[0]}: {EVENT_TR[what]}{rest[len(what):]}")
+            detail = rest[len(what):]
+            if what == "closed":  # " take_profit r=0.9" -> " kâr alındı r=0.9"
+                reason, _, tail = detail.strip().partition(" ")
+                detail = f" {EXIT_TR.get(reason, reason)} {tail}".rstrip()
+            lines.append(f"• {pair.split('/')[0]}: {EVENT_TR[what]}{detail}")
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     if not lines or not token:
         return
+    text = f"Bitget demo ({BOT['title']})\n" + "\n".join(lines)
     try:
-        client = TelegramClient(token, parse_chat_id(os.environ.get("TELEGRAM_CHAT_ID")), timeout=20)
-        client.send_message(f"Bitget demo ({BOT['title']})\n" + "\n".join(lines))
+        TelegramClient(token, parse_chat_id(os.environ.get("TELEGRAM_CHAT_ID")), timeout=20).send_message(text)
     except Exception as e:  # noqa: BLE001 - a message problem must not stop trading
         print(f"telegram message not sent: {e}")
+    group = os.environ.get("TELEGRAM_GROUP_ID", "").strip()
+    if group.lstrip("-").isdigit() and int(group) < 0:  # the one group the owner chose (rule 7)
+        try:
+            TelegramClient(token, int(group), timeout=20).send_message(text)
+        except Exception as e:  # noqa: BLE001
+            print(f"telegram group message not sent: {e}")
 
 
 def main() -> None:

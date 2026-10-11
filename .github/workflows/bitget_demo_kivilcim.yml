@@ -1,0 +1,61 @@
+# Runs the TRIAL short-hold bot Kivilcim (cards/kivilcim.md) on the Bitget DEMO account (play money),
+# every 15 minutes: new trades right after a 1h candle closes, the 3-hour clock checked on every run.
+# Same keys and account as Pusula and Dalga; a bot skips coins another bot holds.
+# Keys live in GitHub Secrets (Settings > Secrets and variables > Actions), never in the repo.
+# Without keys the trading step is skipped. Steps for the owner: docs/bitget_demo_kurulum.md
+name: Kivilcim Bitget demo (trial)
+
+on:
+  schedule:
+    - cron: "2,17,32,47 * * * *"  # UTC; runs up to 40 min after a 1h close can enter, every run checks the 3h exit
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bitget-demo-kivilcim
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HAS_KEYS: ${{ secrets.BITGET_DEMO_API_KEY != '' && secrets.BITGET_DEMO_API_SECRET != '' && secrets.BITGET_DEMO_API_PASSPHRASE != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-demo.txt
+      - run: pip install -r requirements-demo.txt
+
+      - name: Keys missing
+        if: env.HAS_KEYS != 'true'
+        run: echo "::notice::Bitget demo keys are not set yet, nothing traded (docs/bitget_demo_kurulum.md)."
+
+      - name: Trade on the Bitget demo account
+        if: env.HAS_KEYS == 'true'
+        env:
+          BITGET_DEMO_API_KEY: ${{ secrets.BITGET_DEMO_API_KEY }}
+          BITGET_DEMO_API_SECRET: ${{ secrets.BITGET_DEMO_API_SECRET }}
+          BITGET_DEMO_API_PASSPHRASE: ${{ secrets.BITGET_DEMO_API_PASSPHRASE }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}  # optional: trade messages to the owner
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}  # optional: the one group the owner chose
+          DEMO_BOT: kivilcim
+        run: python scripts/bitget_demo.py
+
+      - name: Save the trade log
+        if: always() && env.HAS_KEYS == 'true'
+        run: |
+          if [ ! -d forward/bitget_demo_kivilcim ]; then echo "no log yet"; exit 0; fi
+          git add forward/bitget_demo_kivilcim
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Kivilcim demo log: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0; sleep 5; done
+          exit 1
