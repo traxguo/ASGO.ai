@@ -78,3 +78,23 @@ def test_kalabalik_funding_rank_uses_only_past_prints():
     cut = k.funding_features(f.iloc[: n - 20])
     pd.testing.assert_frame_equal(full.iloc[: n - 20], cut)
     assert full["pct_rank"].iloc[-1] == 1.0  # rising rates: newest is the highest of the past year
+
+
+def test_v2_no_be_keeps_planned_stop_after_2r():
+    """PusulaV2NoBe: the stop stays at the planned level even after a 2R+ move; the baseline moves it to entry."""
+    from types import SimpleNamespace
+
+    plan = {"side": "long", "entry": 100.0, "stop": 90.0, "tp1": 120.0, "tp2": 140.0}
+    trade = SimpleNamespace(is_short=False, leverage=1.0, open_rate=100.0, max_rate=125.0, min_rate=99.0,
+                            nr_of_successful_exits=0)
+    rate = 124.0
+
+    def stop_level(cls):
+        strat = cls.__new__(cls)
+        strat._plan_for_trade = lambda t: plan
+        sl = strat.custom_stoploss("X/USDT:USDT", trade, None, rate, 0.24, False)
+        return rate * (1 - sl)  # stoploss_from_absolute returns the distance below the rate for longs
+
+    assert issubclass(pusula.PusulaV2NoBe, pusula.PusulaV2NoBtcScore1)
+    assert stop_level(pusula.PusulaV2NoBe) == pytest.approx(90.0)
+    assert stop_level(pusula.PusulaV2NoBtcScore1) > 100.0

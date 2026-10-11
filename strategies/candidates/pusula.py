@@ -35,7 +35,7 @@ if str(_REPO_ROOT) not in sys.path:
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import talib.abstract as ta  # noqa: E402
-from freqtrade.strategy import merge_informative_pair  # noqa: E402
+from freqtrade.strategy import merge_informative_pair, stoploss_from_absolute  # noqa: E402
 from pandas import DataFrame, Series  # noqa: E402
 
 from strategies.common.freqtrade_mixin import ManagedStrategy  # noqa: E402
@@ -424,6 +424,21 @@ class PusulaV2NoBtcScore1(PusulaV2NoBtcFilter):
         conds = super().signal_conditions(df)
         conds["long"]["regime_up"] = df[f"score_{REGIME_TF}"] >= 1
         return conds
+
+
+class PusulaV2NoBe(PusulaV2NoBtcScore1):
+    """
+    Removal round 3 (2026-10-11, research/queue/pusula_kuyruk.md item 2): the
+    accepted round-2 version without the "stop to break even at 2R" rule. The
+    planned stop never moves; the trade ends at that stop, the daily EMA20 exit
+    or the BTC-turn exit. Entries and everything else are unchanged.
+    """
+
+    def custom_stoploss(self, pair, trade, current_time, current_rate, current_profit, after_fill, **kwargs):
+        plan = self._plan_for_trade(trade)
+        if plan is None:
+            return None
+        return stoploss_from_absolute(plan["stop"], current_rate, is_short=trade.is_short, leverage=trade.leverage)
 
 
 class TwoSpeedExitMixin:
