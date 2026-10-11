@@ -497,8 +497,8 @@ def test_kivilcim_signal_uses_yesterdays_daily_score():
                           "close": [100 + i for i in range(120)], "volume": 1.0})  # steady uptrend: score +3
     hours = pd.date_range(days[-1], periods=48, freq="h", tz="UTC")
     close = [200 - i * 0.5 for i in range(48)]  # falling hours: RSI low
-    h = pd.DataFrame({"date": hours, "open": close, "high": [c + 0.2 for c in close],
-                      "low": [c - 0.2 for c in close], "close": close, "volume": 1.0})
+    h = pd.DataFrame({"date": hours, "open": close, "high": [c + 2 for c in close],
+                      "low": [c - 2 for c in close], "close": close, "volume": 1.0})  # ATR ~2.3% of price
     s = kivilcim.Kivilcim()
     s.dp = bd._Provider({(PAIR, "1d"): daily, (PAIR, "1h"): h})
     df = s.populate_exit_trend(s.populate_entry_trend(s.populate_indicators(h, {"pair": PAIR}), {}), {})
@@ -528,3 +528,12 @@ def test_telegram_also_goes_to_the_chosen_group_with_turkish_exit_reason(monkeyp
     bd.notify_telegram(["SOL/USDT:USDT: closed take_profit r=0.95"])
     text = "Bitget demo (Kıvılcım - DENEME)\n• SOL: İşlem kapandı kâr alındı r=0.95"
     assert sent == [(42, text), (-100123, text)]
+
+
+def test_kivilcim_skips_calm_coins():
+    import kivilcim
+
+    df = pd.DataFrame({"date": pd.date_range("2026-01-01", periods=3, freq="h", tz="UTC"),
+                       "close": [100.0, 100.0, 100.0], "atr": [1.0, 1.6, None], "rsi": 20.0, "score_1d": 3})
+    out = kivilcim.Kivilcim().populate_entry_trend(df, {})
+    assert out["enter_long"].tolist() == [0, 1, 0]  # ATR 1% too calm, 1.6% ok, unknown ATR never

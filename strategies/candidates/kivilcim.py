@@ -4,10 +4,12 @@ see a bot take ~3 trades a day and close them within a few hours). Card: cards/k
 
 Its rule had NO positive test: research/scans/short_trade_grid.py (S2_pullback, tp 1.5 ATR,
 sl 1.5 ATR, 3h) gave about -0.08R per trade on 2020-2024 and -0.12R on 2025-01..2026-03
-after costs. It runs on the demo only to collect live fills; it is not a strategy candidate.
+after costs; with the v2 ATR filter -0.04R and -0.09R (research/scans/kivilcim_lab.py).
+It runs on the demo only to collect live fills; it is not a strategy candidate.
 
   regime : coin daily score == +3 from the last CLOSED daily candle (same score as Pusula/Dalga)
   trigger: 1h RSI(14) below 35 on the candle that just closed (pullback inside a strong trend)
+  filter : ATR(14, 1h) at least 1.5% of the price (v2: keeps costs small in R)
   entry  : market order right after the 1h candle closes
   stop   : entry - 1.5 * ATR(14, 1h);  take profit: entry + 1.5 * ATR(14, 1h)
   time   : closed at market 3 hours after the fill if neither was hit
@@ -33,6 +35,7 @@ RSI_MAX = 35.0
 ATR_LEN = 14
 STOP_ATR = 1.5
 TP_ATR = 1.5
+MIN_ATR_PCT = 1.5  # v2 (2026-10-11): skip calm coins, where 0.2% costs eat > 0.07R per trade
 
 
 def daily_score(daily: pd.DataFrame) -> pd.Series:
@@ -73,7 +76,8 @@ class Kivilcim:
         return df
 
     def populate_entry_trend(self, df: pd.DataFrame, metadata: dict) -> pd.DataFrame:
-        df["enter_long"] = ((df["score_1d"] == 3) & (df["rsi"] < RSI_MAX) & df["atr"].notna()).astype(int)
+        df["enter_long"] = ((df["score_1d"] == 3) & (df["rsi"] < RSI_MAX)
+                            & (df["atr"] / df["close"] * 100 >= MIN_ATR_PCT)).astype(int)
         df["long_entry"] = df["close"]
         df["long_stop"] = df["close"] - STOP_ATR * df["atr"]
         df["long_tp"] = df["close"] + TP_ATR * df["atr"]
