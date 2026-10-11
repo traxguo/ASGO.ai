@@ -1,0 +1,10 @@
+{
+  "$comment": "Main universe for the 5m long/short family (BTC/ETH/SOL), 2026-10-11.",
+  "exchange": {
+    "pair_whitelist": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT"
+    ]
+  }
+}

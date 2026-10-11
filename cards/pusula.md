@@ -92,10 +92,15 @@ Proje sahibi "devam" dedi; önerilen "sadece long" seçeneğiyle ilerleniyor.
 - `PusulaTrend` (long+short): doğrulamayı geçti, geliştirmede DD %31 > %25.
 - `PusulaTrendLong`: iki dönemde de eşikleri geçti ve hiç görmediği 10 coinde de artıda (+1.05R). **Kasa testi (2026-04 → 2026-09, 16 coin): -0.02R, DD %6.2, 15 işlem, kıl payı geçemedi.** Active olamaz; emekli de edilmedi. Sonraki sınav yeni veri (dry-run kâğıt testi), proje sahibinin kararı bekleniyor.
 - `PusulaTrendLong2`, `PusulaTrendLongClose`, `PusulaTrendLongBE1`: 3. turda elendi.
+- **PusulaV2'nin bir sonraki sürümü BTC giriş filtresini (`market_up`) çıkarmalı** (çıkarma turu 1 kabul). Bunu yaparken `scripts/bitget_demo.py` aynı mumda `exit_long` varsa girmemeli (Freqtrade böyle davranıyor). PusulaV2'nin kendisi değişmedi; karar ana oturumda.
+- Çıkarma turları sonrası araştırma temeli: `PusulaV2NoBe` (BTC giriş filtresi yok, long puanı ≥ +1, 2R'de başabaş yok; turlar 1-3 kabul). PusulaV2 demo sürümü değişmedi; karar ana oturumda.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-10-11 | Çıkarma 3: 2R'de stopu girişe çekme kaldırıldı (`PusulaV2NoBe`, temel PusulaV2NoBtcScore1) | **Kabul**: 16: 238→230 işlem, +1.30→+1.35R, toplam 309.9→311.3R, DD %21.5→%23.7; 20: 201→193 işlem, +0.52→+0.61R, toplam 104.8→117.7R, DD %22.2→%22.6. Eski 16'da fark fiilen yok; yeni 20'de kazanç çoğunlukla FIL+VET. Temel artık `PusulaV2NoBe`. | `results/2026-10-11_pusula_cikarma3_be/rapor.md` |
+| 2026-10-11 | Çıkarma 2: long için günlük puan eşiği +3 → +1 (`PusulaV2NoBtcScore1`, temel PusulaV2NoBtcFilter) | **Kabul**: 16: 210→238 işlem, +1.20→+1.30R, DD %26.1→%21.5; 20: 150→201 işlem, +0.46→+0.52R, DD %24.6→%22.2. Kazanç birkaç coinde (SOL; ALGO+UNI). | `results/2026-10-11_pusula_cikarma2_puan/rapor.md` |
+| 2026-10-10 | Çıkarma 1: BTC giriş filtresi kaldırıldı (`PusulaV2NoBtcFilter`, temel PusulaV2) | **Kabul**: iki listede de aynı (16: 210 işlem +1.20R DD %26.1; 20: 150 işlem +0.46R DD %24.6). Filtre gereksiz: BTC-dönüş çıkışı aynı mumlarda girişi zaten engelliyor. | `results/2026-10-10_pusula_cikarma1_btcfiltre/rapor.md` |
 | 2026-10-10 | Geliştirme 3a: hacim onayı 1.5x; 3b: 10 günlük süre stopu (temel PusulaV2) | İkisi de red. 3a yeni 20'de iyi (+0.76R) ama eski 16'da kötü (DD %33). | `results/2026-10-10_pusula_gelistirme3_ozet.md` |
 | 2026-10-10 | Geliştirme 2a: BTC skoru ≤ -1 olunca long çıkışı; 2b: long sadece BTC'den güçlü coinde | 2a kabul (16: +0.95→+1.20R, 20: +0.44→+0.46R, 10 işlem değişti) → `PusulaV2`. 2b red. | `results/2026-10-10_pusula_gelistirme2_ozet.md` |
 | 2026-10-10 | Geliştirme 1: short sadece BTC'den zayıf coinde (`PusulaTrendRS`), 16 + 20 coin | Red: iki listede de temelden kötü (+0.57→+0.52R, +0.27→+0.26R). | `results/2026-10-10_pusula_gelistirme1_rs_ozet.md` |

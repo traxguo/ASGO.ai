@@ -35,7 +35,7 @@ if str(_REPO_ROOT) not in sys.path:
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import talib.abstract as ta  # noqa: E402
-from freqtrade.strategy import merge_informative_pair  # noqa: E402
+from freqtrade.strategy import merge_informative_pair, stoploss_from_absolute  # noqa: E402
 from pandas import DataFrame, Series  # noqa: E402
 
 from strategies.common.freqtrade_mixin import ManagedStrategy  # noqa: E402
@@ -396,6 +396,49 @@ class PusulaV2Time(PusulaV2):
         if best_r < self.time_stop_min_r:
             return "time_stop"
         return None
+
+
+class PusulaV2NoBtcFilter(PusulaV2):
+    """
+    Removal round 1 (2026-10-10, research/queue/pusula_kuyruk.md item 2): PusulaV2
+    without the BTC entry filter (no "BTC score >= +1" condition for longs).
+    BTC daily data is still loaded, because the accepted BTC-turn exit (round 2a)
+    still uses it; only the entry condition is dropped.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"].pop("market_up", None)
+        return conds
+
+
+class PusulaV2NoBtcScore1(PusulaV2NoBtcFilter):
+    """
+    Removal round 2 (2026-10-11, research/queue/pusula_kuyruk.md item 2): the
+    accepted round-1 version with a looser daily regime threshold for longs:
+    coin score >= +1 instead of +3. The score can only be -3, -1, +1 or +3, so
+    "+2" in the queue means +1 in practice. Nothing else changes.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["regime_up"] = df[f"score_{REGIME_TF}"] >= 1
+        return conds
+
+
+class PusulaV2NoBe(PusulaV2NoBtcScore1):
+    """
+    Removal round 3 (2026-10-11, research/queue/pusula_kuyruk.md item 2): the
+    accepted round-2 version without the "stop to break even at 2R" rule. The
+    planned stop never moves; the trade ends at that stop, the daily EMA20 exit
+    or the BTC-turn exit. Entries and everything else are unchanged.
+    """
+
+    def custom_stoploss(self, pair, trade, current_time, current_rate, current_profit, after_fill, **kwargs):
+        plan = self._plan_for_trade(trade)
+        if plan is None:
+            return None
+        return stoploss_from_absolute(plan["stop"], current_rate, is_short=trade.is_short, leverage=trade.leverage)
 
 
 class TwoSpeedExitMixin:

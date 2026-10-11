@@ -346,3 +346,64 @@ def test_telegram_problem_never_stops_the_run(monkeypatch):
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:x")
     monkeypatch.setenv("TELEGRAM_CHAT_ID", "-5")  # a group id: refused, but only printed
     bd.notify_telegram(["ETH/USDT:USDT: closed +1.2R"])
+
+
+# ------------------------------------------------------------------ second bot (Dalga)
+
+
+NOW_1H = SIGNAL + timedelta(hours=1, minutes=7)  # 7 minutes after the 00:00 1h candle closed
+
+
+@pytest.fixture
+def dalga_bot(monkeypatch, tmp_path):
+    monkeypatch.setattr(bd, "BOT", bd.BOTS["dalga"])
+    monkeypatch.setattr(bd, "OTHER_STATE_FILES", [tmp_path / "other_state.json"])
+    return tmp_path / "other_state.json"
+
+
+def dalga_frame(score, exit_long=0):
+    df = frame([(SIGNAL, 99, 101, 1, exit_long)])
+    df["score_1d"] = score
+    return df
+
+
+@pytest.mark.parametrize("score,risk", [(3, 0.0075), (1, 0.0035)])
+def test_dalga_risk_follows_trend_strength(dalga_bot, tmp_path, score, risk):
+    ex, state = FakeExchange(), {"trades": {}}
+    bd.run_once(ex, None, {PAIR: dalga_frame(score)}, state, NOW_1H, bd.Recorder(tmp_path))
+    amount = float([c for c in ex.calls if c[0] == "create"][0][4])
+    assert amount == pytest.approx(9900 * risk / 5, abs=1e-3)
+    assert next(iter(state["trades"])).startswith("dlg")
+
+
+def test_dalga_risk_halves_in_drawdown(dalga_bot, tmp_path):
+    ex, state = FakeExchange(), {"trades": {}, "equity_peak": 12_000.0}  # 9900 is 17.5% below the peak
+    bd.run_once(ex, None, {PAIR: dalga_frame(3)}, state, NOW_1H, bd.Recorder(tmp_path))
+    amount = float([c for c in ex.calls if c[0] == "create"][0][4])
+    assert amount == pytest.approx(9900 * 0.0075 * 0.5 / 5, abs=1e-3)
+    assert state["equity_peak"] == 12_000.0
+
+
+def test_coin_held_by_the_other_bot_is_skipped(dalga_bot, tmp_path):
+    dalga_bot.write_text('{"trades": {"x": {"pair": "%s", "status": "open"}}}' % PAIR)
+    ex, state = FakeExchange(), {"trades": {}}
+    bd.run_once(ex, None, {PAIR: dalga_frame(3)}, state, NOW_1H, bd.Recorder(tmp_path))
+    assert state["trades"] == {} and not [c for c in ex.calls if c[0] == "create"]
+
+
+def test_no_entry_when_exit_rule_is_already_true(dalga_bot, tmp_path):
+    ex, state = FakeExchange(), {"trades": {}}
+    bd.run_once(ex, None, {PAIR: dalga_frame(3, exit_long=1)}, state, NOW_1H, bd.Recorder(tmp_path))
+    assert state["trades"] == {}
+
+
+def test_dalga_never_moves_stop_to_break_even(dalga_bot, tmp_path):
+    ex, state = FakeExchange(), {"trades": {}}
+    bd.run_once(ex, None, {PAIR: dalga_frame(3)}, state, NOW_1H, bd.Recorder(tmp_path))
+    (oid,) = ex.orders
+    ex.fill(oid, 100.0, NOW_1H + timedelta(minutes=30))
+    ex.positions[PAIR] = ex.orders[oid]["amount"]
+    df = pd.concat([dalga_frame(3), frame([(SIGNAL + timedelta(hours=1), 100, 120, 0, 0)])], ignore_index=True)
+    bd.run_once(ex, Detail(high=120.0), {PAIR: df}, state, NOW_1H + timedelta(hours=1), bd.Recorder(tmp_path))
+    (t,) = state["trades"].values()
+    assert t["status"] == "open" and not t["breakeven_moved"]

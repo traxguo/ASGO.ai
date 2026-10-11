@@ -1,0 +1,59 @@
+# Runs Dalga (cards/dalga.md) on the Bitget DEMO account (play money) after every 1h candle,
+# next to the Pusula bot (bitget_demo.yml). Same keys, same account; a bot skips coins the other holds.
+# Keys live in GitHub Secrets (Settings > Secrets and variables > Actions), never in the repo.
+# Without keys the trading step is skipped. Steps for the owner: docs/bitget_demo_kurulum.md
+name: Dalga Bitget demo
+
+on:
+  schedule:
+    - cron: "25 * * * *"  # UTC, 25 minutes after each 1h candle closes (Pusula runs at :07)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bitget-demo-dalga
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HAS_KEYS: ${{ secrets.BITGET_DEMO_API_KEY != '' && secrets.BITGET_DEMO_API_SECRET != '' && secrets.BITGET_DEMO_API_PASSPHRASE != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-demo.txt
+      - run: pip install -r requirements-demo.txt
+
+      - name: Keys missing
+        if: env.HAS_KEYS != 'true'
+        run: echo "::notice::Bitget demo keys are not set yet, nothing traded (docs/bitget_demo_kurulum.md)."
+
+      - name: Trade on the Bitget demo account
+        if: env.HAS_KEYS == 'true'
+        env:
+          BITGET_DEMO_API_KEY: ${{ secrets.BITGET_DEMO_API_KEY }}
+          BITGET_DEMO_API_SECRET: ${{ secrets.BITGET_DEMO_API_SECRET }}
+          BITGET_DEMO_API_PASSPHRASE: ${{ secrets.BITGET_DEMO_API_PASSPHRASE }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}  # optional: trade messages to the owner
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DEMO_BOT: dalga
+        run: python scripts/bitget_demo.py
+
+      - name: Save the trade log
+        if: always() && env.HAS_KEYS == 'true'
+        run: |
+          if [ ! -d forward/bitget_demo_dalga ]; then echo "no log yet"; exit 0; fi
+          git add forward/bitget_demo_dalga
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Dalga demo log: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0; sleep 5; done
+          exit 1
