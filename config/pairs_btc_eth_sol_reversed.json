@@ -1,0 +1,10 @@
+{
+  "$comment": "Same as pairs_btc_eth_sol.json in reversed order: coin-order check with max 1 position.",
+  "exchange": {
+    "pair_whitelist": [
+      "SOL/USDT:USDT",
+      "ETH/USDT:USDT",
+      "BTC/USDT:USDT"
+    ]
+  }
+}
