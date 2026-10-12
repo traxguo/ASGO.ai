@@ -31,3 +31,14 @@ Kod (araştırma simülasyonu): [`research/scans/kinetic_pullback.py`](../resear
 
 ## Durum: reddedildi (2026-10-12)
 Masraf öncesi sonuç sıfıra çok yakın; masraf işlem başı 0.13–0.16R. Short tarafında iki dönemde de küçük bir brüt artı var (+0.04 / +0.06R) ama masrafın üçte biri bile değil. Panik çıkışı işlemlerin yarısını girişten hemen sonra kapatıyor (giriş zaten EMA50'nin yanında).
+
+### Limit emirle (düşük masraf) deneme, 2026-10-12 (`research/scans/kinetic_maker.py`, 2020–2024)
+Giriş sinyal kapanışına limit emirle (en fazla 4 mum bekler, fiyat limiti %0.02 geçerse dolmuş sayılır), masraf: limit %0.02, piyasa çıkışı %0.06 + %0.03 kayma.
+| Değişken | Long net R | Short net R | Short kazanan |
+|---|---|---|---|
+| Orijinal çıkışlar (izleyen stop) | -0.096 | -0.060 | %55 |
+| Sabit limit hedef 1.5 ATR | -0.097 | -0.071 | %59 |
+| Sabit limit hedef 2.5 ATR | -0.096 | -0.064 | %53 |
+| Hedef 1.5 ATR, limit %0.2 daha iyi fiyattan | -0.073 | -0.057 | %61 |
+Masraf yarıdan aza indi ama limit emir sadece fiyat aleyhe giderken doluyor; brüt sonuç da kötüleşti. Reddedildi, doğrulama dönemine bakılmadı.
+
