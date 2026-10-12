@@ -66,6 +66,12 @@ Her işleme kasanın 1/N'i (N = aynı anda en fazla işlem), sinyaller sırayla 
 - Zayıf yanlar: doğrulamada sadece 98 işlem, ortanca ~0, kazancın çoğu 10-11 Ekim 2025 çöküşünden. Sıklık günde ~0.2-0.6; GUO'nun istediği günde 2-3 işlemden uzak. Bu nadir olay stratejisi, sık scalp değil.
 - Doğrulama dönemi artık bu seçim için kullanıldı; kasa (2026-04..09) hâlâ dokunulmadı.
 
+## Saatte bir kontrol (canlıya uygun basit hali)
+Sinyal sadece her saat başında bakılırsa (BTC filtresiyle): 2022–2024 günde 0.34 işlem, işlem başı +%0.23, ortanca +%0.39, kasa +17.3%, en büyük düşüş -11.2%. 2025-01 → 2026-03: 44 işlem, +%1.43, kasa +12.8%. Daha az işlem ama işlem başı aynı kalite.
+
+## Canlı veri kaydı (2026-10-12'den itibaren)
+Saatlik Dalga çalışmasında Bitget'in açık pozisyon ve fiyatı 36 coin için `forward/oi/bitget_oi.csv` dosyasına kaydediliyor (`scripts/record_oi.py`, anahtar yok, emir yok). Birkaç hafta birikince Bitget verisinde %5 eşiğinin Binance ile aynı davranıp davranmadığı kontrol edilecek.
+
 ## Canlı için açık soru
 Binance verisine bulut/GitHub sunucularından erişim engelli olabilir; canlıda açık pozisyon Bitget'ten her 15 dakikada kaydedilerek hesaplanmalı (Bitget sadece anlık değeri veriyor).
 
