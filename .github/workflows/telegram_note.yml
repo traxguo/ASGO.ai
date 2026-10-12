@@ -8,6 +8,10 @@ on:
       text:
         description: "Message text"
         required: true
+      group_only:
+        description: "Send only to the group"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -28,4 +32,5 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
           TEXT: ${{ inputs.text }}
-        run: python3 scripts/telegram_note.py --text "$TEXT"
+          GROUP_ONLY: ${{ inputs.group_only && '--group-only' || '' }}
+        run: python3 scripts/telegram_note.py --text "$TEXT" $GROUP_ONLY

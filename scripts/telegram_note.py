@@ -18,13 +18,16 @@ from signals.dispatcher.telegram_client import TelegramClient  # noqa: E402
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--text", required=True)
-    text = ap.parse_args().text.strip()[:1500]
+    ap.add_argument("--group-only", action="store_true", help="send only to the group (e.g. repeating an earlier note)")
+    a = ap.parse_args()
+    text = a.text.strip()[:1500]
     if not text:
         print("empty note; nothing sent")
         return 1
     client = TelegramClient.from_env()
-    client.send_message(text)  # default chat = the owner's private chat
-    print("note sent")
+    if not a.group_only:
+        client.send_message(text)  # default chat = the owner's private chat
+        print("note sent")
     if client.group_id is not None:  # the one group the owner chose (rule 7)
         client.send_message(text, client.group_id)
         print("note sent to the group")
