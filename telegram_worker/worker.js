@@ -79,7 +79,7 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
 
 export function dueBots(when) {
   const minute = when.getUTCMinutes(), hour = when.getUTCHours();
-  const due = ["bitget_demo_kivilcim.yml"];            // every 15 minutes
+  const due = [];                                       // Kivilcim (every 15 min) retired 2026-10-12
   if (minute < 15) {
     due.push("bitget_demo_dalga.yml");                  // first tick after each 1h candle
     if (hour % 4 === 0) due.push("bitget_demo.yml");    // first tick after each 4h candle (Pusula)

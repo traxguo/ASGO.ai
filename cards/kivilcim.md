@@ -1,6 +1,6 @@
 # kivilcim — DENEME: güçlü trendde 1 saatlik geri çekilmede al, en fazla 3 saat tut
 
-Kod: [`strategies/candidates/kivilcim.py`](../strategies/candidates/kivilcim.py)
+Kod: [`strategies/retired/kivilcim.py`](../strategies/retired/kivilcim.py)
 
 > **Uyarı:** Bu kural testi GEÇMEDİ. Maliyet sonrası geliştirme döneminde işlem başı yaklaşık -0.08R, doğrulama döneminde -0.12R verdi. Demoda sadece proje sahibinin isteğiyle (2026-10-11) çalışıyor: kısa işlem botunun canlıda nasıl giriş/çıkış yaptığını görmek ve gerçek dolum verisi toplamak için. Gerçek paraya aday değildir. Sinyal olarak gönderilmez, sadece demo işlem mesajı gider.
 
@@ -33,7 +33,8 @@ Pusula/Dalga ile aynı puan: kapanış EMA(50) üstü, EMA(20) EMA(50) üstü, 9
 | En uzun süre | 3 saat |
 | Coin listesi | `config/pairs_kivilcim76.json` (2026-10-12'den beri: 81 coinlik test listesinden Bitget'te hiç olmayan 5 coin çıkarıldı; demoda olmayan coin atlanır) |
 
-## Durum: deneme (demo), aday değil
+## Durum: emekli (2026-10-12)
+Proje sahibi kapattı. Gerekçe: iki dönemde de işlem başı zarar (geliştirme -0.044R, doğrulama -0.085R), %47 kazanan işlem; masraf öncesi sonuç sıfır, yani kuralda avantaj yok. Bitget demoda hiç işlem açmadan durduruldu (demo hesapta 36 coinin 15'i vardı, sabah giriş koşulu oluşmadı). Onay mumu ile giriş de denendi, daha kötü çıktı. Demo çalıştırıcıdaki kısa işlem seçenekleri (piyasa emriyle giriş, kâr al, 3 saat süre çıkışı, günlük sınır) ileride başka bir kısa işlem botu için kodda duruyor.
 
 ## Test geçmişi
 Araç: `research/scans/short_trade_grid.py` (S2_pullback), 1h mumla olay simülasyonu, aynı mumda stop ve hedef ikisi de varsa stop sayılır, maliyet %0.2.

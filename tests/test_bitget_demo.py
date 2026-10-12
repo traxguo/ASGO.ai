@@ -1,3 +1,5 @@
+import sys
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
@@ -439,9 +441,18 @@ class MarketFakeExchange(FakeExchange):
         return super().create_order(pair, type_, side, amount, price, params)
 
 
+# Kivilcim was retired 2026-10-12 (strategies/retired/kivilcim.py); its config stays here to keep
+# the runner's short-hold options (market entry, take profit, time exit, daily cap) tested.
+KIVILCIM_BOT = {"module": "kivilcim", "strategy": "Kivilcim", "tf": "1h", "tf_hours": 1, "max_open": 2,
+                "pairs": "pairs_kivilcim76.json", "out": "bitget_demo_kivilcim", "cid": "kvl", "breakeven": False,
+                "dynamic_risk": False, "title": "Kıvılcım - DENEME", "market_entry": True,
+                "max_hold_hours": 3, "daily_entries": 3, "fresh_minutes": 40}
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "strategies" / "retired"))
+
+
 @pytest.fixture
 def kivilcim_bot(monkeypatch, tmp_path):
-    monkeypatch.setattr(bd, "BOT", bd.BOTS["kivilcim"])
+    monkeypatch.setattr(bd, "BOT", KIVILCIM_BOT)
     monkeypatch.setattr(bd, "OTHER_STATE_FILES", [tmp_path / "other_state.json"])
 
 
@@ -528,7 +539,7 @@ def test_telegram_also_goes_to_the_chosen_group_with_turkish_exit_reason(monkeyp
 
     import signals.dispatcher.telegram_client as tc
     monkeypatch.setattr(tc, "TelegramClient", FakeClient)
-    monkeypatch.setattr(bd, "BOT", bd.BOTS["kivilcim"])
+    monkeypatch.setattr(bd, "BOT", KIVILCIM_BOT)
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "1:x")
     monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
     monkeypatch.setenv("TELEGRAM_GROUP_ID", "-100123")
