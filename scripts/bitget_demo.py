@@ -68,6 +68,7 @@ BOTS = {
 BOT_NAME = os.environ.get("DEMO_BOT", "pusula").strip() or "pusula"
 BOT = BOTS[BOT_NAME]
 OTHER_STATE_FILES = [REPO / "forward" / b["out"] / "state.json" for n, b in BOTS.items() if n != BOT_NAME]
+OTHER_STATE_FILES.append(REPO / "forward" / "bitget_fitil" / "state.json")  # Fitil Avcisi (scripts/bitget_fitil.py)
 STRATEGY = BOT["strategy"]
 TF, DAILY_TF, DETAIL_TF = BOT["tf"], "1d", "1h"
 TF_HOURS = BOT["tf_hours"]

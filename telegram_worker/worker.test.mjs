@@ -60,13 +60,13 @@ test("webhook refuses calls without Telegram's secret token", async () => {
 
 test("the clock starts the demo jobs that are due", async () => {
   assert.deepEqual(dueBots(new Date("2026-10-12T04:02:00Z")),
-    ["bitget_demo_dalga.yml", "bitget_demo.yml"]);
-  assert.deepEqual(dueBots(new Date("2026-10-12T05:02:00Z")), ["bitget_demo_dalga.yml"]);
-  assert.deepEqual(dueBots(new Date("2026-10-12T05:17:00Z")), []);
+    ["bitget_demo_fitil.yml", "bitget_demo_dalga.yml", "bitget_demo.yml"]);
+  assert.deepEqual(dueBots(new Date("2026-10-12T05:02:00Z")), ["bitget_demo_fitil.yml", "bitget_demo_dalga.yml"]);
+  assert.deepEqual(dueBots(new Date("2026-10-12T05:17:00Z")), ["bitget_demo_fitil.yml"]);
   const calls = [];
   await startBots(env, new Date("2026-10-12T05:02:00Z"), fakeGitHub(calls));
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "https://api.github.com/repos/traxguo/ASGO.ai/actions/workflows/bitget_demo_dalga.yml/dispatches");
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].url, "https://api.github.com/repos/traxguo/ASGO.ai/actions/workflows/bitget_demo_dalga.yml/dispatches");
   assert.deepEqual(JSON.parse(calls[0].opts.body), { ref: "main" });
   assert.deepEqual(await startBots({ ...env, GH_DISPATCH_TOKEN: "none" }, new Date(), fakeGitHub(calls)), []);
 });
