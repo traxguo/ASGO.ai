@@ -98,3 +98,23 @@ def test_v2_no_be_keeps_planned_stop_after_2r():
     assert issubclass(pusula.PusulaV2NoBe, pusula.PusulaV2NoBtcScore1)
     assert stop_level(pusula.PusulaV2NoBe) == pytest.approx(90.0)
     assert stop_level(pusula.PusulaV2NoBtcScore1) > 100.0
+
+
+def test_v2_no_be_ema50_exits_on_ema50_not_ema20():
+    """PusulaV2NoBeEma50: close between EMA50 and EMA20 keeps the long; below EMA50 or BTC turn closes it."""
+    tf = pusula.REGIME_TF
+    df = pd.DataFrame({
+        f"close_{tf}": [105.0, 95.0, 105.0, 110.0],
+        f"ema_fast_{tf}": [110.0, 110.0, 100.0, 100.0],
+        f"ema_slow_{tf}": [100.0, 100.0, 100.0, 100.0],
+        f"mkt_score_{tf}": [1, 1, 1, -1],
+    })
+
+    def exits(cls):
+        strat = cls.__new__(cls)
+        out = strat.populate_exit_trend(df.copy(), {"pair": "X/USDT:USDT"})
+        return out.get("exit_long", pd.Series(np.nan, index=df.index)).fillna(0).astype(int).tolist()
+
+    assert issubclass(pusula.PusulaV2NoBeEma50, pusula.PusulaV2NoBe)
+    assert exits(pusula.PusulaV2NoBe) == [1, 1, 0, 1]
+    assert exits(pusula.PusulaV2NoBeEma50) == [0, 1, 0, 1]

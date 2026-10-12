@@ -441,6 +441,25 @@ class PusulaV2NoBe(PusulaV2NoBtcScore1):
         return stoploss_from_absolute(plan["stop"], current_rate, is_short=trade.is_short, leverage=trade.leverage)
 
 
+
+class PusulaV2NoBeEma50(PusulaV2NoBe):
+    """
+    Removal round 4 (2026-10-12, research/queue/pusula_kuyruk.md item 2): the
+    accepted round-3 version with a slower trend exit: a long is closed when the
+    last closed daily close is below the daily EMA(50) instead of the EMA(20)
+    (short mirror: above EMA50). The BTC-turn exit, the fixed stop and the entry
+    conditions are unchanged. Note: Freqtrade ignores an entry on a candle that
+    also has an exit signal, so as before no trade opens while the exit rule is
+    already true (here: daily close below EMA50).
+    """
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        close_1d, ema_slow = df[f"close_{REGIME_TF}"], df[f"ema_slow_{REGIME_TF}"]
+        df.loc[close_1d < ema_slow, "exit_long"] = 1
+        df.loc[close_1d > ema_slow, "exit_short"] = 1
+        df.loc[df[f"mkt_score_{REGIME_TF}"] <= -1, "exit_long"] = 1  # BTC-turn exit (round 2a), unchanged
+        return df
+
 class TwoSpeedExitMixin:
     """
     Round 3 (fixed before testing, card section "3. tur"): two-speed exit.

@@ -31,7 +31,7 @@ Pusula/Dalga ile aynı puan: kapanış EMA(50) üstü, EMA(20) EMA(50) üstü, 9
 | RSI eşiği | 35 |
 | Stop / kâr al | 1.5 / 1.5 ATR |
 | En uzun süre | 3 saat |
-| Coin listesi | `config/pairs_all36.json` |
+| Coin listesi | `config/pairs_kivilcim76.json` (2026-10-12'den beri: 81 coinlik test listesinden Bitget'te hiç olmayan 5 coin çıkarıldı; demoda olmayan coin atlanır) |
 
 ## Durum: deneme (demo), aday değil
 
@@ -50,5 +50,8 @@ Araç: `research/scans/short_trade_grid.py` (S2_pullback), 1h mumla olay simüla
 - **Kabul (v2):** Sakin coinleri atla (saatlik ATR fiyatın %1.5'inden az). Masraf R olarak küçülüyor; iki dönemde de iyileşti (geliştirme -0.084 → -0.044R, doğrulama -0.124 → -0.085R), günde ~2.5 işlem kalıyor. Mekanik bir iyileştirme, avantaj yaratmıyor.
 - **Reddedildi:** "Bütün piyasa düşerken güçlü coini al" (BTC 3 saatte -%1.5/-2 veya 24 saatte -%5): geliştirmede ~0R'a çıktı ama doğrulamada -0.07..-0.19R. Daha geniş hedef / daha uzun süre (6-12 saat): fark yok. RSI derinliği, saat, hacim: tutarlı fark yok.
 - ATR ≥ %2 doğrulamada +0.01R verdi ama günde ~1 işleme düşüyor ve geliştirmede hâlâ eksi; seçilmedi.
+
+### Demo coin listesi (2026-10-12)
+Bitget demo hesabında 36 coinin sadece 15'i var (AAVE, ALGO, ATOM, ETC, FIL, XLM, ZEC ve 14 coin daha yok). Sabah hiç işlem açılmadı. Kıvılcım'ın geliştirme testi zaten 81 coinle yapılmıştı, bu yüzden demoda 81 coinlik listeye geçti. Demoda olmayan coin sessizce atlanır. Kural değişmedi.
 
 Aynı gece denenen diğer kısa kurallar (24 saatlik kırılım, hacimli büyük mum, sert düşüş sonrası alım) ve 6-24 saatlik tutmalar da sıfırın altında kaldı. Kural koddaki sinyalle birebir aynı (SOL 2025: 256/256 sinyal eşleşti).
