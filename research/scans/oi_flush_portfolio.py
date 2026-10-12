@@ -4,7 +4,7 @@
 # Each trade gets equity/MAXO notional (no leverage beyond 1x in total). Reports per period: trades, mean %,
 # win, equity return, max drawdown, worst day, share of days with >=1 trade.
 import os,sys,numpy as np,pandas as pd
-# Variant switches (env): SIDE=long|short (short: OI drop + price jump, no stop) ; RANK=coin|oi (same-time signals order) ; DEVONLY=1 prints only the development period ; HOURLY=1 checks the signal only at each full hour ; COST=round-trip cost (default 0.002) ; FILTER=none|btc_calm|btc_crash|trend ; STOPMODE=fixed|swing (swing: flush low - STOP)
+# Variant switches (env): HOLDOUT=1 runs only the holdout (once, before going live) ; SIDE=long|short (short: OI drop + price jump, no stop) ; RANK=coin|oi (same-time signals order) ; DEVONLY=1 prints only the development period ; HOURLY=1 checks the signal only at each full hour ; COST=round-trip cost (default 0.002) ; FILTER=none|btc_calm|btc_crash|trend ; STOPMODE=fixed|swing (swing: flush low - STOP)
 COST=float(os.environ.get("COST","0.002"));FILTER=os.environ.get('FILTER','none');STOPMODE=os.environ.get('STOPMODE','fixed');HOURLY=os.environ.get('HOURLY')=='1';DEVONLY=os.environ.get('DEVONLY')=='1';SIDE=os.environ.get('SIDE','long');RANK=os.environ.get('RANK','coin')
 X,P,H,STOP,MAXO=float(sys.argv[1]),float(sys.argv[2]),int(sys.argv[3]),float(sys.argv[4]),int(sys.argv[5]);coins=sys.argv[6:]
 B="user_data/data/binance/futures/";Mt="user_data/data/metrics/";cand=[]
@@ -37,8 +37,10 @@ for c in coins:
         if x is None: x=cl[i+h];j=i+h;why="time"
         cand.append(dict(c=c,t_in=k.index[i+1],t_out=k.index[j]+pd.Timedelta(minutes=15),ret=(x/e-1 if SIDE=='long' else 1-x/e)-COST,why=why,oi=oi1.iloc[i]));busy=j
 C=pd.DataFrame(cand).sort_values(["t_in","oi"] if RANK=="oi" else ["t_in","c"]).reset_index(drop=True)  # RANK=oi: deepest OI drop first
-C=C[(C.t_in>="2022-01-02")&(C.t_in<"2026-04-01")]
+HOLD=os.environ.get("HOLDOUT")=="1"  # one-time holdout check only (docs/rules.md)
+C=C[(C.t_in>="2022-01-02")&(C.t_in<("2026-10-01" if HOLD else "2026-04-01"))]
 PER={"dev":("2022-01-02","2025-01-01"),"val":("2025-01-01","2026-04-01")}
+if HOLD: PER={"holdout":("2026-04-01","2026-10-01")}
 if DEVONLY: PER.pop("val")  # development work must not peek at validation
 for per,(a,b) in PER.items():
     g=C[(C.t_in>=a)&(C.t_in<b)];eq=1.0;open_=[];taken=[];curve=[]
