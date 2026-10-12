@@ -150,3 +150,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-12 — Kıvılcım demoda 81 coinlik listeye geçti
 - Karar: Kıvılcım DENEME botu `config/pairs_kivilcim76.json` (81 coinlik test listesi eksi Bitget'in hiç listelemediği 5 coin) ile çalışır; Dalga ve Pusula test edildikleri listede kalır.
 - Gerekçe: Bitget demo hesabında 36 coinin sadece 15'i işlem görüyor (log: "demo contracts: 15/36"). Kıvılcım'ın geliştirme testi zaten 81 coinle yapıldı. Proje sahibi demoda gerçekten işlem görmek istiyor (gerçek para yok; 2026-10-12 kararı: demoda kalınacak).
+
+## 2026-10-12 — Kıvılcım emekliye ayrıldı, demodan kaldırıldı
+- Karar: Kıvılcım DENEME botu durduruldu; kod `strategies/retired/kivilcim.py`, GitHub iş akışı silindi, Cloudflare saati artık sadece Dalga ve Pusula'yı başlatıyor.
+- Gerekçe: proje sahibi "emekli et" dedi ve "Kapat" seçti. Kural iki dönemde de zararda, brüt avantajı yok. Aynı gün denenen yeni kısa işlem fikirleri (saat etkisi, BTC öncülüğü, onay mumu, Kinetik Geri Çekilme) da masrafı karşılamadı.

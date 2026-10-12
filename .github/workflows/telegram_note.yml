@@ -1,0 +1,30 @@
+# Sends a short note from Claude to the owner's private Telegram chat (scripts/telegram_note.py).
+# Started by hand (workflow_dispatch) only; the text is the one input. Never posts to the group.
+name: Telegram note to owner
+
+on:
+  workflow_dispatch:
+    inputs:
+      text:
+        description: "Message text"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            signals/dispatcher
+      - name: Send
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TEXT: ${{ inputs.text }}
+        run: python3 scripts/telegram_note.py --text "$TEXT"

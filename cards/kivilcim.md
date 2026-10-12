@@ -1,6 +1,6 @@
 # kivilcim — DENEME: güçlü trendde 1 saatlik geri çekilmede al, en fazla 3 saat tut
 
-Kod: [`strategies/candidates/kivilcim.py`](../strategies/candidates/kivilcim.py)
+Kod: [`strategies/retired/kivilcim.py`](../strategies/retired/kivilcim.py)
 
 > **Uyarı:** Bu kural testi GEÇMEDİ. Maliyet sonrası geliştirme döneminde işlem başı yaklaşık -0.08R, doğrulama döneminde -0.12R verdi. Demoda sadece proje sahibinin isteğiyle (2026-10-11) çalışıyor: kısa işlem botunun canlıda nasıl giriş/çıkış yaptığını görmek ve gerçek dolum verisi toplamak için. Gerçek paraya aday değildir. Sinyal olarak gönderilmez, sadece demo işlem mesajı gider.
 
@@ -33,7 +33,8 @@ Pusula/Dalga ile aynı puan: kapanış EMA(50) üstü, EMA(20) EMA(50) üstü, 9
 | En uzun süre | 3 saat |
 | Coin listesi | `config/pairs_kivilcim76.json` (2026-10-12'den beri: 81 coinlik test listesinden Bitget'te hiç olmayan 5 coin çıkarıldı; demoda olmayan coin atlanır) |
 
-## Durum: deneme (demo), aday değil
+## Durum: emekli (2026-10-12)
+Proje sahibi kapattı. Gerekçe: iki dönemde de işlem başı zarar (geliştirme -0.044R, doğrulama -0.085R), %47 kazanan işlem; masraf öncesi sonuç sıfır, yani kuralda avantaj yok. Bitget demoda hiç işlem açmadan durduruldu (demo hesapta 36 coinin 15'i vardı, sabah giriş koşulu oluşmadı). Onay mumu ile giriş de denendi, daha kötü çıktı. Demo çalıştırıcıdaki kısa işlem seçenekleri (piyasa emriyle giriş, kâr al, 3 saat süre çıkışı, günlük sınır) ileride başka bir kısa işlem botu için kodda duruyor.
 
 ## Test geçmişi
 Araç: `research/scans/short_trade_grid.py` (S2_pullback), 1h mumla olay simülasyonu, aynı mumda stop ve hedef ikisi de varsa stop sayılır, maliyet %0.2.
@@ -50,6 +51,17 @@ Araç: `research/scans/short_trade_grid.py` (S2_pullback), 1h mumla olay simüla
 - **Kabul (v2):** Sakin coinleri atla (saatlik ATR fiyatın %1.5'inden az). Masraf R olarak küçülüyor; iki dönemde de iyileşti (geliştirme -0.084 → -0.044R, doğrulama -0.124 → -0.085R), günde ~2.5 işlem kalıyor. Mekanik bir iyileştirme, avantaj yaratmıyor.
 - **Reddedildi:** "Bütün piyasa düşerken güçlü coini al" (BTC 3 saatte -%1.5/-2 veya 24 saatte -%5): geliştirmede ~0R'a çıktı ama doğrulamada -0.07..-0.19R. Daha geniş hedef / daha uzun süre (6-12 saat): fark yok. RSI derinliği, saat, hacim: tutarlı fark yok.
 - ATR ≥ %2 doğrulamada +0.01R verdi ama günde ~1 işleme düşüyor ve geliştirmede hâlâ eksi; seçilmedi.
+
+### Onay mumu denemesi (2026-10-12, `research/scans/kivilcim_confirm.py`, 2020-2024, 36 coin)
+Fikir: düşüşte hemen almak yerine toparlanma mumunu bekle (kapanış önceki mumun tepesini geçsin, en fazla 3 saat), sonra al.
+| Değişken | İşlem | Günde | Kazanan | Ortalama R |
+|---|---|---|---|---|
+| Şimdiki kural (bekleme yok) | 8 479 | 4.6 | %53 | -0.044 |
+| Onay mumu, stop 1.5 ATR | 4 744 | 2.6 | %46 | -0.099 |
+| Onay mumu, stop dip altı | 4 753 | 2.6 | %46 | -0.090 |
+| Onay mumu, dip stop, hedef 1.5R, 6 saat | 4 398 | 2.4 | %44 | -0.119 |
+| Onay mumu, dip stop, hedef 2R, 12 saat | 4 162 | 2.3 | %42 | -0.127 |
+**Reddedildi:** toparlanmayı beklemek girişi pahalılaştırıyor, sonuç kötüleşiyor. Doğrulama dönemine bakılmadı.
 
 ### Demo coin listesi (2026-10-12)
 Bitget demo hesabında 36 coinin sadece 15'i var (AAVE, ALGO, ATOM, ETC, FIL, XLM, ZEC ve 14 coin daha yok). Sabah hiç işlem açılmadı. Kıvılcım'ın geliştirme testi zaten 81 coinle yapılmıştı, bu yüzden demoda 81 coinlik listeye geçti. Demoda olmayan coin sessizce atlanır. Kural değişmedi.

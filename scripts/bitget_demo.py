@@ -54,7 +54,6 @@ import pandas as pd  # noqa: E402
 # Two bots share the demo account; DEMO_BOT picks one (default: the original Pusula bot).
 #   pusula: PusulaV2, 4h candles, 16 coins, 1% risk, max 3 trades, stop to break even at 2R
 #   dalga : Dalga, 1h candles, 36 coins, dynamic risk (cards/dalga.md), max 8 trades, stop never moves
-#   kivilcim: TRIAL 1h pullback, market entry, stop + take profit 1.5 ATR, closed after 3h (cards/kivilcim.md)
 # A bot never trades a coin another bot holds or waits on (one-way positions would merge).
 BOTS = {
     "pusula": {"module": "pusula", "strategy": "PusulaV2", "tf": "4h", "tf_hours": 4, "max_open": 3,
@@ -63,12 +62,9 @@ BOTS = {
     "dalga": {"module": "dalga", "strategy": "Dalga", "tf": "1h", "tf_hours": 1, "max_open": 8,
               "pairs": "pairs_all36.json", "out": "bitget_demo_dalga", "cid": "dlg", "breakeven": False,
               "dynamic_risk": True, "title": "Dalga"},
-    # TRIAL short-hold bot (cards/kivilcim.md): its rule had no positive test, demo only to collect live fills
-    "kivilcim": {"module": "kivilcim", "strategy": "Kivilcim", "tf": "1h", "tf_hours": 1, "max_open": 2,
-                 "pairs": "pairs_kivilcim76.json", "out": "bitget_demo_kivilcim", "cid": "kvl", "breakeven": False,
-                 "dynamic_risk": False, "title": "Kıvılcım - DENEME", "market_entry": True,
-                 "max_hold_hours": 3, "daily_entries": 3, "fresh_minutes": 40},
 }
+# Short-hold options (kept for a future scalp bot; Kivilcim used them until it was retired 2026-10-12):
+#   "market_entry": True, "max_hold_hours": 3, "daily_entries": 3, "fresh_minutes": 40
 BOT_NAME = os.environ.get("DEMO_BOT", "pusula").strip() or "pusula"
 BOT = BOTS[BOT_NAME]
 OTHER_STATE_FILES = [REPO / "forward" / b["out"] / "state.json" for n, b in BOTS.items() if n != BOT_NAME]
