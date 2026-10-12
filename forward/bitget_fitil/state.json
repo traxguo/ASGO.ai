@@ -1,0 +1,40 @@
+{
+  "last_hour": "2026-10-12T13:00:00+00:00",
+  "trades": {
+    "fitada2026101213": {
+      "hour": "2026-10-12T13:00:00+00:00",
+      "limit_price": 0.2358,
+      "order_id": "1493526386609422337",
+      "pair": "ADA/USDT:USDT",
+      "status": "pending"
+    },
+    "fitavax2026101213": {
+      "hour": "2026-10-12T13:00:00+00:00",
+      "limit_price": 10.355,
+      "order_id": "1493526400425459713",
+      "pair": "AVAX/USDT:USDT",
+      "status": "pending"
+    },
+    "fitbtc2026101213": {
+      "hour": "2026-10-12T13:00:00+00:00",
+      "limit_price": 78600.8,
+      "order_id": "1493526372680138753",
+      "pair": "BTC/USDT:USDT",
+      "status": "pending"
+    },
+    "fitdot2026101213": {
+      "hour": "2026-10-12T13:00:00+00:00",
+      "limit_price": 1.199,
+      "order_id": "1493526395404877825",
+      "pair": "DOT/USDT:USDT",
+      "status": "pending"
+    },
+    "fitnear2026101213": {
+      "hour": "2026-10-12T13:00:00+00:00",
+      "limit_price": 5.3532,
+      "order_id": "1493526410198188033",
+      "pair": "NEAR/USDT:USDT",
+      "status": "pending"
+    }
+  }
+}
