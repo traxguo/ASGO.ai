@@ -1,5 +1,5 @@
 {
-  "last_hour": "2026-10-12T19:00:00+00:00",
+  "last_hour": "2026-10-12T20:00:00+00:00",
   "trades": {
     "fitada2026101213": {
       "hour": "2026-10-12T13:00:00+00:00",
@@ -47,6 +47,13 @@
       "hour": "2026-10-12T19:00:00+00:00",
       "limit_price": 0.229,
       "order_id": "1493616418842148865",
+      "pair": "ADA/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitada2026101220": {
+      "hour": "2026-10-12T20:00:00+00:00",
+      "limit_price": 0.2304,
+      "order_id": "1493631466134241281",
       "pair": "ADA/USDT:USDT",
       "status": "pending"
     },
@@ -97,6 +104,13 @@
       "limit_price": 9.82,
       "order_id": "1493616428400967681",
       "pair": "AVAX/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitavax2026101220": {
+      "hour": "2026-10-12T20:00:00+00:00",
+      "limit_price": 10.003,
+      "order_id": "1493631477739880449",
+      "pair": "AVAX/USDT:USDT",
       "status": "pending"
     },
     "fitbtc2026101213": {
@@ -145,6 +159,13 @@
       "hour": "2026-10-12T19:00:00+00:00",
       "limit_price": 78298.4,
       "order_id": "1493616409824395265",
+      "pair": "BTC/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitbtc2026101220": {
+      "hour": "2026-10-12T20:00:00+00:00",
+      "limit_price": 78693.4,
+      "order_id": "1493631454818009089",
       "pair": "BTC/USDT:USDT",
       "status": "pending"
     },
@@ -195,6 +216,13 @@
       "limit_price": 1.15,
       "order_id": "1493616424777089025",
       "pair": "DOT/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitdot2026101220": {
+      "hour": "2026-10-12T20:00:00+00:00",
+      "limit_price": 1.154,
+      "order_id": "1493631473293918209",
+      "pair": "DOT/USDT:USDT",
       "status": "pending"
     },
     "fitnear2026101213": {
@@ -243,6 +271,13 @@
       "hour": "2026-10-12T19:00:00+00:00",
       "limit_price": 5.1435,
       "order_id": "1493616435283820545",
+      "pair": "NEAR/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitnear2026101220": {
+      "hour": "2026-10-12T20:00:00+00:00",
+      "limit_price": 5.1906,
+      "order_id": "1493631486392729601",
       "pair": "NEAR/USDT:USDT",
       "status": "pending"
     }
