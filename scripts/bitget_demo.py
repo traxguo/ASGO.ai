@@ -408,6 +408,9 @@ def choose_demo_product(ex, pairs: list[str]):
               f"raw {str(info)[:300]}")
         if demo_balance(balance)[0] > 0:
             if product == "USDT-FUTURES":
+                missing = sorted(p for p in pairs if p not in (ex.markets or {}))
+                print(f"demo contracts: {len(pairs) - len(missing)}/{len(pairs)} coins"
+                      + (f", missing {missing}" if missing else ""))
                 return ex
             mapping = demo_symbols(ex.markets, pairs)
             missing = sorted(set(pairs) - set(mapping))
