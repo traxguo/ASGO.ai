@@ -1,4 +1,4 @@
-# tasfiye — sert düşüşte zorla kapatılan longlardan sonra al, 3 saat tut (ADAY, araştırma aşaması)
+# tasfiye — sert düşüşte zorla kapatılan longlardan sonra al, 3 saat tut (KASA TESTİNDE BAŞARISIZ, 2026-10-12)
 
 Araştırma kodu: [`research/scans/oi_flush.py`](../research/scans/oi_flush.py) (tarama: [`research/scans/oi_scan.py`](../research/scans/oi_scan.py)). Veri: Binance 5 dakikalık açık pozisyon (`research/data/fetch_metrics.py`, 2022-01 → 2026-03).
 
@@ -93,4 +93,16 @@ Saatlik Dalga çalışmasında Bitget'in açık pozisyon ve fiyatı 36 coin içi
 ## Canlı için açık soru
 Binance verisine bulut/GitHub sunucularından erişim engelli olabilir; canlıda açık pozisyon Bitget'ten her 15 dakikada kaydedilerek hesaplanmalı (Bitget sadece anlık değeri veriyor).
 
-## Durum: aday (araştırma), demo yok
+## Kasa testi (2026-04-01 → 2026-09-30, bir kez, kural donduruldu)
+Kural: BTC de 1 saatte ≥%1 düşerken, OI'si en çok düşen önce, en fazla 8 işlem, 3 saat, stopsuz, masraf %0.2.
+| Kontrol | İşlem | Ort. % | Ortanca % | Kazanan | Kasa | En büyük düşüş |
+|---|---|---|---|---|---|---|
+| saatte bir | 18 | -1.62 | -1.64 | %11 | -3.6% | -2.9% |
+| 15 dakikada bir | 33 | -0.64 | -0.81 | %33 | -2.6% | -2.3% |
+| (karşılaştırma) filtresiz, en fazla 5 | 100 | +0.03 | -0.36 | %46 | +0.4% | -8.2% |
+
+- Sonuç: seçilen kural kasa döneminde zararda. Örnek küçük (18-33 işlem, yaklaşık 7-16 gün) ama yön açık: kazanan oranı çok düşük.
+- Kasa bir kez kullanıldı; bu sonuca göre kural ayarlanmaz.
+
+## Durum: kasa testinde başarısız, demoya çıkmıyor
+- Bitget açık pozisyon kaydı (`forward/oi/bitget_oi.csv`) başka OI fikirleri için sürüyor; Tasfiye için canlı plan durduruldu.

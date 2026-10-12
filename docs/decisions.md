@@ -154,3 +154,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-12 — Kıvılcım emekliye ayrıldı, demodan kaldırıldı
 - Karar: Kıvılcım DENEME botu durduruldu; kod `strategies/retired/kivilcim.py`, GitHub iş akışı silindi, Cloudflare saati artık sadece Dalga ve Pusula'yı başlatıyor.
 - Gerekçe: proje sahibi "emekli et" dedi ve "Kapat" seçti. Kural iki dönemde de zararda, brüt avantajı yok. Aynı gün denenen yeni kısa işlem fikirleri (saat etkisi, BTC öncülüğü, onay mumu, Kinetik Geri Çekilme) da masrafı karşılamadı.
+
+## 2026-10-12 — Tasfiye kasa testinde başarısız, demoya çıkmıyor
+- Karar: Tasfiye (OI tasfiye sonrası long, 3 saat) demoya konmayacak; kart "kasa testinde başarısız".
+- Gerekçe: geliştirme ve doğrulamada artıdaydı, ama dokunulmamış kasa döneminde (2026-04..09) dondurulmuş kural zararda (18-33 işlem, -0.6..-1.6% işlem başı). Kural kasaya göre değiştirilmez.
