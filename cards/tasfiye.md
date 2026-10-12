@@ -49,6 +49,23 @@ Her işleme kasanın 1/N'i (N = aynı anda en fazla işlem), sinyaller sırayla 
 - Aynı çöküşte birçok coin birden sinyal veriyor; işlem sınırı ilk gelenleri alıyor, bunlar daha zayıf.
 - Sıradaki: daha akıllı stop (tasfiye dibinin altı), çöküşte en çok düşen coini seçmek, BTC ile birlikte filtre.
 
+## Değişken denemeleri (36 coin, stopsuz, en fazla 5 işlem; önce sadece geliştirmede, seçilen bir kez doğrulamada)
+| Değişken | Dönem | İşlem/gün | Ort. % | Ortanca % | Kasa | En büyük düşüş | En iyi gün hariç kasa |
+|---|---|---|---|---|---|---|---|
+| filtre yok | 2022–2024 | 1.07 | +0.11 | +0.11 | +25.3% | -13.7% | +12.4% |
+| filtre yok | 2025-01 → 2026-03 | 0.54 | +0.60 | +0.08 | +30.3% | -7.8% | +6.5% |
+| BTC sakinken (BTC 1s > -%1) | 2022–2024 | | -0.06 | | | | |
+| coin günlük trendi yukarı | 2022–2024 | | -0.04 | | | | |
+| stop: tasfiye dibinin %1 altı | 2022–2024 | | -0.07 | | | | |
+| stop: tasfiye dibinin %3 altı | 2022–2024 | | -0.03 | | | | |
+| **BTC de düşüyorken (BTC 1s ≤ -%1)** | 2022–2024 | 0.59 | +0.22 | +0.25 | +28.6% | -12.8% | +21.1% |
+| **BTC de düşüyorken** | 2025-01 → 2026-03 | 0.22 | +1.84 | +0.03 | +37.5% | -5.6% | +5.3% |
+
+- Masraf %0.25 olursa: BTC filtreli geliştirme +0.17%/işlem, kasa +20.5%; doğrulama +36.2%. Filtresiz geliştirme +11.4%'e iner.
+- Yorum: tek coin değil, piyasanın topluca tasfiye olduğu anlar çalışıyor. BTC filtresi geliştirmede işlem başı getiriyi ikiye katladı ve en iyi gün olmadan da artıda.
+- Zayıf yanlar: doğrulamada sadece 98 işlem, ortanca ~0, kazancın çoğu 10-11 Ekim 2025 çöküşünden. Sıklık günde ~0.2-0.6; GUO'nun istediği günde 2-3 işlemden uzak. Bu nadir olay stratejisi, sık scalp değil.
+- Doğrulama dönemi artık bu seçim için kullanıldı; kasa (2026-04..09) hâlâ dokunulmadı.
+
 ## Canlı için açık soru
 Binance verisine bulut/GitHub sunucularından erişim engelli olabilir; canlıda açık pozisyon Bitget'ten her 15 dakikada kaydedilerek hesaplanmalı (Bitget sadece anlık değeri veriyor).
 
