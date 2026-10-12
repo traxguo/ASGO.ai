@@ -51,6 +51,17 @@ Araç: `research/scans/short_trade_grid.py` (S2_pullback), 1h mumla olay simüla
 - **Reddedildi:** "Bütün piyasa düşerken güçlü coini al" (BTC 3 saatte -%1.5/-2 veya 24 saatte -%5): geliştirmede ~0R'a çıktı ama doğrulamada -0.07..-0.19R. Daha geniş hedef / daha uzun süre (6-12 saat): fark yok. RSI derinliği, saat, hacim: tutarlı fark yok.
 - ATR ≥ %2 doğrulamada +0.01R verdi ama günde ~1 işleme düşüyor ve geliştirmede hâlâ eksi; seçilmedi.
 
+### Onay mumu denemesi (2026-10-12, `research/scans/kivilcim_confirm.py`, 2020-2024, 36 coin)
+Fikir: düşüşte hemen almak yerine toparlanma mumunu bekle (kapanış önceki mumun tepesini geçsin, en fazla 3 saat), sonra al.
+| Değişken | İşlem | Günde | Kazanan | Ortalama R |
+|---|---|---|---|---|
+| Şimdiki kural (bekleme yok) | 8 479 | 4.6 | %53 | -0.044 |
+| Onay mumu, stop 1.5 ATR | 4 744 | 2.6 | %46 | -0.099 |
+| Onay mumu, stop dip altı | 4 753 | 2.6 | %46 | -0.090 |
+| Onay mumu, dip stop, hedef 1.5R, 6 saat | 4 398 | 2.4 | %44 | -0.119 |
+| Onay mumu, dip stop, hedef 2R, 12 saat | 4 162 | 2.3 | %42 | -0.127 |
+**Reddedildi:** toparlanmayı beklemek girişi pahalılaştırıyor, sonuç kötüleşiyor. Doğrulama dönemine bakılmadı.
+
 ### Demo coin listesi (2026-10-12)
 Bitget demo hesabında 36 coinin sadece 15'i var (AAVE, ALGO, ATOM, ETC, FIL, XLM, ZEC ve 14 coin daha yok). Sabah hiç işlem açılmadı. Kıvılcım'ın geliştirme testi zaten 81 coinle yapılmıştı, bu yüzden demoda 81 coinlik listeye geçti. Demoda olmayan coin sessizce atlanır. Kural değişmedi.
 
