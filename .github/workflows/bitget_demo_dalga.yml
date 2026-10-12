@@ -47,14 +47,18 @@ jobs:
           DEMO_BOT: dalga
         run: python scripts/bitget_demo.py
 
+      - name: Record open interest (public data for the Tasfiye research, cards/tasfiye.md)
+        if: always()
+        continue-on-error: true
+        run: python scripts/record_oi.py
+
       - name: Save the trade log
         if: always() && env.HAS_KEYS == 'true'
         run: |
-          if [ ! -d forward/bitget_demo_dalga ]; then echo "no log yet"; exit 0; fi
-          git add forward/bitget_demo_dalga
+          for d in forward/bitget_demo_dalga forward/oi; do if [ -d "$d" ]; then git add "$d"; fi; done
           if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Dalga demo log: $(date -u +%Y-%m-%dT%H:%MZ)"
+          git commit -m "Dalga demo log + open interest: $(date -u +%Y-%m-%dT%H:%MZ)"
           for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0; sleep 5; done
           exit 1

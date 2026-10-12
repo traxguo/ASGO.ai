@@ -4,8 +4,8 @@
 # Each trade gets equity/MAXO notional (no leverage beyond 1x in total). Reports per period: trades, mean %,
 # win, equity return, max drawdown, worst day, share of days with >=1 trade.
 import os,sys,numpy as np,pandas as pd
-# Variant switches (env): COST=round-trip cost (default 0.002) ; FILTER=none|btc_calm|btc_crash|trend ; STOPMODE=fixed|swing (swing: flush low - STOP)
-COST=float(os.environ.get("COST","0.002"));FILTER=os.environ.get('FILTER','none');STOPMODE=os.environ.get('STOPMODE','fixed')
+# Variant switches (env): HOURLY=1 checks the signal only at each full hour ; COST=round-trip cost (default 0.002) ; FILTER=none|btc_calm|btc_crash|trend ; STOPMODE=fixed|swing (swing: flush low - STOP)
+COST=float(os.environ.get("COST","0.002"));FILTER=os.environ.get('FILTER','none');STOPMODE=os.environ.get('STOPMODE','fixed');HOURLY=os.environ.get('HOURLY')=='1'
 X,P,H,STOP,MAXO=float(sys.argv[1]),float(sys.argv[2]),int(sys.argv[3]),float(sys.argv[4]),int(sys.argv[5]);coins=sys.argv[6:]
 B="user_data/data/binance/futures/";Mt="user_data/data/metrics/";cand=[]
 bk=pd.read_feather(B+"BTC_USDT_USDT-15m-futures.feather").set_index("date");btc1=bk.close/bk.close.shift(4)-1
@@ -25,6 +25,7 @@ for c in coins:
         e20,e50=d.ewm(span=20,adjust=False).mean(),d.ewm(span=50,adjust=False).mean()
         sc=(np.sign(d-e50)+np.sign(e20-e50)+np.sign(d/d.shift(90)-1)).shift(1)
         sig&=pd.Series(sc.reindex(k.index.floor("D")).to_numpy(),index=k.index)>=1
+    if HOURLY: sig&=k.index.minute==45  # live check only once an hour, right after the hour closes
     sig=sig.fillna(False).to_numpy()
     o,lo,cl=k.open.to_numpy(),k.low.to_numpy(),k.close.to_numpy();n=len(cl);h=H*4;busy=-1
     for i in np.where(sig)[0]:
