@@ -389,6 +389,15 @@ def demo_symbols(markets: dict, pairs: list[str]) -> dict[str, str]:
     return out
 
 
+def listed(ex, pair: str) -> bool:
+    """False when the demo account has no contract for this coin (e.g. Bitget lists no AAVE/USDT:USDT),
+    so one missing coin is skipped instead of crashing the whole run."""
+    if isinstance(ex, SymbolMap):
+        return pair in ex.mapping
+    markets = getattr(ex, "markets", None)
+    return not isinstance(markets, dict) or not markets or pair in markets
+
+
 def choose_demo_product(ex, pairs: list[str]):
     """Finds where the demo play money is. Returns the exchange to trade with (S-names mapped if needed)."""
     for product in ("USDT-FUTURES", "SUSDT-FUTURES"):
@@ -528,7 +537,7 @@ def run_once(ex, pub, analyzed: dict, state: dict, now: datetime, rec: Recorder)
         if exit_signal(df, signal_time):  # never open a trade the exit rule would close at once
             rec.event(now, pair, "signal skipped", "exit rule already true")
             continue
-        if isinstance(ex, SymbolMap) and pair not in ex.mapping:
+        if not listed(ex, pair):
             rec.event(now, pair, "signal skipped", "coin not listed on the demo account")
             continue
         cid = client_id(pair, signal_time)
