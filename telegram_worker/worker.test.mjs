@@ -1,7 +1,7 @@
 // Run: node --test telegram_worker/
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import worker, { answer, HELP } from "./worker.js";
+import worker, { answer, HELP, dueBots, startBots } from "./worker.js";
 
 const env = { TELEGRAM_CHAT_ID: "42", TELEGRAM_GROUP_ID: "-100", WEBHOOK_SECRET: "w", GH_DISPATCH_TOKEN: "t" };
 
@@ -56,4 +56,17 @@ test("help, missing coin and the group stays quiet on unknown text", async () =>
 test("webhook refuses calls without Telegram's secret token", async () => {
   const req = new Request("https://x", { method: "POST", body: "{}", headers: { "X-Telegram-Bot-Api-Secret-Token": "no" } });
   assert.equal((await worker.fetch(req, env)).status, 403);
+});
+
+test("the clock starts the demo jobs that are due", async () => {
+  assert.deepEqual(dueBots(new Date("2026-10-12T04:02:00Z")),
+    ["bitget_demo_kivilcim.yml", "bitget_demo_dalga.yml", "bitget_demo.yml"]);
+  assert.deepEqual(dueBots(new Date("2026-10-12T05:02:00Z")), ["bitget_demo_kivilcim.yml", "bitget_demo_dalga.yml"]);
+  assert.deepEqual(dueBots(new Date("2026-10-12T05:17:00Z")), ["bitget_demo_kivilcim.yml"]);
+  const calls = [];
+  await startBots(env, new Date("2026-10-12T05:02:00Z"), fakeGitHub(calls));
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].url, "https://api.github.com/repos/traxguo/ASGO.ai/actions/workflows/bitget_demo_dalga.yml/dispatches");
+  assert.deepEqual(JSON.parse(calls[1].opts.body), { ref: "main" });
+  assert.deepEqual(await startBots({ ...env, GH_DISPATCH_TOKEN: "none" }, new Date(), fakeGitHub(calls)), []);
 });
