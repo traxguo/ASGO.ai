@@ -3,3 +3,7 @@ name = "asgo-telegram"
 main = "worker.js"
 compatibility_date = "2025-09-01"
 workers_dev = true
+
+# starts the Bitget demo jobs on time (GitHub's own cron skips many runs); see dueBots() in worker.js
+[triggers]
+crons = ["2,17,32,47 * * * *"]

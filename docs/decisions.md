@@ -142,3 +142,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-11 — Kıvılcım: testi geçmeyen kısa işlem kuralı demoda DENEME olarak çalışıyor
 - **Karar:** Proje sahibi sabah demoda günde ~3 işleme girip birkaç saatte çıkan bir bot görmek istedi. Gece denenen hiçbir kısa işlem kuralı maliyetten sonra artı çıkmadı. En az kötü olan (güçlü trendde 1h geri çekilme, 1.5 ATR stop/hedef, 3 saat; doğrulama -0.12R) "Kıvılcım - DENEME" adıyla Bitget demoya eklendi: işlem başı %0.2 risk, en fazla 2 açık, günde en fazla 3 yeni işlem. İşlem mesajları sahibin sohbetine ve seçtiği gruba gider (üç bot için de grup eklendi).
 - **Gerekçe:** Demo parası gerçek değil; amaç kısa işlem altyapısını (piyasa emri, borsada kâr al + stop, süre dolunca kapatma) canlıda çalışır görmek ve gerçek dolum verisi toplamak. Kural sinyal olarak yayınlanmaz ve gerçek paraya aday değildir; kartında testi geçmediği yazılı. Pusula ve Dalga'nın kuralları değişmedi.
+
+## 2026-10-12 — Demo botlarını Cloudflare saati başlatıyor (proje sahibi onayı)
+- **Karar:** Cloudflare Telegram botuna (telegram_worker) 15 dakikalık bir saat eklendi; her turda zamanı gelen demo işlerini GitHub'da başlatır: Kıvılcım her 15 dakikada, Dalga her saat başı, Pusula 4 saatte bir. GitHub'ın kendi zamanlayıcıları yedek olarak kalıyor.
+- **Gerekçe:** GitHub'ın zamanlayıcısı turların çoğunu atladı (2026-10-11: Dalga 3 saat hiç çalışmadı, Kıvılcım hiç başlamadı, Pusula düzensiz). Cloudflare saati ücretsiz ve dakikasında çalışır; mevcut GH_DISPATCH_TOKEN ile sadece iş başlatır, demo dışına çıkamaz.

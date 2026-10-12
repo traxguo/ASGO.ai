@@ -71,7 +71,47 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
   return ownerChat ? "Bu komutu tanımıyorum. /yardim yaz." : null;
 }
 
+// ------------------------------------------------------------------ demo bot clock
+// GitHub's own cron drops or delays many runs (2026-10-11: the hourly Dalga job did not start for
+// 3 hours, the 15-minute Kivilcim job never). Cloudflare's cron is punctual, so every 15 minutes
+// the worker starts the demo jobs that are due (owner approved 2026-10-12); GitHub's schedules stay
+// as a backup and the jobs' concurrency groups keep runs from overlapping.
+
+export function dueBots(when) {
+  const minute = when.getUTCMinutes(), hour = when.getUTCHours();
+  const due = ["bitget_demo_kivilcim.yml"];            // every 15 minutes
+  if (minute < 15) {
+    due.push("bitget_demo_dalga.yml");                  // first tick after each 1h candle
+    if (hour % 4 === 0) due.push("bitget_demo.yml");    // first tick after each 4h candle (Pusula)
+  }
+  return due;
+}
+
+export async function startBots(env, when, fetchFn = fetch) {
+  if (!env.GH_DISPATCH_TOKEN || env.GH_DISPATCH_TOKEN === "none") return [];
+  const started = [];
+  for (const wf of dueBots(when)) {
+    const res = await fetchFn(`https://api.github.com/repos/${REPO}/actions/workflows/${wf}/dispatches`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.GH_DISPATCH_TOKEN}`,
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "asgo-telegram",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ref: "main" }),
+    });
+    started.push(`${wf} ${res.status}`);
+  }
+  console.log(started.join(", "));
+  return started;
+}
+
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(startBots(env, new Date(event.scheduledTime)));
+  },
+
   async fetch(request, env) {
     if (request.method !== "POST") return new Response("ok");
     if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.WEBHOOK_SECRET) {
