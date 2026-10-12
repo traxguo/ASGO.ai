@@ -65,7 +65,7 @@ BOTS = {
               "dynamic_risk": True, "title": "Dalga"},
     # TRIAL short-hold bot (cards/kivilcim.md): its rule had no positive test, demo only to collect live fills
     "kivilcim": {"module": "kivilcim", "strategy": "Kivilcim", "tf": "1h", "tf_hours": 1, "max_open": 2,
-                 "pairs": "pairs_wide81.json", "out": "bitget_demo_kivilcim", "cid": "kvl", "breakeven": False,
+                 "pairs": "pairs_kivilcim76.json", "out": "bitget_demo_kivilcim", "cid": "kvl", "breakeven": False,
                  "dynamic_risk": False, "title": "Kıvılcım - DENEME", "market_entry": True,
                  "max_hold_hours": 3, "daily_entries": 3, "fresh_minutes": 40},
 }

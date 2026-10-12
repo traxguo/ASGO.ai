@@ -148,5 +148,5 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - **Gerekçe:** GitHub'ın zamanlayıcısı turların çoğunu atladı (2026-10-11: Dalga 3 saat hiç çalışmadı, Kıvılcım hiç başlamadı, Pusula düzensiz). Cloudflare saati ücretsiz ve dakikasında çalışır; mevcut GH_DISPATCH_TOKEN ile sadece iş başlatır, demo dışına çıkamaz.
 
 ## 2026-10-12 — Kıvılcım demoda 81 coinlik listeye geçti
-- Karar: Kıvılcım DENEME botu `config/pairs_wide81.json` ile çalışır; Dalga ve Pusula test edildikleri listede kalır.
+- Karar: Kıvılcım DENEME botu `config/pairs_kivilcim76.json` (81 coinlik test listesi eksi Bitget'in hiç listelemediği 5 coin) ile çalışır; Dalga ve Pusula test edildikleri listede kalır.
 - Gerekçe: Bitget demo hesabında 36 coinin sadece 15'i işlem görüyor (log: "demo contracts: 15/36"). Kıvılcım'ın geliştirme testi zaten 81 coinle yapıldı. Proje sahibi demoda gerçekten işlem görmek istiyor (gerçek para yok; 2026-10-12 kararı: demoda kalınacak).

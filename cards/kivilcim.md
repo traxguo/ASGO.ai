@@ -31,7 +31,7 @@ Pusula/Dalga ile aynı puan: kapanış EMA(50) üstü, EMA(20) EMA(50) üstü, 9
 | RSI eşiği | 35 |
 | Stop / kâr al | 1.5 / 1.5 ATR |
 | En uzun süre | 3 saat |
-| Coin listesi | `config/pairs_wide81.json` (2026-10-12'den beri; demoda olmayan coin atlanır) |
+| Coin listesi | `config/pairs_kivilcim76.json` (2026-10-12'den beri: 81 coinlik test listesinden Bitget'te hiç olmayan 5 coin çıkarıldı; demoda olmayan coin atlanır) |
 
 ## Durum: deneme (demo), aday değil
 
