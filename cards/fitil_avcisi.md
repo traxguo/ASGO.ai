@@ -44,4 +44,12 @@ Bugüne kadar 30'a yakın kısa işlem fikrinin batma sebepleri ve bu stratejini
 - Ama işlem başı kazanç önceki yıllardan küçük (+0.3..+0.4%) ve en iyi 5 gün çıkarılınca eksi: kazancın önemli kısmı birkaç sert fitil gününden geliyor.
 - 81 coin birlikte günde ~2 işlem eder; GUO'nun istediği sıklığa en yakın sonuç.
 
-## Durum: aday — kasa testini geçti (zayıf), sıradaki adım Bitget demo
+## Demo (Bitget, gerçek para yok)
+- Kod: `scripts/bitget_fitil.py`, iş akışı `.github/workflows/bitget_demo_fitil.yml`, Cloudflare saati her 15 dakikada başlatır.
+- Her saat başı ilk çalışmada limit emirler konur, bir saat sonra dolmayanlar iptal edilir. Dolumdan 3 saat sonra piyasa emriyle satılır.
+- BTC koruması canlıda: o saat BTC %3 düştüyse yeni emir yok, bekleyen emirler iptal, o saatte dolan işlem hemen kapatılır (testte o işlem hiç alınmıyordu; canlıda küçük bir fark).
+- Kaldıraç 3x sadece teminat için; her işlem kasanın 1/5'i, toplam risk testtekiyle aynı (yaklaşık 1x).
+- Bitget demo 36 coinin 15'ini listeliyor; diğerleri atlanır.
+- Dalga ve Pusula, Fitil'in tuttuğu coine girmez; Fitil de onlarınkine girmez.
+
+## Durum: aday — kasa testini geçti (zayıf), Bitget demoda
