@@ -4,8 +4,8 @@
 # Each trade gets equity/MAXO notional (no leverage beyond 1x in total). Reports per period: trades, mean %,
 # win, equity return, max drawdown, worst day, share of days with >=1 trade.
 import os,sys,numpy as np,pandas as pd
-# Variant switches (env): HOURLY=1 checks the signal only at each full hour ; COST=round-trip cost (default 0.002) ; FILTER=none|btc_calm|btc_crash|trend ; STOPMODE=fixed|swing (swing: flush low - STOP)
-COST=float(os.environ.get("COST","0.002"));FILTER=os.environ.get('FILTER','none');STOPMODE=os.environ.get('STOPMODE','fixed');HOURLY=os.environ.get('HOURLY')=='1'
+# Variant switches (env): SIDE=long|short (short: OI drop + price jump, no stop) ; RANK=coin|oi (same-time signals order) ; DEVONLY=1 prints only the development period ; HOURLY=1 checks the signal only at each full hour ; COST=round-trip cost (default 0.002) ; FILTER=none|btc_calm|btc_crash|trend ; STOPMODE=fixed|swing (swing: flush low - STOP)
+COST=float(os.environ.get("COST","0.002"));FILTER=os.environ.get('FILTER','none');STOPMODE=os.environ.get('STOPMODE','fixed');HOURLY=os.environ.get('HOURLY')=='1';DEVONLY=os.environ.get('DEVONLY')=='1';SIDE=os.environ.get('SIDE','long');RANK=os.environ.get('RANK','coin')
 X,P,H,STOP,MAXO=float(sys.argv[1]),float(sys.argv[2]),int(sys.argv[3]),float(sys.argv[4]),int(sys.argv[5]);coins=sys.argv[6:]
 B="user_data/data/binance/futures/";Mt="user_data/data/metrics/";cand=[]
 bk=pd.read_feather(B+"BTC_USDT_USDT-15m-futures.feather").set_index("date");btc1=bk.close/bk.close.shift(4)-1
@@ -16,10 +16,10 @@ for c in coins:
     except FileNotFoundError: continue
     mm=m.reindex(k.index+pd.Timedelta(minutes=10),method="ffill");mm.index=k.index
     oi1=mm.sum_open_interest/mm.sum_open_interest.shift(4)-1;r1=k.close/k.close.shift(4)-1
-    sig=((oi1<=-X)&(r1<=-P))
+    sig=((oi1<=-X)&(r1<=-P)) if SIDE=='long' else ((oi1<=-X)&(r1>=P))  # short: squeeze (shorts forced out), fade it
     b1=btc1.reindex(k.index)
     if FILTER=="btc_calm": sig&=b1>-0.01
-    if FILTER=="btc_crash": sig&=b1<=-0.01
+    if FILTER=="btc_crash": sig&=(b1<=-0.01) if SIDE=="long" else (b1>=0.01)
     if FILTER=="trend":
         d=pd.read_feather(B+f"{c}_USDT_USDT-1d-futures.feather").set_index("date").close
         e20,e50=d.ewm(span=20,adjust=False).mean(),d.ewm(span=50,adjust=False).mean()
@@ -33,12 +33,14 @@ for c in coins:
         e=o[i+1];x=None
         st=(lo[i-3:i+1].min()*(1-STOP) if STOPMODE=="swing" else e*(1-STOP)) if STOP>0 else -1
         for j in range(i+1,i+1+h):
-            if lo[j]<=st: x=min(st,o[j]);why="sl";break
+            if SIDE=='long' and lo[j]<=st: x=min(st,o[j]);why="sl";break
         if x is None: x=cl[i+h];j=i+h;why="time"
-        cand.append(dict(c=c,t_in=k.index[i+1],t_out=k.index[j]+pd.Timedelta(minutes=15),ret=x/e-1-COST,why=why));busy=j
-C=pd.DataFrame(cand).sort_values("t_in").reset_index(drop=True)
+        cand.append(dict(c=c,t_in=k.index[i+1],t_out=k.index[j]+pd.Timedelta(minutes=15),ret=(x/e-1 if SIDE=='long' else 1-x/e)-COST,why=why,oi=oi1.iloc[i]));busy=j
+C=pd.DataFrame(cand).sort_values(["t_in","oi"] if RANK=="oi" else ["t_in","c"]).reset_index(drop=True)  # RANK=oi: deepest OI drop first
 C=C[(C.t_in>="2022-01-02")&(C.t_in<"2026-04-01")]
-for per,(a,b) in {"dev":("2022-01-02","2025-01-01"),"val":("2025-01-01","2026-04-01")}.items():
+PER={"dev":("2022-01-02","2025-01-01"),"val":("2025-01-01","2026-04-01")}
+if DEVONLY: PER.pop("val")  # development work must not peek at validation
+for per,(a,b) in PER.items():
     g=C[(C.t_in>=a)&(C.t_in<b)];eq=1.0;open_=[];taken=[];curve=[]
     for r in g.itertuples():
         open_=[t for t in open_ if t>r.t_in]
