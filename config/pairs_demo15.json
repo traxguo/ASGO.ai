@@ -1,0 +1,22 @@
+{
+  "$comment": "Old 16 + new 20 coins (36). Bitget demo runner list from 2026-10-10. Pass after pairs_level1.json.",
+  "exchange": {
+    "pair_whitelist": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "XRP/USDT:USDT",
+      "BNB/USDT:USDT",
+      "DOGE/USDT:USDT",
+      "ADA/USDT:USDT",
+      "LINK/USDT:USDT",
+      "LTC/USDT:USDT",
+      "DOT/USDT:USDT",
+      "AVAX/USDT:USDT",
+      "TRX/USDT:USDT",
+      "BCH/USDT:USDT",
+      "UNI/USDT:USDT",
+      "NEAR/USDT:USDT"
+    ]
+  }
+}
