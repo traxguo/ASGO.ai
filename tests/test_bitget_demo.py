@@ -293,6 +293,13 @@ def test_unlisted_demo_coin_is_skipped(tmp_path):
     assert state["trades"] == {}
 
 
+def test_coin_missing_on_bitget_is_skipped_not_crashing(dalga_bot, tmp_path):
+    ex, state = FakeExchange(), {"trades": {}}
+    ex.markets = {"BTC/USDT:USDT": {}}          # Bitget lists no contract for PAIR (like AAVE on 2026-10-11)
+    bd.run_once(ex, None, {PAIR: dalga_frame(3)}, state, NOW_1H, bd.Recorder(tmp_path))
+    assert state["trades"] == {} and "not listed" in (tmp_path / bd.EVENTS_FILE.name).read_text()
+
+
 def test_demo_exchange_uses_classic_futures_account():
     ex = bd.demo_exchange("k", "s", "p")
     uta, _ = ex.handle_uta_and_params({}, "fetchBalance", False)
