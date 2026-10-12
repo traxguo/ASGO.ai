@@ -158,3 +158,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-12 — Tasfiye kasa testinde başarısız, demoya çıkmıyor
 - Karar: Tasfiye (OI tasfiye sonrası long, 3 saat) demoya konmayacak; kart "kasa testinde başarısız".
 - Gerekçe: geliştirme ve doğrulamada artıdaydı, ama dokunulmamış kasa döneminde (2026-04..09) dondurulmuş kural zararda (18-33 işlem, -0.6..-1.6% işlem başı). Kural kasaya göre değiştirilmez.
+
+## 2026-10-12 — Fitil Avcısı kasa testini geçti, demoya hazırlanıyor
+- Karar: Fitil Avcısı (derin limit emirle panik fitili yakalama, 3 saat) aday oldu; sıradaki adım Bitget demo (gerçek para yok).
+- Gerekçe: geliştirme, hiç bakılmamış 45 coin, doğrulama ve bir kez kullanılan kasa döneminde artıda. Çöküş koruması doğrulama görüldükten sonra eklendi (kartta yazılı). Kazanç birkaç sert güne bağlı; demo dolumları gerçekçilik açısından ölçülecek.
