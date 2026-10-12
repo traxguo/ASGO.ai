@@ -74,3 +74,13 @@ time,pair,event,detail
 2026-10-12T20:03:21.343388+00:00,DOT/USDT:USDT,limit placed,"1715.0 @ 1.154 (hour open 1.215, score +3)"
 2026-10-12T20:03:21.343388+00:00,AVAX/USDT:USDT,limit placed,"197.8 @ 10.003 (hour open 10.53, score +3)"
 2026-10-12T20:03:21.343388+00:00,NEAR/USDT:USDT,limit placed,"381.0 @ 5.1906 (hour open 5.4638, score +3)"
+2026-10-12T21:03:19.773945+00:00,ADA/USDT:USDT,limit cancelled,hour over
+2026-10-12T21:03:19.773945+00:00,AVAX/USDT:USDT,limit cancelled,hour over
+2026-10-12T21:03:19.773945+00:00,BTC/USDT:USDT,limit cancelled,hour over
+2026-10-12T21:03:19.773945+00:00,DOT/USDT:USDT,limit cancelled,hour over
+2026-10-12T21:03:19.773945+00:00,NEAR/USDT:USDT,limit cancelled,hour over
+2026-10-12T21:03:19.773945+00:00,BTC/USDT:USDT,limit placed,"0.025 @ 78905.4 (hour open 83058.3, score +3)"
+2026-10-12T21:03:19.773945+00:00,ADA/USDT:USDT,limit placed,"8580.0 @ 0.2307 (hour open 0.2428, score +3)"
+2026-10-12T21:03:19.773945+00:00,DOT/USDT:USDT,limit placed,"1716.0 @ 1.153 (hour open 1.214, score +3)"
+2026-10-12T21:03:19.773945+00:00,AVAX/USDT:USDT,limit placed,"198.2 @ 9.984 (hour open 10.509, score +3)"
+2026-10-12T21:03:19.773945+00:00,NEAR/USDT:USDT,limit placed,"388.0 @ 5.0912 (hour open 5.3592, score +3)"
