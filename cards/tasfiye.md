@@ -66,6 +66,24 @@ Her işleme kasanın 1/N'i (N = aynı anda en fazla işlem), sinyaller sırayla 
 - Zayıf yanlar: doğrulamada sadece 98 işlem, ortanca ~0, kazancın çoğu 10-11 Ekim 2025 çöküşünden. Sıklık günde ~0.2-0.6; GUO'nun istediği günde 2-3 işlemden uzak. Bu nadir olay stratejisi, sık scalp değil.
 - Doğrulama dönemi artık bu seçim için kullanıldı; kasa (2026-04..09) hâlâ dokunulmadı.
 
+## Geliştirme turu 2 (2026-10-12 öğleden sonra; önce sadece geliştirme dönemi, seçilen bir kez doğrulamada)
+Hepsi BTC düşüş filtresiyle, stopsuz.
+| Deneme | Dönem | İşlem/gün | Ort. % | Ortanca % | Kasa | En büyük düşüş | En iyi gün hariç kasa |
+|---|---|---|---|---|---|---|---|
+| Eşik gevşek %4 / %1.5, 3 saat | 2022–2024 | 1.02 | +0.19 | +0.10 | +42.0% | -25.5% | +27.1% |
+| Eşik gevşek %3 / %1.5, 3 saat | 2022–2024 | 1.63 | +0.10 | +0.14 | +30.1% | -28.0% | +15.4% |
+| Short ayna (OI düşüş + fiyat sıçrama → short) | 2022–2024 | 0.30 | -0.05 | -0.31 | -5.9% | -25.7% | -17.9% |
+| **Aynı anda çok sinyal varsa OI'si en çok düşen önce, en fazla 5 işlem** | 2022–2024 | 0.59 | +0.26 | +0.24 | +35.9% | -13.0% | +26.5% |
+| aynı, en fazla 8 işlem | 2022–2024 | 0.71 | +0.31 | +0.26 | +32.9% | -11.8% | +24.9% |
+| **aynı, 8 işlem, saatte bir kontrol** | 2022–2024 | 0.41 | +0.43 | +0.48 | +25.7% | -5.2% | +18.6% |
+| 8 işlem, 15 dk kontrol | 2025-01 → 2026-03 | 0.25 | +2.00 | +0.50 | +29.5% | -3.1% | +7.3% |
+| 8 işlem, saatte bir kontrol | 2025-01 → 2026-03 | 0.10 | +1.43 | +0.26 | +8.0% | -2.0% | +1.9% |
+
+- Gevşek eşik daha çok işlem veriyor ama düşüş iki katına çıkıyor ve 2/4 saat tutmada sonuç çöküyor: kırılgan, alınmadı.
+- Short ayna çalışmıyor; Tasfiye sadece long.
+- Seçilen kural: BTC de düşerken, OI'si en çok düşen coin önce, aynı anda en fazla 8 işlem (her biri kasanın 1/8'i), 3 saat tut. Canlıda saatte bir kontrol.
+- Eksik: işlem çok seyrek (günde 0.1-0.4). Kasa dönemi (2026-04..09) hâlâ dokunulmadı; demoya çıkmadan önce bir kez bakılacak.
+
 ## Saatte bir kontrol (canlıya uygun basit hali)
 Sinyal sadece her saat başında bakılırsa (BTC filtresiyle): 2022–2024 günde 0.34 işlem, işlem başı +%0.23, ortanca +%0.39, kasa +17.3%, en büyük düşüş -11.2%. 2025-01 → 2026-03: 44 işlem, +%1.43, kasa +12.8%. Daha az işlem ama işlem başı aynı kalite.
 
