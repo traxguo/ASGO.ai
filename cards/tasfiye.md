@@ -31,6 +31,24 @@ sadece long
 - Eşikler 8 coinde 3 deneme ile seçildi, 28 coin bu seçimden sonra ilk kez test edildi.
 - Sıklık: 36 coinde %5/%2 ile günde ~1.3, %4/%1.5 ile ~2.2 işlem.
 
+## Kasa testi (36 coin, eşik %5 / %2, 3 saat, `research/scans/oi_flush_portfolio.py`)
+Her işleme kasanın 1/N'i (N = aynı anda en fazla işlem), sinyaller sırayla alınır.
+| Stop | En fazla işlem | Dönem | İşlem/gün | Ort. % | Kasa | En büyük düşüş | En kötü gün |
+|---|---|---|---|---|---|---|---|
+| yok | 5 | 2022–2024 | 1.07 | +0.11 | +25.3% | -13.7% | -7.2% |
+| yok | 5 | 2025-01 → 2026-03 | 0.54 | +0.60 | +30.3% | -7.8% | -4.3% |
+| yok | 3 | 2022–2024 | 0.91 | +0.08 | +19.8% | -21.3% | -12.1% |
+| yok | 3 | 2025-01 → 2026-03 | 0.51 | +0.50 | +39.7% | -11.3% | -7.1% |
+| %3 | 5 | 2022–2024 | 1.21 | -0.15 | -35.4% | -38.4% | -7.9% |
+| %3 | 5 | 2025-01 → 2026-03 | 0.59 | +0.45 | +23.8% | -8.5% | -2.2% |
+| %5 | 5 | 2022–2024 | 1.15 | -0.06 | -18.4% | -21.9% | -8.7% |
+| %5 | 5 | 2025-01 → 2026-03 | 0.56 | +0.71 | +35.7% | -11.1% | -3.0% |
+
+- Sabit stop geliştirme döneminde sonucu bozuyor: düşüş devam ederken stop olup sonra dönüşü kaçırıyor.
+- Stopsuz ve en fazla 5 işlemle iki dönem de artıda ama işlem başı geliştirmede sadece +%0.11; masraf %0.25'e çıkarsa yarıya iner. Kırılgan.
+- Aynı çöküşte birçok coin birden sinyal veriyor; işlem sınırı ilk gelenleri alıyor, bunlar daha zayıf.
+- Sıradaki: daha akıllı stop (tasfiye dibinin altı), çöküşte en çok düşen coini seçmek, BTC ile birlikte filtre.
+
 ## Canlı için açık soru
 Binance verisine bulut/GitHub sunucularından erişim engelli olabilir; canlıda açık pozisyon Bitget'ten her 15 dakikada kaydedilerek hesaplanmalı (Bitget sadece anlık değeri veriyor).
 
