@@ -146,3 +146,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-12 — Demo botlarını Cloudflare saati başlatıyor (proje sahibi onayı)
 - **Karar:** Cloudflare Telegram botuna (telegram_worker) 15 dakikalık bir saat eklendi; her turda zamanı gelen demo işlerini GitHub'da başlatır: Kıvılcım her 15 dakikada, Dalga her saat başı, Pusula 4 saatte bir. GitHub'ın kendi zamanlayıcıları yedek olarak kalıyor.
 - **Gerekçe:** GitHub'ın zamanlayıcısı turların çoğunu atladı (2026-10-11: Dalga 3 saat hiç çalışmadı, Kıvılcım hiç başlamadı, Pusula düzensiz). Cloudflare saati ücretsiz ve dakikasında çalışır; mevcut GH_DISPATCH_TOKEN ile sadece iş başlatır, demo dışına çıkamaz.
+
+## 2026-10-12 — Kıvılcım demoda 81 coinlik listeye geçti
+- Karar: Kıvılcım DENEME botu `config/pairs_wide81.json` ile çalışır; Dalga ve Pusula test edildikleri listede kalır.
+- Gerekçe: Bitget demo hesabında 36 coinin sadece 15'i işlem görüyor (log: "demo contracts: 15/36"). Kıvılcım'ın geliştirme testi zaten 81 coinle yapıldı. Proje sahibi demoda gerçekten işlem görmek istiyor (gerçek para yok; 2026-10-12 kararı: demoda kalınacak).
