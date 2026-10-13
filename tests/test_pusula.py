@@ -118,3 +118,23 @@ def test_v2_no_be_ema50_exits_on_ema50_not_ema20():
     assert issubclass(pusula.PusulaV2NoBeEma50, pusula.PusulaV2NoBe)
     assert exits(pusula.PusulaV2NoBe) == [1, 1, 0, 1]
     assert exits(pusula.PusulaV2NoBeEma50) == [0, 1, 0, 1]
+
+
+def test_v2_no_be_no_btc_exit_keeps_only_ema20_exit():
+    """PusulaV2NoBeNoBtcExit: BTC score <= -1 no longer closes the long; daily close below EMA20 still does."""
+    tf = pusula.REGIME_TF
+    df = pd.DataFrame({
+        f"close_{tf}": [105.0, 95.0, 105.0, 95.0],
+        f"ema_fast_{tf}": [100.0, 100.0, 100.0, 100.0],
+        f"ema_slow_{tf}": [100.0, 100.0, 100.0, 100.0],
+        f"mkt_score_{tf}": [1, 1, -1, -3],
+    })
+
+    def exits(cls):
+        strat = cls.__new__(cls)
+        out = strat.populate_exit_trend(df.copy(), {"pair": "X/USDT:USDT"})
+        return out.get("exit_long", pd.Series(np.nan, index=df.index)).fillna(0).astype(int).tolist()
+
+    assert issubclass(pusula.PusulaV2NoBeNoBtcExit, pusula.PusulaV2NoBe)
+    assert exits(pusula.PusulaV2NoBe) == [0, 1, 1, 1]
+    assert exits(pusula.PusulaV2NoBeNoBtcExit) == [0, 1, 0, 1]
