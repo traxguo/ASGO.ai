@@ -1,5 +1,5 @@
 {
-  "last_hour": "2026-10-14T09:00:00+00:00",
+  "last_hour": "2026-10-14T10:00:00+00:00",
   "trades": {
     "fitada2026101213": {
       "hour": "2026-10-12T13:00:00+00:00",
@@ -299,6 +299,13 @@
       "hour": "2026-10-14T09:00:00+00:00",
       "limit_price": 79221.5,
       "order_id": "1494190037615607809",
+      "pair": "BTC/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitbtc2026101410": {
+      "hour": "2026-10-14T10:00:00+00:00",
+      "limit_price": 79053.2,
+      "order_id": "1494205145913851905",
       "pair": "BTC/USDT:USDT",
       "status": "pending"
     },
@@ -691,6 +698,13 @@
       "hour": "2026-10-14T09:00:00+00:00",
       "limit_price": 4.7698,
       "order_id": "1494190064362684417",
+      "pair": "NEAR/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitnear2026101410": {
+      "hour": "2026-10-14T10:00:00+00:00",
+      "limit_price": 4.7757,
+      "order_id": "1494205169645223937",
       "pair": "NEAR/USDT:USDT",
       "status": "pending"
     }
