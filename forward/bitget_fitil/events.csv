@@ -203,3 +203,7 @@ time,pair,event,detail
 2026-10-14T11:03:03.027308+00:00,NEAR/USDT:USDT,limit cancelled,hour over
 2026-10-14T11:03:03.027308+00:00,BTC/USDT:USDT,limit placed,"0.0249 @ 79268 (hour open 83440, score +3)"
 2026-10-14T11:03:03.027308+00:00,NEAR/USDT:USDT,limit placed,"411.0 @ 4.8123 (hour open 5.0656, score +3)"
+2026-10-14T12:03:03.658892+00:00,BTC/USDT:USDT,limit cancelled,hour over
+2026-10-14T12:03:03.658892+00:00,NEAR/USDT:USDT,limit cancelled,hour over
+2026-10-14T12:03:03.658892+00:00,BTC/USDT:USDT,limit placed,"0.0249 @ 79263.5 (hour open 83435.3, score +3)"
+2026-10-14T12:03:03.658892+00:00,NEAR/USDT:USDT,limit placed,"409.0 @ 4.8367 (hour open 5.0913, score +3)"
