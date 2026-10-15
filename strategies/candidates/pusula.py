@@ -460,6 +460,22 @@ class PusulaV2NoBeEma50(PusulaV2NoBe):
         df.loc[df[f"mkt_score_{REGIME_TF}"] <= -1, "exit_long"] = 1  # BTC-turn exit (round 2a), unchanged
         return df
 
+
+class PusulaV2NoBeNoBtcExit(PusulaV2NoBe):
+    """
+    Removal round 5 (2026-10-13, research/queue/pusula_kuyruk.md item 2): the
+    accepted round-3 version without the BTC-turn exit (round 2a: close longs
+    when the last closed daily BTC score is -1 or lower). The daily EMA20 trend
+    exit and the fixed stop stay. Side effect: Freqtrade ignores an entry on a
+    candle that also has an exit signal, so until now no long could open while
+    the BTC score was <= -1; the BTC entry filter was already removed in round 1,
+    so without this exit longs can now open while BTC's score is <= -1.
+    """
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        # Skip PusulaTrendLongBtcExit's override: only the EMA20 trend exit remains.
+        return super(PusulaTrendLongBtcExit, self).populate_exit_trend(df, metadata)
+
 class TwoSpeedExitMixin:
     """
     Round 3 (fixed before testing, card section "3. tur"): two-speed exit.

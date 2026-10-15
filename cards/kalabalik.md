@@ -44,6 +44,7 @@ Ortak modül, değişiklik yok: giriş bölgesi 0.25 ATR, stop 1.5 ATR veya son 
 | 2026-10-10 | Doğrulama 2025-01 → 2026-03 (bir kez) | 26 işlem (hepsi long), +0.29R, PF 1.54, DD %3.2. Al-tut -%46. Örnek küçük: bootstrap P(ort ≤ 0) %15. | `results/2026-10-10_kalabalik_dogrulama/rapor.md` |
 | 2026-10-10 | Kasa 2026-04 → 2026-09 (bir kez) | 13 işlem, +0.05R, DD %4.1, net +%0.5. Long +0.18R (10), short -0.38R (3). Al-tut +%17. Eşiği (> 0R) kâğıt üstünde geçti ama sonuç başa baş, örnek çok küçük. | `results/2026-10-10_kalabalik_kasa/rapor.md` |
 | 2026-10-10 | Dayanıklılık (geliştirme) | ±%20 komşuların 6'sı da artıda (+0.11..+0.25R), masraf x2 +0.23R, hile testi temiz, 11/16 coin artıda. | `results/2026-10-10_kalabalik_dayaniklilik/parametre_komsulari.md` |
+| 2026-10-15 | 20 yeni coin (`config/pairs_new20.json`), kurallar aynı, 2020-01 → 2026-09 | 187 işlem, -0.02R, PF 0.95, DD %27.3, net -%5.9. Long +0.09R (137, PF 1.13), short -0.32R (50, PF 0.55). Geliştirme -0.08R, doğrulama -0.03R, kasa +0.61R (11 işlem). Masraf x2 -0.05R. 8/20 coin artıda. **Tutmuyor.** | `results/2026-10-15_kalabalik_new20/rapor.md` |
 
 ## Notlar / öğrenilenler
 - İlk 1 yıl funding geçmişi birikirken işlem yok; geliştirmede ilk işlem 2021'de.
@@ -51,6 +52,8 @@ Ortak modül, değişiklik yok: giriş bölgesi 0.25 ATR, stop 1.5 ATR veya son 
 - Kâr birkaç büyük TP2'ye bağlı (geliştirmede en iyi 10 işlem +31R / toplam +34R). Yıl bazında 2022 long'ları eksi (yaklaşık -3R), kârın çoğu 2023-2024.
 - Sıra hatası: kasa testi dayanıklılık testlerinden önce koşuldu. Dayanıklılık sonuçları kasa sonucunu bilmeden değerlendirilemezdi ama kurallar hiçbir aşamada değişmedi.
 - Kağıt takip: içinde bulunulan ayın funding verisi Binance arşivinde ay bitmeden yayınlanmıyor, bu yüzden Kalabalık ancak ay sonunda güncellenebilir.
+- 2026-10-15: 20 yeni coinde avantaj görülmedi (ortalama -0.02R, 8/20 coin artıda, short açıkça eksi). 16 coindeki sonuç büyük ihtimalle o coinlere özgü. Emeklilik sahibin kararı.
+- Funding aralığı bazı coinlerde 8 saatten 4 saate iniyor (XTZ 2025-07, AXS 2026-01, ENJ 2026-03). Kural ödeme sayısıyla kodlu olduğu için bu coinlerde pencere kısalıyor; canlıya geçilecekse saat cinsinden yazılmalı.
 - Pusula'dan farklı bir kaynaktan besleniyor (kalabalığın tersine dönüş, trend değil); ikisini birlikte çalıştırma ileride ayrıca test edilebilir.
 
 ## Emeklilik gerekçesi (varsa)
