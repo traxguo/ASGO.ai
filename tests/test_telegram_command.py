@@ -90,3 +90,34 @@ def test_price_and_symbols():
     assert tc.run("/fiyat", "btc", False, call).startswith("BTC: 83050 USDT (24 saat +0.52%)")
     assert tc.symbol_of("near") == "NEARUSDT"
     assert tc.symbol_of("BTCUSDT") == "BTCUSDT"
+
+
+def fake_candles(up=True):
+    def call(method, path, query=None, body=None, signed=True):
+        assert path == "/api/v2/mix/market/candles" and signed is False
+        n, day = int(query["limit"]), query["granularity"] == "1D"
+        step = 86400000 if day else 3600000
+        price = (lambda i: 50 + i) if up else (lambda i: 200 - i)
+        return [[str(i * step), price(i), price(i) + 1, price(i) - 1, price(i), 1, 1] for i in range(n)][::-1]
+    return call
+
+
+def test_yorum_gives_facts_and_no_levels():
+    text = tc.market_comment("eth", fake_candles(up=True), fng=lambda: "40/100 (korku)", ai=lambda f: None)
+    assert text.startswith("ETH yorumu") and "+3/3" in text and "15 coinden 15" in text
+    assert "Yükselen trend" in text and "korku" in text and "sinyal değildir" in text
+    assert not any(w in text.lower() for w in ("stop", "hedef", "giriş"))
+
+
+def test_yorum_downtrend_says_bots_wait():
+    text = tc.market_comment("BTC", fake_candles(up=False), fng=lambda: None, ai=lambda f: None)
+    assert "Düşüş trendi" in text and "15 coinden 0" in text
+
+
+def test_yorum_uses_ai_text_when_available_and_keeps_facts():
+    text = tc.market_comment("ETH", fake_candles(), fng=lambda: None, ai=lambda f: "Kısa yorum.")
+    assert text.startswith("Kısa yorum.") and "ETH yorumu" in text
+
+
+def test_yorum_without_coin_asks():
+    assert "Hangi coin" in tc.run("/yorum", "", True, fake_candles())
