@@ -81,7 +81,7 @@ jobs:
             --data-urlencode 'allowed_updates=["message"]' | sed 's/bot[0-9]*:[A-Za-z0-9_-]*//g'
           echo
           curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands" \
-            --data-urlencode 'commands=[{"command":"durum","description":"Bakiye ve açık işlemler"},{"command":"gecmis","description":"Son kapanan işlemler"},{"command":"fiyat","description":"Güncel fiyat, ör. /fiyat BTC"},{"command":"kapat","description":"Demo işlemini kapat, ör. /kapat NEAR"},{"command":"yardim","description":"Komut listesi"}]' > /dev/null
+            --data-urlencode 'commands=[{"command":"durum","description":"Bakiye ve açık işlemler"},{"command":"gecmis","description":"Son kapanan işlemler"},{"command":"fiyat","description":"Güncel fiyat, ör. /fiyat BTC"},{"command":"yorum","description":"Piyasa yorumu, ör. /yorum ETH"},{"command":"kapat","description":"Demo işlemini kapat, ör. /kapat NEAR"},{"command":"yardim","description":"Komut listesi"}]' > /dev/null
           echo "Telegram now sends messages to the worker."
           # delivery health: pending messages and Telegram's last error reaching the worker
           curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo" \

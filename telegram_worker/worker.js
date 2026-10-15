@@ -10,6 +10,7 @@ export const HELP = [
   "/durum: bakiye ve açık işlemler",
   "/gecmis: son kapanan işlemler",
   "/fiyat BTC: güncel fiyat",
+  "/yorum ETH: canlı veriyle piyasa yorumu (sinyal değildir)",
   "/kapat NEAR: o coindeki demo işlemini hemen kapat",
   "/yardim: bu mesaj",
   "",
@@ -23,7 +24,7 @@ export const HELP = [
 
 const REPO = "traxguo/ASGO.ai";
 const WORKFLOW = "telegram_command.yml";
-const REMOTE = new Set(["/durum", "/gecmis", "/fiyat", "/kapat"]);
+const REMOTE = new Set(["/durum", "/gecmis", "/fiyat", "/yorum", "/kapat"]);
 
 export async function startCommand(env, cmd, arg, chatId, fromId, fetchFn = fetch) {
   if (!env.GH_DISPATCH_TOKEN || env.GH_DISPATCH_TOKEN === "none") return "Kurulum eksik: GH_DISPATCH_TOKEN secret'ı yok (docs/telegram_cloudflare_kurulum.md).";
@@ -60,6 +61,7 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
   if (cmd === "/start" || cmd === "/yardim" || cmd === "/help") return HELP;
   if (cmd === "/kapat" && !ownerSpeaking) return "İşlem kapatmayı sadece hesap sahibi yapabilir.";
   if (cmd === "/fiyat" && !arg) return "Hangi coin? Örnek: /fiyat BTC";
+  if (cmd === "/yorum" && !arg) return "Hangi coin? Örnek: /yorum ETH";
   if (cmd === "/kapat" && !arg) return "Hangi coin? Örnek: /kapat NEAR";
   if (REMOTE.has(cmd)) {
     try {
