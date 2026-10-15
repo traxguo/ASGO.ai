@@ -1,5 +1,5 @@
 {
-  "last_hour": "2026-10-15T07:00:00+00:00",
+  "last_hour": "2026-10-15T08:00:00+00:00",
   "trades": {
     "fitada2026101213": {
       "hour": "2026-10-12T13:00:00+00:00",
@@ -943,6 +943,13 @@
       "hour": "2026-10-15T07:00:00+00:00",
       "limit_price": 4.4023,
       "order_id": "1494522432793444353",
+      "pair": "NEAR/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitnear2026101508": {
+      "hour": "2026-10-15T08:00:00+00:00",
+      "limit_price": 4.5167,
+      "order_id": "1494537539581739009",
       "pair": "NEAR/USDT:USDT",
       "status": "pending"
     }
