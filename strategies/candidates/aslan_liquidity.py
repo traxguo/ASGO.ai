@@ -392,3 +392,53 @@ class AslanLiq2_1h_NoBias(AslanLiq2_1h):
 
 class AslanLiq2_15m_NoBias(AslanLiq2_15m):
     use_bias_filter = False
+
+
+# ---------------------------------------------------------------- 4h test (Gemini proposal, 2026-10-16)
+# Same idea one timeframe up so costs shrink relative to the stop: entry on 4h,
+# liquidity from daily swings + previous day + weekly swings + previous week,
+# 24h setup window. 1% risk so R is measured over the whole period.
+
+
+class AslanLiq4h(AslanLiq2_1h):
+    timeframe = "4h"
+    setup_window = 6  # 6 x 4h = 24 hours
+
+    def informative_pairs(self):
+        pairs = self.dp.current_whitelist()
+        return [(p, "1d") for p in pairs]
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        pair = metadata["pair"]
+        df["atr"] = ta.ATR(df, timeperiod=14)
+        d1 = self.dp.get_pair_dataframe(pair=pair, timeframe="1d")
+        w1 = (
+            d1.set_index(pd.to_datetime(d1["date"], utc=True))
+            .resample("W-MON", label="left", closed="left")
+            .agg({"open": "first", "high": "max", "low": "min", "close": "last"})
+            .dropna()
+            .reset_index()
+            .rename(columns={"index": "date"})
+        )
+        w1 = w1.rename(columns={w1.columns[0]: "date"})
+        levels = pd.concat(
+            [htf_levels(d1, 1440, prev_day=True), htf_levels(w1, 10080, prev_day=True)], ignore_index=True
+        ).sort_values("avail", kind="stable")
+        sig = find_signals(df, levels, self.setup_window, wick_cap=self.wick_cap)
+        for col in sig.columns:
+            df[col] = sig[col]
+
+        bias = daily_bias(d1)
+        close_time = (
+            pd.to_datetime(df["date"], utc=True) + pd.Timedelta(minutes=timeframe_to_minutes(self.timeframe))
+        ).astype("datetime64[ns, UTC]")
+        merged = pd.merge_asof(
+            pd.DataFrame({"t": close_time}).reset_index(), bias.rename(columns={"avail": "t"}), on="t", direction="backward"
+        ).set_index("index")
+        df["daily_bias"] = merged["bias"].fillna(0).astype(int)
+        df["news_block"] = news_calendar.blocked(close_time, self.news_before, self.news_after)
+        return df
+
+
+class AslanLiq4h_NoBias(AslanLiq4h):
+    use_bias_filter = False

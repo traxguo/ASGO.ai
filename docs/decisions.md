@@ -162,3 +162,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-12 — Fitil Avcısı kasa testini geçti, demoya hazırlanıyor
 - Karar: Fitil Avcısı (derin limit emirle panik fitili yakalama, 3 saat) aday oldu; sıradaki adım Bitget demo (gerçek para yok).
 - Gerekçe: geliştirme, hiç bakılmamış 45 coin, doğrulama ve bir kez kullanılan kasa döneminde artıda. Çöküş koruması doğrulama görüldükten sonra eklendi (kartta yazılı). Kazanç birkaç sert güne bağlı; demo dolumları gerçekçilik açısından ölçülecek.
+
+## 2026-10-16 — Gemini'nin "Çift Yönlü Rejim Sistemi" önerisi uygulanmadı
+- Karar: 4 adımlık plan bütün olarak uygulanmadı; sadece yeni olan "Aslan 4h" testi yapıldı ve geçemedi (-0.08/-0.15R). Hiçbir demo bota dokunulmadı.
+- Gerekçe: Rejim ajanı, Pusula/Dalga short, trend filtresiz Fitil ve yatay scalp daha önce denenip eksi çıktı; 15 coin sınırı zaten uygulanıyor. Kuralları 30 işlem barajı için gevşetmek 13 Ekim kararına aykırı.
