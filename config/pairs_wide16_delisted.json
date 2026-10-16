@@ -1,0 +1,35 @@
+{
+  "$comment": "wide16 + delisted12 combined (queue item 3, 2026-10-16). Pass after pairs_level1.json.",
+  "exchange": {
+    "pair_whitelist": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "XRP/USDT:USDT",
+      "BNB/USDT:USDT",
+      "DOGE/USDT:USDT",
+      "ADA/USDT:USDT",
+      "LINK/USDT:USDT",
+      "LTC/USDT:USDT",
+      "DOT/USDT:USDT",
+      "AVAX/USDT:USDT",
+      "TRX/USDT:USDT",
+      "ATOM/USDT:USDT",
+      "BCH/USDT:USDT",
+      "ETC/USDT:USDT",
+      "XLM/USDT:USDT",
+      "LUNA/USDT:USDT",
+      "FTT/USDT:USDT",
+      "SRM/USDT:USDT",
+      "HNT/USDT:USDT",
+      "BTS/USDT:USDT",
+      "TOMO/USDT:USDT",
+      "BTT/USDT:USDT",
+      "BZRX/USDT:USDT",
+      "KEEP/USDT:USDT",
+      "YFII/USDT:USDT",
+      "WAVES/USDT:USDT",
+      "AUDIO/USDT:USDT"
+    ]
+  }
+}

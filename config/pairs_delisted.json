@@ -1,0 +1,19 @@
+{
+  "$comment": "Survivorship-bias test for pusula (queue item 3, 2026-10-16). Fixed BEFORE any backtest. Rule: Binance USD-M USDT perpetuals that were delisted during 2020-2024 or lost >90% in a known collapse (LUNA 2022-05, FTX/FTT/SRM 2022-11, WAVES/USDN 2022), with monthly 1h klines + funding on data.binance.vision and at least 6 months of data. ANC dropped (only 3 months). CVC/SC/RAY/DGB not used: still trading today. Pass after pairs_level1.json.",
+  "exchange": {
+    "pair_whitelist": [
+      "LUNA/USDT:USDT",
+      "FTT/USDT:USDT",
+      "SRM/USDT:USDT",
+      "HNT/USDT:USDT",
+      "BTS/USDT:USDT",
+      "TOMO/USDT:USDT",
+      "BTT/USDT:USDT",
+      "BZRX/USDT:USDT",
+      "KEEP/USDT:USDT",
+      "YFII/USDT:USDT",
+      "WAVES/USDT:USDT",
+      "AUDIO/USDT:USDT"
+    ]
+  }
+}

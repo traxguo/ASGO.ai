@@ -15,6 +15,7 @@ Usage: python scripts/offline_freqtrade.py <freqtrade command> <normal args>
 import sys
 from unittest import mock
 
+from freqtrade.exchange.binance import Binance
 from freqtrade.exchange.exchange import Exchange
 from freqtrade.main import main as ft_main
 
@@ -104,6 +105,19 @@ SYMBOLS = {
     "ALICE": (0.00001, 0.1),
     "C98": (0.00001, 0.1),
     "SXP": (0.00001, 0.1),
+    # crashed / delisted coins, survivorship test (config/pairs_delisted.json, 2026-10-16); generic precision
+    "LUNA": (0.00001, 0.1),
+    "FTT": (0.00001, 0.1),
+    "SRM": (0.00001, 0.1),
+    "HNT": (0.00001, 0.1),
+    "BTS": (0.00001, 0.1),
+    "TOMO": (0.00001, 0.1),
+    "BTT": (0.00001, 0.1),
+    "BZRX": (0.00001, 0.1),
+    "KEEP": (0.00001, 0.1),
+    "YFII": (0.00001, 0.1),
+    "WAVES": (0.00001, 0.1),
+    "AUDIO": (0.00001, 0.1),
 }
 
 
@@ -146,6 +160,22 @@ async def _fake_reload(self, reload=False):
     self._api_async.set_markets(MARKETS)
 
 
+# Delisted coins (config/pairs_delisted.json) are missing from Freqtrade's bundled
+# leverage tier file. They borrow ZIL's tiers (a small-cap); with at most 3x this
+# only sets the maintenance margin used for the liquidation price.
+DELISTED = ["LUNA", "SRM", "HNT", "BTS", "TOMO", "BTT", "BZRX", "KEEP", "YFII", "AUDIO"]
+_orig_tiers = Binance.load_leverage_tiers
+
+
+def _tiers_with_delisted(self):
+    tiers = _orig_tiers(self)
+    if tiers and "ZIL/USDT:USDT" in tiers:
+        for b in DELISTED:
+            tiers.setdefault(f"{b}/USDT:USDT", tiers["ZIL/USDT:USDT"])
+    return tiers
+
+
 if __name__ == "__main__":
-    with mock.patch.object(Exchange, "_api_reload_markets", _fake_reload):
+    with mock.patch.object(Exchange, "_api_reload_markets", _fake_reload), \
+            mock.patch.object(Binance, "load_leverage_tiers", _tiers_with_delisted):
         ft_main(sys.argv[1:])

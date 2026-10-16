@@ -67,6 +67,7 @@ Proje sahibi: "her defasında açık bularak geliştir, farklı açılardan vur.
 Denenen çözümler (geliştirme verisi, sonra yeni coinler):
 | Deneme | Sınıf | Geliştirme (6 coin) | 10 yeni coin | Karar |
 |---|---|---|---|---|
+| 2026-10-16 | Kuyruk 3 (teşhis): batmış/çıkarılmış 12 coin (LUNA, FTT, SRM, HNT, BTS, TOMO, BTT, BZRX, KEEP, YFII, WAVES, AUDIO; liste testten önce sabit), 2020-01 → 2026-09 | Batmış 12: V2NoBe 47 işlem -0.02R, PF 0.96, DD %12.1 (HNT tek işlem +11.5R hariç -0.27R); TrendLong 38 işlem -0.79R, DD %25.7. LUNA/FTT çöküşünde açık işlem yok, delistte açık kalan yok. Eski 16 + batmış 12: V2NoBe +1.35→+1.22R, TrendLong +0.95→+0.84R. Bugünkü listeden seçim ortalama R'yi ~%10-20 iyimser gösteriyor. Kural değişmedi. | `results/2026-10-16_pusula_batik_coinler/rapor.md` |
 | Ana sürüm | `PusulaTrendLong` | +0.83R, DD %20.2 | **+1.05R, PF 2.38, DD %15.1** | Devam |
 | İki vitesli çıkış (4R sonrası 4h kanal) | `PusulaTrendLong2` | +0.69R, DD %20.9 | — | Elendi |
 | Kapanıştan giriş | `PusulaTrendLongClose` | +1.44R (tek DOGE işlemi +79R) | +0.92R | Elendi |
@@ -114,6 +115,7 @@ Proje sahibi "devam" dedi; önerilen "sadece long" seçeneğiyle ilerleniyor.
 | 2026-10-10 | **Kasa, bir kez** (2026-04 → 2026-09, 16 coin, en fazla 3 işlem) | PusulaTrendLong -0.02R, PF 0.94, DD %6.2, 15 işlem (3 işlem dönem sonunda kârda açıktı). Long+short -0.07R. 6 coin -0.68R. Al-tut +%15.9. Geçemedi (> 0R şartı). | [kasa_16coin](../results/2026-10-10_pusula_kasa_16coin/rapor.md), [kasa_6coin_bilgi](../results/2026-10-10_pusula_kasa_6coin_bilgi/rapor.md) |
 
 ## Notlar / öğrenilenler
+- Hayatta kalan coin yanılgısı (2026-10-16): sonradan batan 12 coinde Pusula ≈0R (V2NoBe) / -0.79R (TrendLong). Çöküşlere yakalanmıyor (günlük trend çöküşten önce bozuluyor), ama bu coinlerde kazanç da yok. Bugünkü listeyle yapılan her test ortalama R'yi kabaca %10-20 iyimser gösteriyor; beklentiler buna göre indirilmeli.
 - Geliştirmede iyi görünen üç ek değişiklik (BE 1R, kapanıştan giriş, iki vitesli çıkış) yeni coinlerde tutmadı. Basit sürüm kazandı.
 - Kâr birkaç büyük trende bağlı; daha çok coin bu bağımlılığı azaltıyor (16 coinde en iyi 10 işlem hariç ≈ 0R, 6 coinde -42.8R).
 - Sabit 2R/4R hedef yerine trend bozulunca çıkmak, aynı girişlerde ortalamayı +0.11R'den +0.43R'ye çıkardı. Asıl açık çıkış kuralıydı.
