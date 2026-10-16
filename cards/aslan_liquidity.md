@@ -107,3 +107,7 @@ Kod: [`aslan_liquidity_v7.py`](../strategies/candidates/aslan_liquidity_v7.py)
 - Aslan'ın gözle yaptığı seçim kartın varsayımlarından farklıysa (özellikle "önemli likidite" ve günlük yön), düzeltilmiş kurallarla yeniden test edilecek. Doğrulama verisi bunun için temiz duruyor.
 
 ## Emeklilik gerekçesi (varsa)
+
+## 4 saatlik test (2026-10-16, Gemini önerisi)
+Kod: `AslanLiq4h`, `AslanLiq4h_NoBias` (`strategies/candidates/aslan_liquidity.py`). v2 kuralları (iğne %175, 2R, %1 risk), giriş 4h, likidite günlük + haftalık tepe/dipler ve önceki gün/hafta, bekleme 24 saat.
+Geliştirme (2020-2024, 5 coin): yön filtresi açık 868 işlem **-0.15R**, kapalı 1279 işlem **-0.08R**, düşüş %79. Kazanma %30-32 (2R'de başa baş %33.3), yani maliyetsiz bile eksi. Komisyonu küçültmek sonucu kurtarmadı. Rapor: `results/2026-10-16_aslan_liquidity_4h/rapor.md`.
