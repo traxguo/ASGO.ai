@@ -338,3 +338,5 @@ time,pair,event,detail
 2026-10-16T17:03:46.880874+00:00,NEAR/USDT:USDT,limit placed,"412.0 @ 4.7964 (hour open 5.0488, score +3)"
 2026-10-16T18:03:45.229562+00:00,NEAR/USDT:USDT,limit cancelled,hour over
 2026-10-16T18:03:45.229562+00:00,NEAR/USDT:USDT,limit placed,"414.0 @ 4.7763 (hour open 5.0277, score +3)"
+2026-10-16T19:03:47.459223+00:00,NEAR/USDT:USDT,limit cancelled,hour over
+2026-10-16T19:03:47.459223+00:00,NEAR/USDT:USDT,limit placed,"416.0 @ 4.7508 (hour open 5.0008, score +3)"
