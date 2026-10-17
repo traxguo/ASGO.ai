@@ -117,3 +117,25 @@ def test_daily_filter_needs_uptrend():
     up = pd.DataFrame({"close": [float(i) for i in range(1, 130)]})
     down = pd.DataFrame({"close": [float(i) for i in range(130, 1, -1)]})
     assert bf.daily_ok(up)[0] and not bf.daily_ok(down)[0]
+
+
+class FakePubDown(FakePub):
+    """Daily downtrend; hour opens at 100."""
+
+    def fetch_ohlcv(self, pair, tf, since=None, limit=200):
+        if tf == "1d":
+            return [[since + i * 86400000, 300 - i, 301 - i, 299 - i, 299.5 - i, 1] for i in range(min(limit, 200))]
+        return super().fetch_ohlcv(pair, tf, since, limit)
+
+
+def test_downtrend_coin_gets_the_deeper_derin_fitil_limit():
+    ex, state = FakeEx(), {}
+    run(ex, FakePubDown(), state, H + timedelta(minutes=2))
+    assert len(ex.orders) == 1 and ex.orders[0][3] == 92.0
+    assert list(state["trades"].values())[0]["mode"] == "derin"
+
+
+def test_depth_for_mixed_coin_places_nothing():
+    # long-run uptrend (score +3) but the last close dipped under EMA20: neither rule applies
+    mixed = pd.DataFrame({"close": [float(i) for i in range(1, 126)] + [110.0]})
+    assert bf.depth_for(mixed)[0] is None
