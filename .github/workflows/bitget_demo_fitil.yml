@@ -12,6 +12,8 @@ on:
       - scripts/bitget_fitil.py
       - tests/test_bitget_fitil.py
       - scripts/bitget_demo.py
+      - scripts/paper_fitil.py
+      - tests/test_paper_fitil.py
       - .github/workflows/bitget_demo_fitil.yml
 
 permissions:
@@ -39,8 +41,9 @@ jobs:
       - name: Check (no keys)
         if: github.event_name == 'pull_request'
         run: |
-          python -m pytest -q tests/test_bitget_fitil.py tests/test_bitget_demo.py
+          python -m pytest -q tests/test_bitget_fitil.py tests/test_bitget_demo.py tests/test_paper_fitil.py
           python scripts/bitget_fitil.py --check
+          python scripts/paper_fitil.py  # live public prices, last closed hour; nothing is saved on PRs
 
       - name: Trade on the Bitget demo account
         if: github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
@@ -53,11 +56,18 @@ jobs:
           TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
         run: python scripts/bitget_fitil.py
 
+      - name: Paper tracking on 81 coins (no orders, public prices)
+        if: always() && github.event_name != 'pull_request'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
+        run: python scripts/paper_fitil.py
+
       - name: Save the trade log
-        if: always() && github.event_name != 'pull_request' && env.HAS_KEYS == 'true'
+        if: always() && github.event_name != 'pull_request'
         run: |
-          if [ ! -d forward/bitget_fitil ]; then echo "no log yet"; exit 0; fi
-          git add forward/bitget_fitil
+          for d in forward/bitget_fitil forward/paper_fitil; do if [ -d "$d" ]; then git add "$d"; fi; done
           if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
