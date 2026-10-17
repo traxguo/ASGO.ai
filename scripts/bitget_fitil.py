@@ -7,7 +7,8 @@ Each run:
    not filled after one hour, or BTC already down >= 3% -> cancelled
 2. open trades: market close 3 hours after the fill (no stop, as tested)
 3. first run of a new hour: for coins in a daily uptrend (score >= +1 and close > EMA20, last closed day),
-   a buy limit at 95% of the hour's open price, one per coin, each sized equity / 5
+   a buy limit at 95% of the hour's open price; for coins in a daily DOWNtrend (score <= -1 and close < EMA20)
+   a deeper buy limit at 92% ("Derin Fitil", cards/derin_fitil.md); one per coin, each sized equity / 5
 
     python scripts/bitget_fitil.py          # trade (needs BITGET_DEMO_API_* secrets)
     python scripts/bitget_fitil.py --check  # no keys: print today's eligible coins and the limit prices
@@ -32,7 +33,8 @@ OUT_DIR = REPO / "forward" / "bitget_fitil"
 STATE_FILE = OUT_DIR / "state.json"
 OTHER_STATE_FILES = [REPO / "forward" / "bitget_demo" / "state.json",
                      REPO / "forward" / "bitget_demo_dalga" / "state.json"]
-DEPTH = 0.05          # limit this far under the hour's open
+DEPTH = 0.05          # limit this far under the hour's open (uptrend coins)
+DEEP_DEPTH = 0.08     # Derin Fitil: limit this far under the hour's open (downtrend coins), added 2026-10-17
 HOLD_HOURS = 3
 BTC_GUARD = 0.03      # skip when BTC is down this much from the hour's open
 MAX_OPEN = 5          # each trade gets equity / MAX_OPEN
@@ -52,6 +54,23 @@ def daily_ok(daily: pd.DataFrame) -> tuple[bool, float]:
     score = float(np.sign(c.iloc[-1] - e50.iloc[-1]) + np.sign(e20.iloc[-1] - e50.iloc[-1])
                   + np.sign(c.iloc[-1] / c.iloc[-91] - 1))
     return score >= MIN_SCORE and c.iloc[-1] > e20.iloc[-1], score
+
+
+def daily_down(daily: pd.DataFrame) -> bool:
+    """Daily downtrend on the last CLOSED day: score <= -MIN_SCORE and close below EMA20 (Derin Fitil)."""
+    c = daily["close"].astype(float).reset_index(drop=True)
+    ok, score = daily_ok(daily)
+    return len(c) >= 91 and score <= -MIN_SCORE and c.iloc[-1] < c.ewm(span=20, adjust=False).mean().iloc[-1]
+
+
+def depth_for(daily: pd.DataFrame) -> tuple[float | None, float, str]:
+    """Limit depth for this coin today: uptrend -> DEPTH, downtrend -> DEEP_DEPTH, otherwise no limit."""
+    ok, score = daily_ok(daily)
+    if ok:
+        return DEPTH, score, "fitil"
+    if daily_down(daily):
+        return DEEP_DEPTH, score, "derin"
+    return None, score, ""
 
 
 def hour_open_price(pub, pair: str, hour: datetime) -> float | None:
@@ -167,13 +186,13 @@ def run_once(ex, pub, state: dict, now: datetime, log: Log, pairs: list[str]) ->
     for pair in pairs:
         if pair in busy or not bd.listed(ex, pair):
             continue
-        ok, score = daily_ok(bd.fetch_candles(pub, pair, "1d", 120, now))
-        if not ok:
+        depth, score, mode = depth_for(bd.fetch_candles(pub, pair, "1d", 120, now))
+        if depth is None:
             continue
         ref = hour_open_price(pub, pair, hour)
         if ref is None:
             continue
-        price = float(ex.price_to_precision(pair, ref * (1 - DEPTH)))
+        price = float(ex.price_to_precision(pair, ref * (1 - depth)))
         amount = float(ex.amount_to_precision(pair, equity / MAX_OPEN / price))
         if amount <= 0 or equity / MAX_OPEN / LEVERAGE > free:
             log.event(now, pair, "limit skipped", "size or margin")
@@ -190,9 +209,9 @@ def run_once(ex, pub, state: dict, now: datetime, log: Log, pairs: list[str]) ->
         order = ex.create_order(pair, "limit", "buy", amount, price,
                                 {**bd.PRODUCT, "marginMode": "isolated", "clientOrderId": cid})
         trades[cid] = {"pair": pair, "status": "pending", "order_id": order["id"], "hour": hour.isoformat(),
-                       "limit_price": price}
+                       "limit_price": price, "mode": mode}
         free -= equity / MAX_OPEN / LEVERAGE
-        log.event(now, pair, "limit placed", f"{amount} @ {price:.6g} (hour open {ref:.6g}, score {score:+.0f})")
+        log.event(now, pair, "limit placed", f"{amount} @ {price:.6g} (hour open {ref:.6g}, score {score:+.0f}, {mode})")
 
 
 def notify(lines: list[str]) -> None:
@@ -225,10 +244,11 @@ def main() -> None:
         print(f"BTC drop this hour: {btc_drop(pub, hour, now):.2%}")
         n = 0
         for pair in pairs:
-            ok, score = daily_ok(bd.fetch_candles(pub, pair, "1d", 120, now))
+            depth, score, mode = depth_for(bd.fetch_candles(pub, pair, "1d", 120, now))
             ref = hour_open_price(pub, pair, hour)
-            n += ok
-            print(f"  {pair:16} score {score:+.0f}  eligible {ok}  limit {ref * (1 - DEPTH) if ref else float('nan'):.6g}")
+            n += depth is not None
+            lim = ref * (1 - depth) if ref and depth else float("nan")
+            print(f"  {pair:16} score {score:+.0f}  {mode or 'none':6} limit {lim:.6g}")
         print(f"check ok: {n} eligible coins")
         return
     key, secret, phrase = (os.environ.get(f"BITGET_DEMO_API_{n}", "").strip() for n in ("KEY", "SECRET", "PASSPHRASE"))

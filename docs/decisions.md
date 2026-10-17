@@ -166,3 +166,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-16 — Gemini'nin "Çift Yönlü Rejim Sistemi" önerisi uygulanmadı
 - Karar: 4 adımlık plan bütün olarak uygulanmadı; sadece yeni olan "Aslan 4h" testi yapıldı ve geçemedi (-0.08/-0.15R). Hiçbir demo bota dokunulmadı.
 - Gerekçe: Rejim ajanı, Pusula/Dalga short, trend filtresiz Fitil ve yatay scalp daha önce denenip eksi çıktı; 15 coin sınırı zaten uygulanıyor. Kuralları 30 işlem barajı için gevşetmek 13 Ekim kararına aykırı.
+
+## 2026-10-17 — Fitil short aynası reddedildi, "Derin Fitil" demoya eklendi
+- Karar: düşüş trendindeki coinlerde saat açılışının %8 altına alış limiti (Derin Fitil, cards/derin_fitil.md) Fitil Avcısı demo botuna eklendi. Fitil'in short aynası (düşen coinde %3-5 üstüne satış limiti) reddedildi.
+- Gerekçe: GUO "çukurdan çıkış" planını onayladı (botlar düşen piyasada hiç işlem açmıyordu). Short ayna doğrulamada -%30..-%46. Derin Fitil %6/%8/%10 derinliklerin hepsinde iki dönemde artı; kasa (bir kez) 36 coinde +2.1%/işlem (4 işlem), 45 yeni coinde +1.0%/işlem (33 işlem). Seyrek (ayda ~1 çöküş olayı), bu yüzden günlük işlem hedefini tek başına çözmez.
