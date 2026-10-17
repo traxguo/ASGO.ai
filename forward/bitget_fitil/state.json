@@ -1,5 +1,5 @@
 {
-  "last_hour": "2026-10-17T08:00:00+00:00",
+  "last_hour": "2026-10-17T09:00:00+00:00",
   "trades": {
     "fitada2026101213": {
       "hour": "2026-10-12T13:00:00+00:00",
@@ -537,6 +537,13 @@
       "hour": "2026-10-17T08:00:00+00:00",
       "limit_price": 1.104,
       "order_id": "1495262284350943233",
+      "pair": "DOT/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitdot2026101709": {
+      "hour": "2026-10-17T09:00:00+00:00",
+      "limit_price": 1.098,
+      "order_id": "1495277529911980033",
       "pair": "DOT/USDT:USDT",
       "status": "pending"
     },
@@ -1350,6 +1357,13 @@
       "limit_price": 4.8473,
       "order_id": "1495262295440683009",
       "pair": "NEAR/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitnear2026101709": {
+      "hour": "2026-10-17T09:00:00+00:00",
+      "limit_price": 4.8958,
+      "order_id": "1495277543627354113",
+      "pair": "NEAR/USDT:USDT",
       "status": "pending"
     },
     "fittrx2026101700": {
@@ -1412,6 +1426,13 @@
       "hour": "2026-10-17T08:00:00+00:00",
       "limit_price": 0.31886,
       "order_id": "1495262289379913729",
+      "pair": "TRX/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fittrx2026101709": {
+      "hour": "2026-10-17T09:00:00+00:00",
+      "limit_price": 0.31894,
+      "order_id": "1495277535855308801",
       "pair": "TRX/USDT:USDT",
       "status": "pending"
     }
