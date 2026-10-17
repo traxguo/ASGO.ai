@@ -12,6 +12,7 @@ export const HELP = [
   "/fiyat BTC: güncel fiyat",
   "/yorum ETH: canlı veriyle piyasa yorumu (sinyal değildir)",
   "/kapat NEAR: o coindeki demo işlemini hemen kapat",
+  "/sor ...: yapay zekâya serbest soru (sohbet; sinyal veya seviye vermez)",
   "/yardim: bu mesaj",
   "",
   "Not: Bot kendi kafasına göre alım/stop seviyesi söylemez; işlemleri sadece Pusula açar.",
@@ -24,7 +25,7 @@ export const HELP = [
 
 const REPO = "traxguo/ASGO.ai";
 const WORKFLOW = "telegram_command.yml";
-const REMOTE = new Set(["/durum", "/gecmis", "/fiyat", "/yorum", "/kapat"]);
+const REMOTE = new Set(["/durum", "/gecmis", "/fiyat", "/yorum", "/kapat", "/sor"]);
 
 export async function startCommand(env, cmd, arg, chatId, fromId, fetchFn = fetch) {
   if (!env.GH_DISPATCH_TOKEN || env.GH_DISPATCH_TOKEN === "none") return "Kurulum eksik: GH_DISPATCH_TOKEN secret'ı yok (docs/telegram_cloudflare_kurulum.md).";
@@ -37,7 +38,7 @@ export async function startCommand(env, cmd, arg, chatId, fromId, fetchFn = fetc
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ ref: "main",
-      inputs: { cmd, arg: (arg || "").slice(0, 30), chat: String(chatId), sender: String(fromId) } }),
+      inputs: { cmd, arg: (arg || "").slice(0, cmd === "/sor" ? 400 : 30), chat: String(chatId), sender: String(fromId) } }),
   });
   if (res.status !== 204) return `Bir sorun oldu: GitHub ${res.status} ${(await res.text()).slice(0, 150)}`;
   return "⏳ Bakıyorum, cevap yaklaşık 30 saniye içinde gelecek.";
@@ -47,8 +48,10 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
   const ownerChat = String(chatId) === String(env.TELEGRAM_CHAT_ID);
   const ownerSpeaking = String(fromId) === String(env.TELEGRAM_CHAT_ID);
   const group = env.TELEGRAM_GROUP_ID && String(chatId) === String(env.TELEGRAM_GROUP_ID);
-  const [cmdRaw, arg] = (text || "").trim().split(/\s+/);
+  const [cmdRaw, firstWord] = (text || "").trim().split(/\s+/);
   const cmd = (cmdRaw || "").toLowerCase().split("@")[0];
+  // /sor takes the whole question; the other commands take one word
+  const arg = cmd === "/sor" ? (text || "").trim().slice((cmdRaw || "").length).trim() : firstWord;
   // the owner can ask any group for its id once, to add it as the TELEGRAM_GROUP_ID secret
   if (cmd === "/grupid" && ownerSpeaking && !ownerChat) {
     return `Bu grubun numarası: ${chatId}\nBunu GitHub Secrets'a TELEGRAM_GROUP_ID adıyla ekle, sonra kurulumu tekrar çalıştır.`;
@@ -63,6 +66,7 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
   if (cmd === "/fiyat" && !arg) return "Hangi coin? Örnek: /fiyat BTC";
   if (cmd === "/yorum" && !arg) return "Hangi coin? Örnek: /yorum ETH";
   if (cmd === "/kapat" && !arg) return "Hangi coin? Örnek: /kapat NEAR";
+  if (cmd === "/sor" && !arg) return "Ne sormak istersin? Örnek: /sor merhaba";
   if (REMOTE.has(cmd)) {
     try {
       return await startCommand(env, cmd, arg, chatId, fromId, fetchFn);

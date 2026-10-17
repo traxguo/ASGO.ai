@@ -121,3 +121,17 @@ def test_yorum_uses_ai_text_when_available_and_keeps_facts():
 
 def test_yorum_without_coin_asks():
     assert "Hangi coin" in tc.run("/yorum", "", True, fake_candles())
+
+
+def test_sor_without_key_says_so(monkeypatch):
+    monkeypatch.delenv("AI_API_KEY", raising=False)
+    assert "AI_API_KEY" in tc.run("/sor", "merhaba", sender_is_owner=False)
+
+
+def test_sor_answers_and_drops_price_levels(monkeypatch):
+    monkeypatch.setenv("AI_API_KEY", "k")
+    assert tc.ask("merhaba", ai=lambda p: "Merhaba! Nasılsın?") == "Merhaba! Nasılsın?"
+    assert "seviyesi vermediği" in tc.ask("btc ne olur", ai=lambda p: "BTC 68,500'e gider.")
+    assert tc.ask("2025 nasıldı", ai=lambda p: "2025 zor bir yıldı.") == "2025 zor bir yıldı."
+    assert "tekrar dene" in tc.ask("selam", ai=lambda p: None)
+    assert tc.ask("", ai=lambda p: "x").startswith("Ne sormak")

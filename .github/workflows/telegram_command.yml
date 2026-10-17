@@ -40,7 +40,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}  # optional: /yorum in natural words (Gemini); facts only without it
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}  # optional: /yorum in natural words and /sor (Gemini)
           CMD: ${{ inputs.cmd }}
           ARG: ${{ inputs.arg }}
           CHAT: ${{ inputs.chat }}

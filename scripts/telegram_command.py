@@ -231,14 +231,11 @@ def comment_facts(word: str, call=bitget, fng=fear_greed) -> str:
     return "\n".join(lines)
 
 
-def ai_rewrite(facts: str, opener=urllib.request.urlopen) -> str | None:
-    """Optional: turn the facts into a short natural comment with Gemini (AI_API_KEY). No levels, ever."""
+def gemini(prompt: str, opener=urllib.request.urlopen) -> str | None:
+    """One Gemini call with the AI_API_KEY secret; None when the key is missing or the call fails."""
     key = os.environ.get("AI_API_KEY")
     if not key:
         return None
-    prompt = ("Aşağıdaki kripto piyasa verilerini sade Türkçe ile 3-4 cümlelik bir yorum olarak anlat. "
-              "Sadece verilen bilgileri kullan, yeni rakam uydurma. Fiyat hedefi, giriş, stop veya al/sat "
-              "tavsiyesi verme. Son cümle olarak 'Bilgi amaçlıdır, sinyal değildir.' yaz.\n\n" + facts)
     body = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
     req = urllib.request.Request(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
@@ -249,6 +246,39 @@ def ai_rewrite(facts: str, opener=urllib.request.urlopen) -> str | None:
         return out["candidates"][0]["content"]["parts"][0]["text"].strip()
     except Exception:
         return None
+
+
+def ai_rewrite(facts: str, opener=urllib.request.urlopen) -> str | None:
+    """Optional: turn the facts into a short natural comment with Gemini (AI_API_KEY). No levels, ever."""
+    prompt = ("Aşağıdaki kripto piyasa verilerini sade Türkçe ile 3-4 cümlelik bir yorum olarak anlat. "
+              "Sadece verilen bilgileri kullan, yeni rakam uydurma. Fiyat hedefi, giriş, stop veya al/sat "
+              "tavsiyesi verme. Son cümle olarak 'Bilgi amaçlıdır, sinyal değildir.' yaz.\n\n" + facts)
+    return gemini(prompt, opener)
+
+
+ASK_RULES = (
+    "Sen ASGO adlı bir kripto araştırma projesinin Telegram botusun. Sade, samimi Türkçe ile en fazla "
+    "5-6 cümle cevap ver. Proje: Bitget DEMO hesabında (oyun parası, gerçek para yok) test edilmiş kurallarla "
+    "çalışan botlar var (Dalga, Pusula, Fitil Avcısı). Hesap için /durum, fiyat için /fiyat BTC, piyasa yorumu "
+    "için /yorum ETH komutları var. Kesin kurallar: fiyat hedefi, giriş, stop, kaldıraç, al/sat tavsiyesi veya "
+    "fiyat tahmini verme; böyle bir soruya bunu yapmadığını söyle. Bilmediğin güncel fiyatları uydurma.\n\nSoru: "
+)
+# a reply that brings in a 3+ digit number the question did not have could be a price level: drop it
+NUMBER = re.compile(r"\d[\d.,]{2,}")
+
+
+def ask(question: str, ai=gemini) -> str:
+    if not question:
+        return "Ne sormak istersin? Örnek: /sor merhaba"
+    if not os.environ.get("AI_API_KEY"):
+        return "Yapay zekâ anahtarı (AI_API_KEY) eklenmemiş, bu yüzden /sor şu an cevap veremiyor."
+    text = ai(ASK_RULES + question[:400])
+    if not text:
+        return "Yapay zekâ şu an cevap vermedi, birazdan tekrar dene."
+    allowed = set(NUMBER.findall(question))
+    if any(n not in allowed and not re.fullmatch(r"(19|20)\d\d", n) for n in NUMBER.findall(text)):
+        return "Bu soruya rakamlı bir cevap çıktı; bot fiyat seviyesi vermediği için göstermiyorum. /fiyat veya /yorum kullanabilirsin."
+    return text
 
 
 def market_comment(word: str, call=bitget, fng=fear_greed, ai=ai_rewrite) -> str:
@@ -275,6 +305,8 @@ def run(cmd: str, arg: str, sender_is_owner: bool, call=bitget) -> str:
             return price(arg, call)
         if cmd == "/yorum":
             return market_comment(arg, call)
+        if cmd == "/sor":
+            return ask(arg)
         if cmd == "/kapat":
             if not sender_is_owner:
                 return "İşlem kapatmayı sadece hesap sahibi yapabilir."
