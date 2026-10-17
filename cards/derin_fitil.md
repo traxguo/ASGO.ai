@@ -40,3 +40,4 @@ Tersine, düşen coinlerde **çok derin** (%6-10) panik fitilleri geri dönüyor
 
 ## Durum
 2026-10-17: Bitget demoda Fitil Avcısı botunun içinde çalışıyor (yükselen coin: %5 limit, düşen coin: %8 limit).
+2026-10-17: ayrıca 81 coinde kâğıt üzerinde takip (scripts/paper_fitil.py, forward/paper_fitil/): Fitil + Derin Fitil, gerçek fiyatlarla, emir yok. Amaç: tüm evrende günde kaç işlem verdiğini canlı saymak (2 haftalık plan, karar ~2026-10-31).
