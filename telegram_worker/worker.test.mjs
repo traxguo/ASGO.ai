@@ -70,3 +70,12 @@ test("the clock starts the demo jobs that are due", async () => {
   assert.deepEqual(JSON.parse(calls[0].opts.body), { ref: "main" });
   assert.deepEqual(await startBots({ ...env, GH_DISPATCH_TOKEN: "none" }, new Date(), fakeGitHub(calls)), []);
 });
+
+test("/sor hands the whole question to the GitHub job, also in the group", async () => {
+  const calls = [];
+  assert.match(await answer(env, -100, "/sor@asgo_bot  bugün piyasa nasıl?", fakeGitHub(calls), 7, "group"), /Bakıyorum/);
+  assert.deepEqual(JSON.parse(calls[0].opts.body).inputs,
+    { cmd: "/sor", arg: "bugün piyasa nasıl?", chat: "-100", sender: "7" });
+  assert.match(await answer(env, -100, "/sor", fakeGitHub(calls), 7, "group"), /Ne sormak/);
+  assert.equal(calls.length, 1);
+});
