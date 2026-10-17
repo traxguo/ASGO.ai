@@ -138,3 +138,29 @@ def test_v2_no_be_no_btc_exit_keeps_only_ema20_exit():
     assert issubclass(pusula.PusulaV2NoBeNoBtcExit, pusula.PusulaV2NoBe)
     assert exits(pusula.PusulaV2NoBe) == [0, 1, 1, 1]
     assert exits(pusula.PusulaV2NoBeNoBtcExit) == [0, 1, 0, 1]
+
+
+def test_v2_no_be_no_reentry_one_trade_per_daily_long_regime():
+    """PusulaV2NoBeNoReentry: no second trade on a coin in the same daily long regime; after a score below +1 it is allowed."""
+    from types import SimpleNamespace
+
+    cls = pusula.PusulaV2NoBeNoReentry
+    days = pd.date_range("2022-01-01", periods=8, freq="1D", tz="UTC")
+    scores = pd.DataFrame({"date": days, "score": [1, 3, 3, 1, -1, 1, 3, 3]})
+    strat = cls.__new__(cls)
+    strat._daily_scores = lambda pair: scores
+    # last trade: signal candle 2022-01-02 16:00 (sees dailies closed by 20:00), opened 20:00, closed 2022-01-04
+    last = SimpleNamespace(open_date_utc=pd.Timestamp("2022-01-02 21:00", tz="UTC"),
+                           close_date_utc=pd.Timestamp("2022-01-04", tz="UTC"))
+    strat._closed_trades = lambda pair: [last]
+
+    def allowed(when):
+        return strat.confirm_trade_entry("X/USDT:USDT", "limit", 1.0, 1.0, "GTC", pd.Timestamp(when, tz="UTC"),
+                                         "long", "long")
+
+    assert not allowed("2022-01-05 00:00")  # dailies of 01-02..01-04 closed: +3, +3, +1 -> same regime
+    assert allowed("2022-01-06 00:00")  # 01-05 daily (-1) closed: the regime left long
+    assert allowed("2022-01-08 04:00")
+    strat._closed_trades = lambda pair: []
+    assert allowed("2022-01-05 00:00")  # no earlier trade on the coin
+    assert issubclass(cls, pusula.PusulaV2NoBe)

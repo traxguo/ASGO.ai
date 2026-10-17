@@ -35,6 +35,7 @@ if str(_REPO_ROOT) not in sys.path:
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import talib.abstract as ta  # noqa: E402
+from freqtrade.exchange import timeframe_to_minutes  # noqa: E402
 from freqtrade.strategy import merge_informative_pair, stoploss_from_absolute  # noqa: E402
 from pandas import DataFrame, Series  # noqa: E402
 
@@ -475,6 +476,59 @@ class PusulaV2NoBeNoBtcExit(PusulaV2NoBe):
     def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
         # Skip PusulaTrendLongBtcExit's override: only the EMA20 trend exit remains.
         return super(PusulaTrendLongBtcExit, self).populate_exit_trend(df, metadata)
+
+
+class PusulaV2NoBeNoReentry(PusulaV2NoBe):
+    """
+    Queue item 6 (2026-10-17, research/queue/pusula_kuyruk.md), fixed before testing.
+
+    What PusulaV2NoBe already does: after a trade on a coin closes (stop or
+    EMA20/BTC exit), it may open a new long on that coin on the next FRESH
+    breakout candle (first 4h close above the previous 20-candle high after a
+    candle that was not above it) whenever all entry conditions hold again.
+    There is no cooldown or per-trend limit, and no adding while a trade is open
+    (one trade per pair, adjust_trade_position places no orders). So "re-entry on
+    a second breakout while the trend lasts" is already in the baseline.
+
+    This variant is the stricter alternative that actually differs: at most one
+    trade per coin per daily long regime. A regime run is an unbroken stretch of
+    4h candles where the last closed daily score of the coin is >= +1. After a
+    trade closes, a new long on the same coin is refused until the score has been
+    <= -1 at least once and a new run has started. Everything else unchanged.
+    """
+
+    # Implementation note: the check reads the coin's own daily candles, not the
+    # analysed 4h frame, because in backtesting that frame only holds the last
+    # 1000 candles (~166 days) and a regime run can last longer.
+
+    def _closed_trades(self, pair: str):
+        from freqtrade.persistence import Trade
+
+        return Trade.get_trades_proxy(pair=pair, is_open=False)
+
+    def _daily_scores(self, pair: str) -> DataFrame:
+        daily = self.dp.get_pair_dataframe(pair=pair, timeframe=REGIME_TF)
+        return pd.DataFrame({"date": daily["date"], "score": regime_score(daily, self.ema_fast, self.ema_slow,
+                                                                          self.momentum_days)})
+
+    def regime_left_long_since(self, pair: str, since, now) -> bool:
+        """True if a daily candle that closed after `since` and by `now` had a score below +1."""
+        d = self._daily_scores(pair)
+        closes = d["date"] + pd.Timedelta(days=1)
+        window = d.loc[(closes > since) & (closes <= now), "score"]
+        return bool((window < 1).any())
+
+    def confirm_trade_entry(self, pair, order_type, amount, rate, time_in_force, current_time, entry_tag, side,
+                            **kwargs) -> bool:
+        closed = [t for t in self._closed_trades(pair) if t.close_date_utc is not None]
+        if not closed:
+            return True
+        last = max(closed, key=lambda t: t.close_date_utc)
+        # What the last trade's signal saw: daily candles closed by the end of its signal candle.
+        last_seen = self._signal_time_for_trade(last) + pd.Timedelta(minutes=timeframe_to_minutes(self.timeframe))
+        # Same daily long regime as the last closed trade -> no second trade on this coin.
+        return self.regime_left_long_since(pair, last_seen, current_time)
+
 
 class TwoSpeedExitMixin:
     """
