@@ -1,6 +1,20 @@
 {
  "started": "2026-10-17T21:18:51.723509+00:00",
- "trades": [],
+ "trades": [
+  {
+   "pair": "FIL/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-10-17T21:00:00+00:00",
+   "limit_price": 1.040535,
+   "fill_time": "2026-10-17T21:30:00+00:00",
+   "entry": 1.040535,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2000.0
+  }
+ ],
  "equity": 10000.0,
- "done_until": "2026-10-17T21:00:00+00:00"
+ "done_until": "2026-10-17T22:00:00+00:00"
 }
