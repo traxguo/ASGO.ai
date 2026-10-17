@@ -472,3 +472,9 @@ time,pair,event,detail
 2026-10-17T20:03:32.565357+00:00,DOT/USDT:USDT,limit placed,"1841.0 @ 1.075 (hour open 1.132, score +3)"
 2026-10-17T20:03:32.565357+00:00,TRX/USDT:USDT,limit placed,"6237.0 @ 0.31735 (hour open 0.33405, score +1)"
 2026-10-17T20:03:32.565357+00:00,NEAR/USDT:USDT,limit placed,"418.0 @ 4.7283 (hour open 4.9772, score +3)"
+2026-10-17T21:03:39.966464+00:00,DOT/USDT:USDT,limit cancelled,hour over
+2026-10-17T21:03:39.966464+00:00,NEAR/USDT:USDT,limit cancelled,hour over
+2026-10-17T21:03:39.966464+00:00,TRX/USDT:USDT,limit cancelled,hour over
+2026-10-17T21:03:39.966464+00:00,DOT/USDT:USDT,limit placed,"1831.0 @ 1.081 (hour open 1.138, score +3)"
+2026-10-17T21:03:39.966464+00:00,TRX/USDT:USDT,limit placed,"6232.0 @ 0.31759 (hour open 0.33431, score +1)"
+2026-10-17T21:03:39.966464+00:00,NEAR/USDT:USDT,limit placed,"417.0 @ 4.7435 (hour open 4.9932, score +3)"
