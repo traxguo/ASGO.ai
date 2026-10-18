@@ -53,3 +53,16 @@ Bugüne kadar 30'a yakın kısa işlem fikrinin batma sebepleri ve bu stratejini
 - Dalga ve Pusula, Fitil'in tuttuğu coine girmez; Fitil de onlarınkine girmez.
 
 ## Durum: aday — kasa testini geçti (zayıf), Bitget demoda
+
+## 2026-10-18 geliştirme turu (kurallar değişmedi)
+36 coin, portföy en fazla 5, geliştirme 2022-24 / doğrulama 2025-01 → 2026-03:
+| Deneme | Geliştirme kasa | Doğrulama kasa | Karar |
+|---|---|---|---|
+| Mevcut kural (%5, 3 saat) | +207.6% | +94.7% | kalıyor |
+| Derinlik = ATR × 0.8 / 1.0 / 1.3 | +92 / +62 / +62% | +44 / +26 / +28% | red (daha az işlem, daha az kâr) |
+| Kâr al %2 / %3 (3 saat) | +168 / +225% | +56 / +61% | red (doğrulamada geride) |
+| Kâr al %3, 6 saat | +286% | +49% | red |
+| 6 saat / 2 saat tutma | +247 / +191% | +29 / +75% | red |
+
+**Asıl bulgu: coin sayısı.** Aynı kural 81 coinde (`config/pairs_wide81.json`): portföy 1.23 işlem/gün, +301% (DD 19%) / doğrulama 0.88 işlem/gün, +106% (DD 10.5%).
+Derin Fitil 81 coinde: 0.20-0.25 işlem/gün, +90% / +54%. Bitget demo sadece 15 coin listelediği için demoda bu sıklık görülmüyor (15 coinde 2025: ~0.1 işlem/gün).
