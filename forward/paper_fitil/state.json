@@ -13,8 +13,21 @@
    "ret_pct": 1.798,
    "pnl_usdt": 35.97,
    "size": 2000.0
+  },
+  {
+   "pair": "SAND/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-10-18T07:00:00+00:00",
+   "limit_price": 0.06152199999999999,
+   "fill_time": "2026-10-18T08:00:00+00:00",
+   "entry": 0.06152199999999999,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2007.194
   }
  ],
  "equity": 10035.97,
- "done_until": "2026-10-18T07:00:00+00:00"
+ "done_until": "2026-10-18T08:00:00+00:00"
 }
