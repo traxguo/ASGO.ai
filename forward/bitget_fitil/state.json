@@ -1,5 +1,5 @@
 {
-  "last_hour": "2026-10-18T04:00:00+00:00",
+  "last_hour": "2026-10-18T05:00:00+00:00",
   "trades": {
     "fitada2026101213": {
       "hour": "2026-10-12T13:00:00+00:00",
@@ -437,6 +437,14 @@
       "limit_price": 0.07342,
       "mode": "derin",
       "order_id": "1495564297861263361",
+      "pair": "DOGE/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitdoge2026101805": {
+      "hour": "2026-10-18T05:00:00+00:00",
+      "limit_price": 0.07304,
+      "mode": "derin",
+      "order_id": "1495579388614733825",
       "pair": "DOGE/USDT:USDT",
       "status": "pending"
     },
