@@ -17,21 +17,27 @@ B="user_data/data/binance/futures/";R=[]
 import os
 SL=float(os.environ.get("SL","0"))  # catastrophe stop under entry (0 = none), taker exit
 GUARD=float(os.environ.get("GUARD","0"))  # skip if BTC fell more than GUARD in the hour so far (market cascade)
-MAXNEW=int(os.environ.get("MAXNEW","99"))  # at most this many new fills per hour across coins
+MAXNEW=int(os.environ.get("MAXNEW","99"))
+KATR=float(os.environ.get("DEPTHATR","0"))  # >0: depth from daily ATR instead of X  # at most this many new fills per hour across coins
 bk=pd.read_feather(B+"BTC_USDT_USDT-15m-futures.feather").set_index("date")
 for c in pl:
     try:
         k=pd.read_feather(B+f"{c}_USDT_USDT-15m-futures.feather").set_index("date")
-        d=pd.read_feather(B+f"{c}_USDT_USDT-1d-futures.feather").set_index("date").close
+        dd=pd.read_feather(B+f"{c}_USDT_USDT-1d-futures.feather").set_index("date");d=dd.close
     except FileNotFoundError: continue
     e20,e50=d.ewm(span=20,adjust=False).mean(),d.ewm(span=50,adjust=False).mean()
     sc=(np.sign(d-e50)+np.sign(e20-e50)+np.sign(d/d.shift(90)-1)).shift(1);ab=(d>e20).shift(1)
+    # DEPTHATR=k: limit depth = k x ATR(14)/close of the last closed day instead of the fixed X (capped 2%..15%)
+    tr=pd.concat([dd.high-dd.low,(dd.high-d.shift()).abs(),(dd.low-d.shift()).abs()],axis=1).max(axis=1)
+    atrp=(tr.rolling(14).mean()/d).shift(1).reindex(k.index.floor("D")).to_numpy()
     day=k.index.floor("D");score=sc.reindex(day).to_numpy();abv=ab.reindex(day).to_numpy()
     o,hi,lo,cl=(k[x].to_numpy() for x in ("open","high","low","close"));idx=k.index;n=len(cl)
     ok=(score>=SC)&(abv==True)&(idx>=a)&(idx<b)&(idx.minute==0);busy=-1;h=H*4
     for i in np.where(ok)[0]:
         if i<=busy or i+4+h>=n: continue
-        lim=o[i]*(1-X);f=None
+        dep=min(max(KATR*atrp[i],0.02),0.15) if KATR>0 else X
+        if dep!=dep: continue
+        lim=o[i]*(1-dep);f=None
         for j in range(i,i+4):  # the order rests for one hour
             if lo[j]<=lim*(1-FILLPAD): f=j;break
         if f is None: continue
