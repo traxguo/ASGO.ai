@@ -164,3 +164,32 @@ def test_v2_no_be_no_reentry_one_trade_per_daily_long_regime():
     strat._closed_trades = lambda pair: []
     assert allowed("2022-01-05 00:00")  # no earlier trade on the coin
     assert issubclass(cls, pusula.PusulaV2NoBe)
+
+
+def test_v2_no_be_rank_prefers_strongest_90d_return_when_slots_are_short():
+    """PusulaV2NoBeRank: more same-candle signals than free slots -> only the highest 90-day returns may enter."""
+    from datetime import datetime, timezone
+    from types import SimpleNamespace
+
+    cls = pusula.PusulaV2NoBeRank
+    sig = pd.Timestamp("2022-03-01 04:00", tz="UTC")  # last closed 4h candle at 08:00
+    strat = cls.__new__(cls)
+    strat._signal_book = {"A": {sig: 0.10}, "B": {sig: 0.50}, "C": {sig: 0.30}, "D": {sig - pd.Timedelta(hours=4): 9.0}}
+    strat._whitelist = lambda: ["A", "B", "C", "D", "E"]
+    strat._max_open = lambda: 3
+    open_trades = [SimpleNamespace(pair="E", close_date_utc=None)]
+    strat._trades = lambda is_open: open_trades if is_open else []
+    now = datetime(2022, 3, 1, 9, 0, tzinfo=timezone.utc)  # a 1h detail candle inside the 08:00 candle
+
+    def allowed(pair):
+        return strat.confirm_trade_entry(pair, "limit", 1.0, 1.0, "GTC", now, "long", "long")
+
+    assert strat.rank_candidates(now) == (["B", "C", "A"], 2)  # D's signal is an older candle; E is busy
+    assert allowed("B") and allowed("C") and not allowed("A")
+    open_trades.clear()  # three free slots: no collision, everybody may enter
+    assert allowed("A")
+    probe = pusula.PusulaV2NoBeRankProbe.__new__(pusula.PusulaV2NoBeRankProbe)
+    probe.__dict__.update(strat.__dict__)
+    open_trades.append(SimpleNamespace(pair="E", close_date_utc=None))
+    assert probe.confirm_trade_entry("A", "limit", 1.0, 1.0, "GTC", now, "long", "long")  # probe = baseline order
+    assert issubclass(cls, pusula.PusulaV2NoBe)

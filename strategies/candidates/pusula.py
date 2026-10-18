@@ -35,7 +35,7 @@ if str(_REPO_ROOT) not in sys.path:
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import talib.abstract as ta  # noqa: E402
-from freqtrade.exchange import timeframe_to_minutes  # noqa: E402
+from freqtrade.exchange import timeframe_to_minutes, timeframe_to_prev_date  # noqa: E402
 from freqtrade.strategy import merge_informative_pair, stoploss_from_absolute  # noqa: E402
 from pandas import DataFrame, Series  # noqa: E402
 
@@ -611,3 +611,102 @@ class PusulaTrendLongStrictBTC(PusulaTrendLong):
         conds = super().signal_conditions(df)
         conds["long"]["market_up"] = df[f"mkt_score_{REGIME_TF}"] >= 3
         return conds
+
+
+class PusulaV2NoBeRank(PusulaV2NoBe):
+    """
+    Queue item 7 (2026-10-18, research/queue/pusula_kuyruk.md), fixed before testing.
+
+    Coin selection when signals collide. PusulaV2NoBe takes same-candle entry
+    signals in Freqtrade's pair order (pairs with open trades first, then the
+    whitelist order) until the 3 slots are full. This variant ranks them instead:
+
+    - Candidates at a moment: every whitelist pair with a valid long signal on
+      the last closed 4h candle (all entry conditions true and no exit signal on
+      that candle, exactly what Freqtrade would act on), no open trade or pending
+      entry order on that pair, and no trade on that pair that closed during the
+      current 4h candle (Freqtrade skips such a pair for that candle).
+    - Free slots = max_open_trades - open trades (pending entry orders count).
+    - If candidates > free slots, only the `free` candidates with the highest
+      90-day return (last closed daily close / daily close 90 days earlier - 1,
+      the `mom` column of the regime) may enter; ties go to whitelist order.
+      Otherwise nothing changes. Everything else is PusulaV2NoBe.
+
+    The check runs in confirm_trade_entry, so it is evaluated whenever Freqtrade
+    would open a trade (also on 1h detail candles when a slot frees mid-candle).
+    It reads a book of signal candles filled in populate_exit_trend; it only looks
+    up the candle that has just closed, never a later one.
+    """
+
+    rank_enabled = True  # False = baseline behaviour, used by the collision probe below
+
+    def _book(self) -> dict:
+        if not hasattr(self, "_signal_book"):
+            self._signal_book = {}
+        return self._signal_book
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_exit_trend(df, metadata)
+        enter = df.get("enter_long", pd.Series(0, index=df.index)).fillna(0) == 1
+        exit_ = df.get("exit_long", pd.Series(0, index=df.index)).fillna(0) == 1
+        valid = enter & ~exit_
+        self._book()[metadata["pair"]] = dict(zip(df.loc[valid, "date"], df.loc[valid, f"mom_{REGIME_TF}"]))
+        return df
+
+    def _whitelist(self) -> list:
+        return list(self.dp.current_whitelist())
+
+    def _trades(self, is_open: bool):
+        from freqtrade.persistence import Trade
+
+        return Trade.get_trades_proxy(is_open=is_open)
+
+    def _max_open(self) -> int:
+        return int(self.config.get("max_open_trades", self.max_open_trades))
+
+    def rank_candidates(self, current_time):
+        """(ordered candidate pairs, free slots) at current_time, from data closed by then."""
+        candle = timeframe_to_prev_date(self.timeframe, current_time)  # current 4h candle start
+        signal_time = candle - pd.Timedelta(minutes=timeframe_to_minutes(self.timeframe))
+        open_trades = list(self._trades(True))
+        busy = {t.pair for t in open_trades}
+        busy |= {t.pair for t in self._trades(False) if t.close_date_utc is not None and t.close_date_utc >= candle}
+        book = self._book()
+        cands = []
+        for i, pair in enumerate(self._whitelist()):
+            mom = book.get(pair, {}).get(signal_time)
+            if mom is None or pair in busy:
+                continue
+            cands.append((-(mom if pd.notna(mom) else -np.inf), i, pair))
+        cands.sort()
+        free = self._max_open() - len(open_trades)
+        return [c[2] for c in cands], free
+
+    def confirm_trade_entry(self, pair, order_type, amount, rate, time_in_force, current_time, entry_tag, side,
+                            **kwargs) -> bool:
+        if side != "long":
+            return True
+        ranked, free = self.rank_candidates(current_time)
+        if len(ranked) > free:
+            self._log_collision(pair, current_time, ranked, free)
+            if self.rank_enabled:
+                return pair in ranked[:max(free, 0)] or pair not in ranked
+        return True
+
+    def _log_collision(self, pair, current_time, ranked, free):
+        import json
+        import os
+
+        path = os.environ.get("PUSULA_COLLISION_LOG")
+        if not path:
+            return
+        rec = {"strategy": self.__class__.__name__, "time": str(current_time), "pair": pair, "free": free,
+               "candidates": ranked, "allowed": ranked[:max(free, 0)]}
+        with open(path, "a") as f:
+            f.write(json.dumps(rec) + "\n")
+
+
+class PusulaV2NoBeRankProbe(PusulaV2NoBeRank):
+    """Diagnostic only (queue item 7): PusulaV2NoBe behaviour (no ranking), logs signal collisions."""
+
+    rank_enabled = False
