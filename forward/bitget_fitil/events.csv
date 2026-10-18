@@ -500,3 +500,5 @@ time,pair,event,detail
 2026-10-18T02:03:44.086619+00:00,DOGE/USDT:USDT,limit placed,"27127.0 @ 0.07297 (hour open 0.07932, score -1, derin)"
 2026-10-18T03:03:33.641898+00:00,DOGE/USDT:USDT,limit cancelled,hour over
 2026-10-18T03:03:33.641898+00:00,DOGE/USDT:USDT,limit placed,"27060.0 @ 0.07315 (hour open 0.07951, score -1, derin)"
+2026-10-18T04:03:45.459189+00:00,DOGE/USDT:USDT,limit cancelled,hour over
+2026-10-18T04:03:45.459189+00:00,DOGE/USDT:USDT,limit placed,"26960.0 @ 0.07342 (hour open 0.0798, score -1, derin)"
