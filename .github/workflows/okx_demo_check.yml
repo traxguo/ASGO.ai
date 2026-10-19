@@ -1,0 +1,12 @@
+# One-off: count our coins on the OKX demo. Runs only on this PR; the PR is closed, never merged.
+name: OKX demo check
+on:
+  pull_request:
+    paths: [scripts/okx_demo_check.py, .github/workflows/okx_demo_check.yml]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/okx_demo_check.py
