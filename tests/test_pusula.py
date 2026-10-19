@@ -193,3 +193,53 @@ def test_v2_no_be_rank_prefers_strongest_90d_return_when_slots_are_short():
     open_trades.append(SimpleNamespace(pair="E", close_date_utc=None))
     assert probe.confirm_trade_entry("A", "limit", 1.0, 1.0, "GTC", now, "long", "long")  # probe = baseline order
     assert issubclass(cls, pusula.PusulaV2NoBe)
+
+
+def test_v2_no_be_weekly_uses_only_closed_monday_weeks():
+    """PusulaV2NoBeWeekly: weeks start Monday 00:00 UTC, running weeks are dropped, a week is seen only after it closes."""
+    start = "2021-01-01"  # a Friday: the first (partial) week is dropped
+    closes = np.arange(1, 501, dtype=float) + 100
+    d = daily(closes, start=start)
+    w = pusula.weekly_from_daily(d)
+    assert (w["date"].dt.dayofweek == 0).all() and w["date"].iloc[0] == pd.Timestamp("2021-01-04", tz="UTC")
+    last_day = d["date"].iloc[-1]
+    assert w["date"].iloc[-1] + pd.Timedelta(days=7) <= last_day + pd.Timedelta(days=1)  # no running week
+    sunday = d.loc[d["date"] == pd.Timestamp("2021-01-10", tz="UTC"), "close"].iloc[0]
+    assert w["close"].iloc[0] == sunday
+
+    h4 = pd.DataFrame({"date": pd.date_range("2021-06-01", "2022-04-01", freq="4h", tz="UTC")})
+    h4["close"] = 1.0
+    out = pusula.add_weekly_regime(h4, d, d, "4h")
+    tf = pusula.WEEKLY_TF
+
+    def seen_close(when):
+        return out.loc[out["date"] == pd.Timestamp(when, tz="UTC"), f"close_{tf}"].iloc[0]
+
+    def day_close(when):
+        return d.loc[d["date"] == pd.Timestamp(when, tz="UTC"), "close"].iloc[0]
+
+    # Week Mon 2021-12-06 .. Sun 12-12 closes Mon 12-13 00:00 = close of the 4h candle starting Sun 20:00.
+    assert seen_close("2021-12-12 20:00") == day_close("2021-12-12")
+    assert seen_close("2021-12-12 16:00") == day_close("2021-12-05")  # that week still running: previous week
+    assert seen_close("2021-12-09 08:00") == day_close("2021-12-05")
+
+    # Cutting the daily data mid-week does not change any score already visible (no lookahead).
+    cut = pusula.add_weekly_regime(h4, d[d["date"] <= pd.Timestamp("2022-01-12", tz="UTC")], d, "4h")
+    upto = out["date"] <= pd.Timestamp("2022-01-09 20:00", tz="UTC")
+    pd.testing.assert_series_equal(out.loc[upto, f"score_{tf}"], cut.loc[upto, f"score_{tf}"])
+    assert out[f"score_{tf}"].dropna().iloc[-1] == 3  # steady rise -> +3 on the weekly chart too
+    assert issubclass(pusula.PusulaV2NoBeWeekly, pusula.PusulaV2NoBe)
+
+
+def test_v2_no_be_weekly_btc_exit_on_weekly_score():
+    """PusulaV2NoBeWeekly: BTC-turn exit reads the weekly BTC score; the daily EMA20 exit is unchanged."""
+    df = pd.DataFrame({
+        "close_1d": [105.0, 95.0, 105.0, 105.0],
+        "ema_fast_1d": [100.0, 100.0, 100.0, 100.0],
+        "ema_slow_1d": [100.0, 100.0, 100.0, 100.0],
+        "mkt_score_1d": [-1, 1, -1, 1],
+        "mkt_score_1w": [1, 1, 1, -1],
+    })
+    strat = pusula.PusulaV2NoBeWeekly.__new__(pusula.PusulaV2NoBeWeekly)
+    out = strat.populate_exit_trend(df.copy(), {"pair": "X/USDT:USDT"})
+    assert out["exit_long"].fillna(0).astype(int).tolist() == [0, 1, 0, 1]

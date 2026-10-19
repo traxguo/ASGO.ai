@@ -710,3 +710,75 @@ class PusulaV2NoBeRankProbe(PusulaV2NoBeRank):
     """Diagnostic only (queue item 7): PusulaV2NoBe behaviour (no ranking), logs signal collisions."""
 
     rank_enabled = False
+
+
+# ---------------------------------------------------------------------------
+# Queue item 10 (2026-10-19): the regime read from the weekly chart.
+# ---------------------------------------------------------------------------
+
+WEEKLY_TF = "1w"
+WEEKLY_MOMENTUM_WEEKS = 13  # 91 days, the weekly equivalent of the 90-day momentum window
+
+
+def weekly_from_daily(daily: DataFrame) -> DataFrame:
+    """
+    Weekly candles built from daily candles. A week starts Monday 00:00 UTC
+    (`date` = that Monday) and closes the next Monday 00:00 UTC. Only full weeks
+    (all 7 daily candles present) are kept, so a running week never appears.
+    """
+    d = daily[["date", "open", "high", "low", "close", "volume"]].copy()
+    day = d["date"].dt.floor("D")
+    d["week"] = day - pd.to_timedelta(day.dt.dayofweek, unit="D")
+    g = d.groupby("week", sort=True)
+    w = pd.DataFrame({"open": g["open"].first(), "high": g["high"].max(), "low": g["low"].min(),
+                      "close": g["close"].last(), "volume": g["volume"].sum(), "days": g["date"].count()})
+    w = w[w["days"] == 7].drop(columns="days").reset_index().rename(columns={"week": "date"})
+    return w
+
+
+def add_weekly_regime(df: DataFrame, daily: DataFrame, market_daily: DataFrame | None, timeframe: str,
+                      fast: int = EMA_FAST, slow: int = EMA_SLOW, mom_weeks: int = WEEKLY_MOMENTUM_WEEKS) -> DataFrame:
+    """
+    Adds the weekly regime columns (`score_1w`, `mkt_score_1w`, `close_1w`, ...)
+    to a 4h frame. merge_informative_pair shifts each week to its close, so a 4h
+    candle only sees weeks that closed by the end of that candle (no lookahead).
+    """
+    weekly = weekly_from_daily(daily)
+    market_weekly = None if market_daily is None else weekly_from_daily(market_daily)
+    regime = daily_regime_frame(weekly, market_weekly, fast, slow, mom_weeks)
+    return merge_informative_pair(df, regime, timeframe, WEEKLY_TF, ffill=True)
+
+
+class PusulaV2NoBeWeekly(PusulaV2NoBe):
+    """
+    Queue item 10 (2026-10-19, research/queue/pusula_kuyruk.md), fixed before testing.
+
+    PusulaV2NoBe with the regime read from the weekly chart. Weekly candles are
+    built from the daily candles (Monday 00:00 UTC week start, only fully closed
+    weeks). Same score formula on weekly candles: weekly close vs weekly EMA(50),
+    weekly EMA(20) vs weekly EMA(50), 13-week return (= 91 days) sign.
+
+    - Entry: coin's last closed WEEKLY score >= +1 (instead of the daily score),
+      plus the unchanged 4h breakout and the unchanged "daily close above daily
+      EMA20" condition.
+    - Exits: the BTC-turn exit used BTC's daily regime score; it now uses BTC's
+      last closed WEEKLY score <= -1. The daily EMA20 trend exit (not a regime
+      score) and the fixed planned stop are unchanged.
+    """
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        daily = self.dp.get_pair_dataframe(pair=metadata["pair"], timeframe=REGIME_TF)
+        market = self.dp.get_pair_dataframe(pair=MARKET_PAIR, timeframe=REGIME_TF)
+        return add_weekly_regime(df, daily, market, self.timeframe, self.ema_fast, self.ema_slow)
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["regime_up"] = df[f"score_{WEEKLY_TF}"] >= 1
+        return conds
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        # Daily EMA20 trend exit unchanged (PusulaTrend); BTC-turn exit on the weekly score.
+        df = super(PusulaTrendLongBtcExit, self).populate_exit_trend(df, metadata)
+        df.loc[df[f"mkt_score_{WEEKLY_TF}"] <= -1, "exit_long"] = 1
+        return df
