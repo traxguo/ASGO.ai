@@ -640,3 +640,9 @@ time,pair,event,detail
 2026-10-19T16:03:36.799084+00:00,DOGE/USDT:USDT,limit placed,"27239.0 @ 0.07267 (hour open 0.07899, score -1, derin)"
 2026-10-19T16:03:36.799084+00:00,TRX/USDT:USDT,limit placed,"6503.0 @ 0.30437 (hour open 0.33084, score -1, derin)"
 2026-10-19T16:03:36.799084+00:00,NEAR/USDT:USDT,limit placed,"424.0 @ 4.6586 (hour open 4.9038, score +3, fitil)"
+2026-10-19T17:03:41.786543+00:00,DOGE/USDT:USDT,limit cancelled,hour over
+2026-10-19T17:03:41.786543+00:00,NEAR/USDT:USDT,limit cancelled,hour over
+2026-10-19T17:03:41.786543+00:00,TRX/USDT:USDT,limit cancelled,hour over
+2026-10-19T17:03:41.786543+00:00,DOGE/USDT:USDT,limit placed,"27153.0 @ 0.0729 (hour open 0.07924, score -1, derin)"
+2026-10-19T17:03:41.786543+00:00,TRX/USDT:USDT,limit placed,"6503.0 @ 0.30435 (hour open 0.33081, score -1, derin)"
+2026-10-19T17:03:41.786543+00:00,NEAR/USDT:USDT,limit placed,"420.0 @ 4.7034 (hour open 4.9509, score +3, fitil)"
