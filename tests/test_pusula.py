@@ -243,3 +243,20 @@ def test_v2_no_be_weekly_btc_exit_on_weekly_score():
     strat = pusula.PusulaV2NoBeWeekly.__new__(pusula.PusulaV2NoBeWeekly)
     out = strat.populate_exit_trend(df.copy(), {"pair": "X/USDT:USDT"})
     assert out["exit_long"].fillna(0).astype(int).tolist() == [0, 1, 0, 1]
+
+
+def test_v2_no_be_5_slots_keep_total_open_risk_of_3_slots():
+    from strategies.common import trade_management as tm
+
+    base, five = pusula.PusulaV2NoBe, pusula.PusulaV2NoBe5
+    assert five.max_open_trades == 5
+    assert five.mgmt.risk_per_trade == pytest.approx(base.mgmt.risk_per_trade * 3 / 5)
+    assert 5 * five.mgmt.risk_per_trade == pytest.approx(3 * base.mgmt.risk_per_trade)
+    # only the risk changes; every other management rule is the baseline's
+    assert {k: v for k, v in vars(five.mgmt).items() if k != "risk_per_trade"} == \
+        {k: v for k, v in vars(base.mgmt).items() if k != "risk_per_trade"}
+    # a stop-out loses 0.6% of equity: notional scales with the risk
+    n_base = tm.position_notional(10_000, 100.0, 95.0, base.mgmt)
+    n_five = tm.position_notional(10_000, 100.0, 95.0, five.mgmt)
+    assert n_five * 0.05 == pytest.approx(60.0) and n_five == pytest.approx(n_base * 0.6)
+    assert five.custom_stoploss is base.custom_stoploss

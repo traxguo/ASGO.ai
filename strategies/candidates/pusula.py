@@ -782,3 +782,23 @@ class PusulaV2NoBeWeekly(PusulaV2NoBe):
         df = super(PusulaTrendLongBtcExit, self).populate_exit_trend(df, metadata)
         df.loc[df[f"mkt_score_{WEEKLY_TF}"] <= -1, "exit_long"] = 1
         return df
+
+
+class PusulaV2NoBe5(PusulaV2NoBe):
+    """
+    Queue item 11 (2026-10-20, research/queue/pusula_kuyruk.md), fixed before testing.
+
+    PusulaV2NoBe with more, smaller slots. The baseline risks 1% of equity per
+    trade (a stop-out loses 1% of total equity) with at most 3 open trades, so
+    at most 3% of equity is at risk at once. This version runs with at most 5
+    open trades (run with --max-open-trades 5) and risks 1% * 3 / 5 = 0.6% of
+    equity per trade, so the total open risk stays at most 3%. Position size
+    is still set from the stop distance (custom_stake_amount); leverage cap,
+    entries, stop and exits are unchanged.
+    """
+
+    max_open_trades = 5
+    from dataclasses import replace as _replace
+
+    from strategies.common import trade_management as _tm
+    mgmt = _replace(_tm.DEFAULT_PARAMS, risk_per_trade=0.01 * 3 / 5)
