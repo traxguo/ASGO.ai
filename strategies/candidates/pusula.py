@@ -802,3 +802,34 @@ class PusulaV2NoBe5(PusulaV2NoBe):
 
     from strategies.common import trade_management as _tm
     mgmt = _replace(_tm.DEFAULT_PARAMS, risk_per_trade=0.01 * 3 / 5)
+
+
+class PusulaV2NoBeNoBreakout(PusulaV2NoBe):
+    """
+    Queue item 12 (2026-10-21, research/queue/pusula_kuyruk.md), removal test,
+    fixed before testing.
+
+    PusulaV2NoBe without the 4h breakout trigger ("breakout_up": first 4h close
+    above the previous 20-candle high). The remaining long conditions are
+    unchanged: last closed daily score >= +1 ("regime_up"), last closed daily
+    close above the daily EMA(20) ("daily_above_ema20") and the shared plan
+    check (stop distance within the limit). As before, no entry while an exit
+    signal is true (daily close below EMA20 or BTC daily score <= -1).
+
+    So the entry signal is on EVERY 4h candle where these hold, not only the
+    first one: the first 4h candle after the conditions become true, and, while
+    they stay true, any later 4h candle when the coin has no open trade (e.g.
+    right after a stop-out, or when a slot frees up). One trade per coin, no
+    adding (unchanged).
+
+    Stop and 1R: unchanged. The stop never depended on the breakout level: it is
+    the wider of entry_mid - 1.5 ATR and the 10-candle swing low (shared module),
+    entry_mid = signal close - half the 0.25 ATR entry zone, all from the signal
+    candle. So 1R means the same thing as in the baseline. Exits unchanged
+    (fixed stop, daily EMA20 exit, BTC-turn exit).
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"].pop("breakout_up", None)
+        return conds

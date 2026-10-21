@@ -260,3 +260,42 @@ def test_v2_no_be_5_slots_keep_total_open_risk_of_3_slots():
     n_five = tm.position_notional(10_000, 100.0, 95.0, five.mgmt)
     assert n_five * 0.05 == pytest.approx(60.0) and n_five == pytest.approx(n_base * 0.6)
     assert five.custom_stoploss is base.custom_stoploss
+
+
+def test_v2_no_be_no_breakout_enters_on_every_trend_candle_with_same_stop():
+    """PusulaV2NoBeNoBreakout: only the 4h breakout condition is dropped; stop/plan columns are the baseline's."""
+    tf = pusula.REGIME_TF
+    n = 8
+    close = [100.0, 101.0, 102.0, 101.5, 101.0, 100.5, 101.0, 102.0]
+    df = pd.DataFrame({
+        "close": close,
+        "high": [c + 0.5 for c in close],
+        "low": [c - 0.5 for c in close],
+        "atr": [1.0] * n,
+        "swing_low": [99.0] * n,
+        "swing_high": [103.0] * n,
+        # previous 20-candle high: only candle 2 breaks it
+        "dc_upper": [101.0, 101.5, 101.5, 102.5, 102.5, 102.5, 102.5, 102.5],
+        "dc_lower": [90.0] * n,
+        f"score_{tf}": [1, 1, 1, 1, 1, -1, 1, 3],
+        f"close_{tf}": [105.0, 105.0, 105.0, 105.0, 95.0, 105.0, 105.0, 105.0],
+        f"ema_fast_{tf}": [100.0] * n,
+        f"mkt_score_{tf}": [1] * n,
+    })
+
+    def entries(cls):
+        strat = cls.__new__(cls)
+        strat.mgmt = cls.mgmt
+        out = strat.populate_entry_trend(df.copy(), {"pair": "X/USDT:USDT"})
+        return out, out.get("enter_long", pd.Series(np.nan, index=df.index)).fillna(0).astype(int).tolist()
+
+    base_df, base = entries(pusula.PusulaV2NoBe)
+    nb_df, nb = entries(pusula.PusulaV2NoBeNoBreakout)
+    assert issubclass(pusula.PusulaV2NoBeNoBreakout, pusula.PusulaV2NoBe)
+    assert base == [0, 0, 1, 0, 0, 0, 0, 0]
+    # score >= +1 and daily close above EMA20 -> signal, breakout or not
+    assert nb == [1, 1, 1, 1, 0, 0, 1, 1]
+    pd.testing.assert_series_equal(base_df["long_stop"], nb_df["long_stop"])
+    pd.testing.assert_series_equal(base_df["long_entry"], nb_df["long_entry"])
+    assert pusula.PusulaV2NoBeNoBreakout.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
+    assert pusula.PusulaV2NoBeNoBreakout.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
