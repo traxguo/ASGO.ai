@@ -299,3 +299,44 @@ def test_v2_no_be_no_breakout_enters_on_every_trend_candle_with_same_stop():
     pd.testing.assert_series_equal(base_df["long_entry"], nb_df["long_entry"])
     assert pusula.PusulaV2NoBeNoBreakout.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
     assert pusula.PusulaV2NoBeNoBreakout.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
+
+
+def test_v2_no_be_atr_stop_uses_only_1_5_atr_stop():
+    """PusulaV2NoBeAtrStop: stop = entry_mid - 1.5 ATR, the swing low is ignored; entries unchanged."""
+    tf = pusula.REGIME_TF
+    n = 4
+    close = [100.0, 101.0, 102.0, 103.0]
+    df = pd.DataFrame({
+        "close": close,
+        "high": [c + 0.5 for c in close],
+        "low": [c - 0.5 for c in close],
+        "atr": [1.0] * n,
+        # candle 2: swing stop (95.9) wider than ATR stop -> baseline uses swing, new class ATR
+        # candle 3: swing stop above ATR stop -> both use the ATR stop
+        "swing_low": [99.0, 99.0, 96.0, 102.5],
+        "swing_high": [104.0] * n,
+        "dc_upper": [101.0, 101.5, 101.5, 102.5],
+        "dc_lower": [90.0] * n,
+        f"score_{tf}": [1] * n,
+        f"close_{tf}": [105.0] * n,
+        f"ema_fast_{tf}": [100.0] * n,
+        f"mkt_score_{tf}": [1] * n,
+    })
+
+    def run(cls):
+        strat = cls.__new__(cls)
+        strat.mgmt = cls.mgmt
+        return strat.populate_entry_trend(df.copy(), {"pair": "X/USDT:USDT"})
+
+    base, atr = run(pusula.PusulaV2NoBe), run(pusula.PusulaV2NoBeAtrStop)
+    assert issubclass(pusula.PusulaV2NoBeAtrStop, pusula.PusulaV2NoBe)
+    assert pusula.PusulaV2NoBe.mgmt.stop_method == "wider"
+    assert pusula.PusulaV2NoBeAtrStop.mgmt.stop_method == "atr"
+    mid = df["close"] - 0.125 * df["atr"]
+    np.testing.assert_allclose(atr["long_stop"], mid - 1.5 * df["atr"])
+    assert base["long_stop"].iloc[2] == pytest.approx(96.0 - 0.1)
+    assert base["long_stop"].iloc[3] == pytest.approx(atr["long_stop"].iloc[3])
+    pd.testing.assert_series_equal(base["long_entry"], atr["long_entry"])
+    pd.testing.assert_series_equal(base["enter_long"].fillna(0), atr["enter_long"].fillna(0))
+    assert pusula.PusulaV2NoBeAtrStop.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
+    assert pusula.PusulaV2NoBeAtrStop.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend

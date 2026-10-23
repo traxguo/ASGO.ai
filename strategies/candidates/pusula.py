@@ -833,3 +833,31 @@ class PusulaV2NoBeNoBreakout(PusulaV2NoBe):
         conds = super().signal_conditions(df)
         conds["long"].pop("breakout_up", None)
         return conds
+
+
+class PusulaV2NoBeAtrStop(PusulaV2NoBe):
+    """
+    Queue item 14 (2026-10-23, research/queue/pusula_kuyruk.md), removal test,
+    fixed before testing.
+
+    PusulaV2NoBe without the structural (swing-low) part of the stop. The
+    baseline stop is the wider of entry_mid - 1.5 ATR and the 10-candle swing
+    low - 0.1 ATR buffer; here it is only entry_mid - 1.5 ATR (shared module
+    stop_method="atr"), entry_mid = signal close - 0.125 ATR, all from the
+    signal candle. The stop never moves (as in the baseline).
+
+    Consequences (same shared rules, nothing else changed):
+    - The stop is never further than the baseline stop, so 1R (stop distance)
+      is the same or smaller and the position (1% equity risk) the same or
+      larger; leverage is still the highest safe step up to 3x.
+    - The plan check (stop distance <= 8% of price) uses this stop, so a signal
+      the baseline skipped only because its swing stop was > 8% away can now
+      be taken. A trade is skipped when its margin does not fit the free
+      balance (unchanged rule).
+    Entries and exits (daily EMA20 exit, BTC-turn exit) are unchanged.
+    """
+
+    from dataclasses import replace as _replace
+
+    from strategies.common import trade_management as _tm
+    mgmt = _replace(_tm.DEFAULT_PARAMS, stop_method="atr")
