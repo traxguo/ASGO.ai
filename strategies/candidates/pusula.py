@@ -861,3 +861,51 @@ class PusulaV2NoBeAtrStop(PusulaV2NoBe):
 
     from strategies.common import trade_management as _tm
     mgmt = _replace(_tm.DEFAULT_PARAMS, stop_method="atr")
+
+
+MATURE_TREND_DAYS = 11
+
+
+def trend_age(daily: DataFrame) -> Series:
+    """Per daily candle: how many consecutive daily candles, ending with this one, have score >= +1."""
+    up = (regime_score(daily) >= 1).astype(int)
+    run_id = (up == 0).cumsum()
+    return up.groupby(run_id).cumsum()
+
+
+def add_trend_age(df: DataFrame, daily: DataFrame, timeframe_inf: str = REGIME_TF) -> DataFrame:
+    """
+    Add f"trend_age_{tf}" to a frame already merged with merge_informative_pair:
+    the age of the daily candle that row already sees (f"date_{tf}" = last CLOSED
+    daily candle), so no lookahead. Rows before any closed daily candle get NaN.
+    """
+    age = pd.Series(trend_age(daily).to_numpy(), index=pd.DatetimeIndex(daily["date"]))
+    df[f"trend_age_{timeframe_inf}"] = df[f"date_{timeframe_inf}"].map(age)
+    return df
+
+
+class PusulaV2NoBeMature(PusulaV2NoBe):
+    """
+    Queue item 15 (2026-10-24, research/queue/pusula_kuyruk.md), addition test,
+    fixed before testing.
+
+    PusulaV2NoBe with one extra long-entry condition ("trend_mature"): the coin's
+    daily regime score has been >= +1 for at least 11 consecutive CLOSED daily
+    candles, counted up to and including the last daily candle that closed at
+    or before the signal 4h candle's close (= the entry candle's open). Same
+    definition as research/robustness/pusula_trend_age.py (queue item 13). The
+    threshold 11 comes from item 13's buckets fixed before that test (0-10 days
+    was the weak group); no sweep. Everything else is unchanged.
+    """
+
+    mature_days = MATURE_TREND_DAYS
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        daily = self.dp.get_pair_dataframe(pair=metadata["pair"], timeframe=REGIME_TF)
+        return add_trend_age(df, daily, REGIME_TF)
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["trend_mature"] = df[f"trend_age_{REGIME_TF}"] >= self.mature_days
+        return conds

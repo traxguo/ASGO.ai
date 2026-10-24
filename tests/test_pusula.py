@@ -340,3 +340,65 @@ def test_v2_no_be_atr_stop_uses_only_1_5_atr_stop():
     pd.testing.assert_series_equal(base["enter_long"].fillna(0), atr["enter_long"].fillna(0))
     assert pusula.PusulaV2NoBeAtrStop.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
     assert pusula.PusulaV2NoBeAtrStop.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
+
+
+def test_v2_no_be_mature_trend_age_counts_closed_daily_candles_only():
+    """PusulaV2NoBeMature: trend age = run of closed daily candles with score >= +1; no lookahead; one extra condition."""
+    from freqtrade.strategy import merge_informative_pair
+
+    tf = pusula.REGIME_TF
+    closes = np.concatenate([np.linspace(100, 300, 200), np.linspace(300, 120, 80), np.linspace(120, 400, 150)])
+    d = daily(closes)
+    age = pusula.trend_age(d)
+    up = (pusula.regime_score(d) >= 1).to_numpy()
+    run = 0
+    for i, u in enumerate(up):  # same loop as research/robustness/pusula_trend_age.py
+        run = run + 1 if u else 0
+        assert age.iloc[i] == run
+    assert age.max() > 20 and (age == 0).any()
+
+    h4 = pd.DataFrame({"date": pd.date_range(pd.Timestamp("2021-03-01", tz="UTC"), d["date"].iloc[-1], freq="4h")})
+    h4["close"] = 1.0
+
+    def merged(dd):
+        out = merge_informative_pair(h4.copy(), dd[["date", "close"]].copy(), "4h", tf, ffill=True)
+        return pusula.add_trend_age(out, dd, tf)
+
+    out = merged(d)
+    day = pd.Timestamp("2021-06-10", tz="UTC")
+    age_of = dict(zip(d["date"], age))
+    # The 4h candle starting 20:00 closes at the next midnight -> sees that day; earlier candles see the day before.
+    row = out.set_index("date")[f"trend_age_{tf}"]
+    assert row[day + pd.Timedelta(hours=20)] == age_of[day]
+    assert row[day + pd.Timedelta(hours=16)] == age_of[day - pd.Timedelta(days=1)]
+    # Cutting the daily data does not change any value already visible (no lookahead).
+    cut_day = pd.Timestamp("2021-09-15", tz="UTC")
+    cut = merged(d[d["date"] <= cut_day])
+    upto = out["date"] < cut_day
+    pd.testing.assert_series_equal(out.loc[upto, f"trend_age_{tf}"], cut.loc[upto, f"trend_age_{tf}"])
+
+    # Entry: baseline conditions plus age >= 11 only.
+    n = 3
+    df = pd.DataFrame({
+        "close": [102.0] * n, "high": [102.5] * n, "low": [101.5] * n, "atr": [1.0] * n,
+        "swing_low": [99.0] * n, "swing_high": [103.0] * n,
+        "dc_upper": [101.0] * n, "dc_lower": [90.0] * n,
+        f"score_{tf}": [1] * n, f"close_{tf}": [105.0] * n, f"ema_fast_{tf}": [100.0] * n, f"mkt_score_{tf}": [1] * n,
+    })
+
+    def entry_for(cls, age_value):
+        strat = cls.__new__(cls)
+        strat.mgmt = cls.mgmt
+        x = df.copy()
+        x["close"] = [100.5, 100.5, 102.0]  # breakout only on the last candle
+        x[f"trend_age_{tf}"] = age_value
+        out = strat.populate_entry_trend(x, {"pair": "X/USDT:USDT"})
+        return out.get("enter_long", pd.Series(np.nan, index=x.index)).fillna(0).astype(int).tolist()
+
+    assert entry_for(pusula.PusulaV2NoBe, 0) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeMature, 10) == [0, 0, 0]
+    assert entry_for(pusula.PusulaV2NoBeMature, 11) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeMature, np.nan) == [0, 0, 0]
+    assert issubclass(pusula.PusulaV2NoBeMature, pusula.PusulaV2NoBe)
+    assert pusula.PusulaV2NoBeMature.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
+    assert pusula.PusulaV2NoBeMature.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
