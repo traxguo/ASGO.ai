@@ -909,3 +909,78 @@ class PusulaV2NoBeMature(PusulaV2NoBe):
         conds = super().signal_conditions(df)
         conds["long"]["trend_mature"] = df[f"trend_age_{REGIME_TF}"] >= self.mature_days
         return conds
+
+
+DD_BRAKE_THRESHOLD = 0.15  # drawdown from the running peak that switches the brake on
+DD_BRAKE_RISK = 0.005  # risk per trade while the brake is on (baseline 1%)
+
+
+def dd_brake_risk(closed_balances, current_equity: float, base_risk: float = 0.01,
+                  brake_risk: float = DD_BRAKE_RISK, threshold: float = DD_BRAKE_THRESHOLD) -> float:
+    """
+    Risk per trade under the drawdown brake.
+
+    closed_balances: the account balance after each closed trade so far, starting
+    with the starting balance (closed-trade equity curve, nothing unrealized).
+    current_equity: today's closed-trade balance. The running peak is the highest
+    of these; if current_equity is >= `threshold` below that peak, return
+    brake_risk, else base_risk.
+    """
+    peak = max([float(b) for b in closed_balances] + [float(current_equity)])
+    if peak <= 0:
+        return base_risk
+    drawdown = 1.0 - float(current_equity) / peak
+    return brake_risk if drawdown >= threshold - 1e-12 else base_risk
+
+
+class PusulaV2NoBeDdBrake(PusulaV2NoBe):
+    """
+    Queue item 16 (2026-10-25, research/queue/pusula_kuyruk.md), risk rule,
+    fixed before testing.
+
+    PusulaV2NoBe with an account drawdown brake. Equity measure: the closed-trade
+    balance (starting balance + realized profit of closed trades, funding and
+    costs included) - the same number the baseline sizes positions from
+    (wallets.get_total_stake_amount() in futures backtest/dry-run). Open trades'
+    unrealized profit is ignored, so only what is known at entry time is used.
+
+    At each entry: peak = highest closed-trade balance so far (starting balance
+    and the balance after every trade closed before this entry). If the current
+    closed-trade balance is 15% or more below that peak, the new trade risks
+    0.5% of equity; otherwise 1% (baseline). Thresholds fixed, no sweep.
+    Position size from the stop distance as before; entries, stop, leverage cap,
+    exits unchanged. The "skip if margin does not fit" rule is unchanged.
+    """
+
+    dd_brake_threshold = DD_BRAKE_THRESHOLD
+    dd_brake_risk = DD_BRAKE_RISK
+
+    def _closed_balances(self) -> list[float]:
+        from freqtrade.persistence import Trade
+
+        start = float(self.wallets.get_starting_balance())
+        closed = [t for t in Trade.get_trades_proxy(is_open=False) if t.close_date is not None]
+        closed.sort(key=lambda t: t.close_date)
+        balances, bal = [start], start
+        for t in closed:
+            bal += float(t.close_profit_abs or 0.0)
+            balances.append(bal)
+        return balances
+
+    def custom_stake_amount(self, pair, current_time, current_rate, proposed_stake, min_stake, max_stake, leverage, entry_tag, side, **kwargs) -> float:
+        from dataclasses import replace
+
+        from strategies.common import trade_management as tm
+
+        row = self._last_row(pair)
+        if row is None:
+            return 0.0
+        equity = self.wallets.get_total_stake_amount()
+        risk = dd_brake_risk(self._closed_balances(), equity, self.mgmt.risk_per_trade,
+                             self.dd_brake_risk, self.dd_brake_threshold)
+        params = replace(self.mgmt, risk_per_trade=risk)
+        notional = tm.position_notional(equity, float(row[f"{side}_entry"]), float(row[f"{side}_stop"]), params)
+        stake = notional / leverage
+        if stake > max_stake:
+            return 0.0
+        return stake

@@ -402,3 +402,23 @@ def test_v2_no_be_mature_trend_age_counts_closed_daily_candles_only():
     assert issubclass(pusula.PusulaV2NoBeMature, pusula.PusulaV2NoBe)
     assert pusula.PusulaV2NoBeMature.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
     assert pusula.PusulaV2NoBeMature.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
+
+
+def test_v2_no_be_dd_brake_halves_risk_only_15pct_below_closed_peak():
+    f = pusula.dd_brake_risk
+    assert issubclass(pusula.PusulaV2NoBeDdBrake, pusula.PusulaV2NoBe)
+    assert f([10_000], 10_000) == pytest.approx(0.01)
+    # peak 12000: 10300 is 14.2% down -> 1%; 10200 is exactly 15% down -> 0.5%
+    assert f([10_000, 12_000, 11_000], 10_300) == pytest.approx(0.01)
+    assert f([10_000, 12_000, 11_000], 10_200) == pytest.approx(0.005)
+    # brake releases once the drawdown is back under 15% (no new peak needed)
+    assert f([10_000, 12_000, 9_000, 10_300], 10_300) == pytest.approx(0.01)
+    # only closed balances count: a later (future) peak is not passed in, so it cannot matter
+    assert f([10_000, 9_000], 8_400) == pytest.approx(0.005)
+    # sizing: same stop, half the notional under the brake
+    from dataclasses import replace
+    from strategies.common import trade_management as tm
+    base = pusula.PusulaV2NoBe.mgmt
+    n1 = tm.position_notional(10_000, 100.0, 95.0, base)
+    n2 = tm.position_notional(10_000, 100.0, 95.0, replace(base, risk_per_trade=0.005))
+    assert n2 == pytest.approx(n1 / 2)
