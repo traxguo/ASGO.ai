@@ -984,3 +984,85 @@ class PusulaV2NoBeDdBrake(PusulaV2NoBe):
         if stake > max_stake:
             return 0.0
         return stake
+
+
+FUNDING_WINDOW_HOURS = 72  # last 3 days of funding payments
+FUNDING_MAX_ANNUAL = 0.50  # skip longs when the annualised rate is above 50% per year
+FUNDING_MAX_INTERVAL_HOURS = 8.0  # longest normal Binance funding interval (caps data gaps)
+
+
+def funding_annualised(funding: DataFrame, decision_times: Series,
+                       window_hours: float = FUNDING_WINDOW_HOURS) -> Series:
+    """
+    Annualised funding rate known at each decision time, from settled payments only.
+
+    funding: columns date (payment time, UTC) and funding_rate (one row per payment).
+    For a decision time T, the payments used are those with T - window < time < T
+    (strictly before T: a payment at exactly T is not counted yet). Each payment i
+    covers interval_i hours = time since the previous payment (capped at 8h so a
+    data gap does not count as a long interval; the very first payment gets the
+    next one's interval). Annualised = sum(rate_i) / sum(interval_i) * 8760, i.e.
+    the average rate per hour times hours per year. With 8h payments this is the
+    mean of the last 9 rates * 3 * 365; with 4h (or 1h) payments the interval
+    changes accordingly, and a window that mixes intervals is handled too.
+    No payment in the window -> NaN (no information).
+    """
+    f = funding[["date", "funding_rate"]].dropna().sort_values("date").reset_index(drop=True)
+    # Same time unit on both sides (data files are ms, frames are often ns).
+    times = pd.DatetimeIndex(pd.to_datetime(decision_times, utc=True)).as_unit("ns")
+    if f.empty:
+        return pd.Series(np.nan, index=decision_times.index)
+    t = pd.DatetimeIndex(pd.to_datetime(f["date"], utc=True)).as_unit("ns")
+    gaps = pd.Series(t).diff().dt.total_seconds().div(3600.0)
+    if len(gaps) > 1:
+        gaps.iloc[0] = gaps.iloc[1]
+    else:
+        gaps.iloc[0] = FUNDING_MAX_INTERVAL_HOURS
+    gaps = gaps.clip(upper=FUNDING_MAX_INTERVAL_HOURS).to_numpy()
+    cum_rate = np.concatenate([[0.0], np.cumsum(f["funding_rate"].to_numpy(dtype=float))])
+    cum_hours = np.concatenate([[0.0], np.cumsum(gaps)])
+    tv = t.asi8
+    hi = np.searchsorted(tv, times.asi8, side="left")  # payments strictly before T
+    lo = np.searchsorted(tv, (times - pd.Timedelta(hours=window_hours)).as_unit("ns").asi8, side="right")  # strictly after T - window
+    rate_sum = cum_rate[hi] - cum_rate[lo]
+    hours = cum_hours[hi] - cum_hours[lo]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ann = np.where(hi > lo, rate_sum / hours * 8760.0, np.nan)
+    return pd.Series(ann, index=decision_times.index)
+
+
+class PusulaV2NoBeFunding(PusulaV2NoBe):
+    """
+    Queue item 17 (2026-10-26, research/queue/pusula_kuyruk.md), addition test,
+    fixed before testing.
+
+    PusulaV2NoBe with one extra long-entry condition ("funding_ok"): the coin's
+    annualised funding rate over the last 3 days is NOT above 50% per year.
+    Decision time = the signal 4h candle's close (row date + 4h), the moment the
+    entry order is placed; only payments settled strictly before it count (see
+    funding_annualised: sum of rates / covered hours * 8760, so 8h, 4h and 1h
+    payment intervals are all handled). No funding data in the window (e.g.
+    before the coin's first payment in the archive) -> no information -> entry
+    allowed, same as the baseline. Threshold fixed, no sweep. Everything else
+    (stop, size, exits, max 3 trades) is unchanged.
+    """
+
+    funding_max_annual = FUNDING_MAX_ANNUAL
+    funding_dir = _REPO_ROOT / "user_data" / "data" / "binance" / "futures"
+
+    def _funding(self, pair: str) -> DataFrame:
+        path = self.funding_dir / f"{pair.replace('/', '_').replace(':', '_')}-1h-funding_rate.feather"
+        if not path.exists():
+            return pd.DataFrame({"date": pd.Series(dtype="datetime64[ns, UTC]"), "funding_rate": pd.Series(dtype=float)})
+        return pd.read_feather(path)
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        decision = df["date"] + pd.Timedelta(minutes=timeframe_to_minutes(self.timeframe))
+        df["funding_ann"] = funding_annualised(self._funding(metadata["pair"]), decision).to_numpy()
+        return df
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["funding_ok"] = ~(df["funding_ann"] > self.funding_max_annual)
+        return conds

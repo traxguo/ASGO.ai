@@ -422,3 +422,52 @@ def test_v2_no_be_dd_brake_halves_risk_only_15pct_below_closed_peak():
     n1 = tm.position_notional(10_000, 100.0, 95.0, base)
     n2 = tm.position_notional(10_000, 100.0, 95.0, replace(base, risk_per_trade=0.005))
     assert n2 == pytest.approx(n1 / 2)
+
+
+def test_v2_no_be_funding_uses_only_settled_payments_and_handles_4h_interval():
+    """PusulaV2NoBeFunding: 3-day annualised funding from payments strictly before the decision time."""
+    tf = pusula.REGIME_TF
+    # 8h payments of 0.0001 for 10 days, then 4h payments of 0.0001.
+    t8 = pd.date_range("2022-01-01", periods=30, freq="8h", tz="UTC")
+    t4 = pd.date_range(t8[-1] + pd.Timedelta(hours=4), periods=30, freq="4h", tz="UTC")
+    f = pd.DataFrame({"date": t8.append(t4), "funding_rate": 0.0001})
+    when = pd.Series([t8[20], t4[-1] + pd.Timedelta(hours=4), pd.Timestamp("2021-12-31", tz="UTC")])
+    ann = pusula.funding_annualised(f, when)
+    assert ann.iloc[0] == pytest.approx(0.0001 * 3 * 365)  # 8h: 9 payments, 3 per day
+    assert ann.iloc[1] == pytest.approx(0.0001 * 6 * 365)  # 4h: 18 payments, 6 per day
+    assert np.isnan(ann.iloc[2])  # before any payment: no information
+    # Data files store ms timestamps, strategy frames ns: units must not matter.
+    f_ms = f.assign(date=f["date"].astype("datetime64[ms, UTC]"))
+    pd.testing.assert_series_equal(pusula.funding_annualised(f_ms, when), ann)
+
+    # No lookahead: a payment at exactly the decision time, or later, is not used.
+    spike = f.copy()
+    spike.loc[spike["date"] >= t8[20], "funding_rate"] = 0.01
+    assert pusula.funding_annualised(spike, when.iloc[:1]).iloc[0] == pytest.approx(ann.iloc[0])
+    # Strategy decision time = signal candle close (date + 4h).
+    strat = pusula.PusulaV2NoBeFunding.__new__(pusula.PusulaV2NoBeFunding)
+    assert pusula.timeframe_to_minutes(strat.timeframe) == 240
+
+    # Entry: baseline conditions plus funding_ann <= 50%/yr (NaN = allowed).
+    n = 3
+    df = pd.DataFrame({
+        "close": [100.5, 100.5, 102.0], "high": [102.5] * n, "low": [101.5] * n, "atr": [1.0] * n,
+        "swing_low": [99.0] * n, "swing_high": [103.0] * n,
+        "dc_upper": [101.0] * n, "dc_lower": [90.0] * n,
+        f"score_{tf}": [1] * n, f"close_{tf}": [105.0] * n, f"ema_fast_{tf}": [100.0] * n, f"mkt_score_{tf}": [1] * n,
+    })
+
+    def entry_for(cls, value):
+        s = cls.__new__(cls)
+        s.mgmt = cls.mgmt
+        x = df.copy()
+        x["funding_ann"] = value
+        out = s.populate_entry_trend(x, {"pair": "X/USDT:USDT"})
+        return out.get("enter_long", pd.Series(np.nan, index=x.index)).fillna(0).astype(int).tolist()
+
+    assert entry_for(pusula.PusulaV2NoBe, 0.9) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeFunding, 0.51) == [0, 0, 0]
+    assert entry_for(pusula.PusulaV2NoBeFunding, 0.50) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeFunding, np.nan) == [0, 0, 1]
+    assert pusula.PusulaV2NoBeFunding.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
+    assert pusula.PusulaV2NoBeFunding.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
