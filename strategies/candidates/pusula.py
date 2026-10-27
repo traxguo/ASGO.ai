@@ -1066,3 +1066,41 @@ class PusulaV2NoBeFunding(PusulaV2NoBe):
         conds = super().signal_conditions(df)
         conds["long"]["funding_ok"] = ~(df["funding_ann"] > self.funding_max_annual)
         return conds
+
+
+STRONG_CLOSE_MIN = 2.0 / 3.0  # close in the top third of the signal candle's range
+
+
+def close_location(df: DataFrame) -> Series:
+    """
+    (close - low) / (high - low) of each candle, from that candle's own OHLC only.
+    0 = closed at the low, 1 = closed at the high. A candle with high == low has
+    no range -> NaN (no information).
+    """
+    rng = df["high"] - df["low"]
+    return ((df["close"] - df["low"]) / rng.where(rng > 0)).astype(float)
+
+
+class PusulaV2NoBeStrongClose(PusulaV2NoBe):
+    """
+    Queue item 18 (2026-10-27, research/queue/pusula_kuyruk.md), addition test,
+    fixed before testing.
+
+    PusulaV2NoBe with one extra long-entry condition ("strong_close"): the 4h
+    breakout (signal) candle closes in the top third of its own range,
+    (close - low) / (high - low) >= 2/3. The signal candle is the candle the
+    entry signal is computed on; it has already closed when the order is placed
+    (Freqtrade places it on the next candle), so nothing later is used. A
+    candle with high == low blocks the entry. The breakout is still "first 4h
+    close above the previous 20-candle high", so a weak first breakout candle
+    is skipped, not delayed. Threshold fixed, no sweep. Everything else (stop,
+    size, exits, max 3 trades) is unchanged.
+    """
+
+    strong_close_min = STRONG_CLOSE_MIN
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        # NaN (high == low) compares False -> blocked.
+        conds["long"]["strong_close"] = close_location(df) >= self.strong_close_min - 1e-12
+        return conds

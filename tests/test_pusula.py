@@ -471,3 +471,46 @@ def test_v2_no_be_funding_uses_only_settled_payments_and_handles_4h_interval():
     assert entry_for(pusula.PusulaV2NoBeFunding, np.nan) == [0, 0, 1]
     assert pusula.PusulaV2NoBeFunding.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
     assert pusula.PusulaV2NoBeFunding.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
+
+
+def test_v2_no_be_strong_close_needs_top_third_close_on_signal_candle():
+    """PusulaV2NoBeStrongClose: breakout candle's (close - low) / (high - low) >= 2/3; high == low blocks."""
+    tf = pusula.REGIME_TF
+    loc = pusula.close_location(pd.DataFrame({"close": [3.0, 2.0, 1.0, 5.0], "high": [4.0, 4.0, 4.0, 5.0],
+                                              "low": [1.0, 1.0, 1.0, 5.0]}))
+    assert loc.iloc[0] == pytest.approx(2 / 3)
+    assert loc.iloc[1] == pytest.approx(1 / 3)
+    assert loc.iloc[2] == 0.0
+    assert np.isnan(loc.iloc[3])
+
+    # Entry: baseline conditions plus a strong close on the breakout candle (the last one).
+    n = 3
+    df = pd.DataFrame({
+        "close": [100.5, 100.5, 102.0], "high": [102.5] * n, "low": [101.5] * n, "atr": [1.0] * n,
+        "swing_low": [99.0] * n, "swing_high": [103.0] * n,
+        "dc_upper": [101.0] * n, "dc_lower": [90.0] * n,
+        f"score_{tf}": [1] * n, f"close_{tf}": [105.0] * n, f"ema_fast_{tf}": [100.0] * n, f"mkt_score_{tf}": [1] * n,
+    })
+
+    def entry_for(cls, high, low, later_high=None):
+        s = cls.__new__(cls)
+        s.mgmt = cls.mgmt
+        x = df.copy()
+        x["high"] = [100.8, 100.8, high]
+        x["low"] = [100.0, 100.0, low]
+        if later_high is not None:  # a later candle exists; it must not change the signal candle's verdict
+            x = pd.concat([x, x.iloc[[-1]].assign(high=later_high)], ignore_index=True)
+        out = s.populate_entry_trend(x, {"pair": "X/USDT:USDT"})
+        return out.get("enter_long", pd.Series(np.nan, index=x.index)).fillna(0).astype(int).tolist()[:3]
+
+    # close 102: range 99..102.5 -> 3/3.5 = 0.857 strong; range 99..105 -> 0.5 weak; exactly 2/3: 100..103
+    assert entry_for(pusula.PusulaV2NoBe, 105.0, 99.0) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeStrongClose, 102.5, 99.0) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeStrongClose, 105.0, 99.0) == [0, 0, 0]
+    assert entry_for(pusula.PusulaV2NoBeStrongClose, 103.0, 100.0) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeStrongClose, 102.0, 102.0) == [0, 0, 0]
+    # No lookahead: a much higher next candle does not change the signal candle's verdict.
+    assert entry_for(pusula.PusulaV2NoBeStrongClose, 102.5, 99.0, later_high=150.0) == [0, 0, 1]
+    assert issubclass(pusula.PusulaV2NoBeStrongClose, pusula.PusulaV2NoBe)
+    assert pusula.PusulaV2NoBeStrongClose.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
+    assert pusula.PusulaV2NoBeStrongClose.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
