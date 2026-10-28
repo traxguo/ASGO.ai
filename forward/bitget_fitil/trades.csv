@@ -1,0 +1,2 @@
+pair,hour,limit_price,fill_time,fill_price,amount,exit_time,exit_price,exit_reason,pnl_usdt,fees_usdt,ret_pct
+NEAR/USDT:USDT,2026-10-20T13:00:00+00:00,4.4538,2026-10-24T14:16:30.990000+00:00,4.4538,444.0,2026-10-28T19:18:44.209275+00:00,4.745,time_exit,127.6332,1.6596,6.454
