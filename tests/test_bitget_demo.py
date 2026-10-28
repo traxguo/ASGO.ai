@@ -17,6 +17,12 @@ NOW = datetime(2026, 10, 12, 4, 7, tzinfo=timezone.utc)  # 7 minutes after the 0
 SIGNAL = datetime(2026, 10, 12, 0, 0, tzinfo=timezone.utc)
 
 
+@pytest.fixture(autouse=True)
+def no_live_bot_states(monkeypatch):
+    """The live state files of the other demo bots (committed by the workflows) must not make a test skip its coin."""
+    monkeypatch.setattr(bd, "OTHER_STATE_FILES", [])
+
+
 # ------------------------------------------------------------------ safety
 
 
