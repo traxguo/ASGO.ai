@@ -1,0 +1,22 @@
+name: Forex scan (research)
+# Research only: downloads Dukascopy bid/ask candles (cached, never committed) and prints the scan.
+on:
+  pull_request:
+    paths: ["research/forex/**", ".github/workflows/forex_scan.yml"]
+  workflow_dispatch:
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy pyarrow
+      - uses: actions/cache@v4
+        with:
+          path: user_data/forex
+          key: forex-5m-${{ hashFiles('research/forex/fetch_dukascopy.py') }}
+      - run: python research/forex/fetch_dukascopy.py EURUSD XAUUSD USATECHIDXUSD --start 2020-01-01 --end 2026-10-01
+      - run: python research/forex/scan.py
