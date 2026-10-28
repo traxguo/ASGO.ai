@@ -1104,3 +1104,83 @@ class PusulaV2NoBeStrongClose(PusulaV2NoBe):
         # NaN (high == low) compares False -> blocked.
         conds["long"]["strong_close"] = close_location(df) >= self.strong_close_min - 1e-12
         return conds
+
+
+BREADTH_MIN = 0.5  # at least half of the list's coins must be in a daily long regime
+
+
+def breadth_share(dailies: dict, decision_times: Series, fast: int = EMA_FAST, slow: int = EMA_SLOW,
+                  mom_days: int = MOMENTUM_DAYS) -> DataFrame:
+    """
+    Market breadth known at each decision time, from CLOSED daily candles only.
+
+    dailies: {pair: daily OHLCV frame (date = candle open, UTC)} for every coin of the list.
+    decision_times: the moments a decision is made (here the signal 4h candle's close).
+    For a decision time T the last closed daily candle is the one that opened at
+    floor(T, day) - 1 day (it closed at floor(T, day) <= T). A coin counts only if it
+    has exactly that daily candle AND a score for it (enough history): a coin with no
+    data yet, still in warm-up, or whose data stopped is left out of both the count
+    of coins (`n`) and the count of coins with score >= +1 (`up`).
+    Returns a frame (index = decision_times.index) with columns up, n, share (= up / n,
+    NaN when n == 0).
+    """
+    # One time unit on both sides (data files are ms, frames are often ns).
+    times = pd.DatetimeIndex(pd.to_datetime(decision_times, utc=True)).as_unit("ns")
+    last_closed_open = (times.floor("1D") - pd.Timedelta(days=1)).as_unit("ns")
+    up = np.zeros(len(times), dtype=int)
+    n = np.zeros(len(times), dtype=int)
+    for daily in dailies.values():
+        if daily is None or daily.empty:
+            continue
+        score = regime_score(daily, fast, slow, mom_days)
+        idx = pd.DatetimeIndex(pd.to_datetime(daily["date"], utc=True)).as_unit("ns")
+        s = pd.Series(score.to_numpy(dtype=float), index=idx)
+        s = s[~s.index.duplicated(keep="last")]
+        seen = s.reindex(last_closed_open).to_numpy()
+        known = ~np.isnan(seen)
+        n += known
+        up += known & (seen >= 1)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        share = np.where(n > 0, up / np.maximum(n, 1), np.nan)
+    return pd.DataFrame({"up": up, "n": n, "share": share}, index=decision_times.index)
+
+
+class PusulaV2NoBeBreadth(PusulaV2NoBe):
+    """
+    Queue item 19 (2026-10-28, research/queue/pusula_kuyruk.md), addition test,
+    fixed before testing.
+
+    PusulaV2NoBe with one extra long-entry condition ("breadth_ok"): at least 50%
+    of the coins in the active pair list (dp.current_whitelist(), so the same
+    class works on any list) have a last CLOSED daily score >= +1. Decision time
+    = the signal 4h candle's close (row date + 4h); the daily candle used for
+    each coin is the last one that closed by then (same visibility as the coin's
+    own score via merge_informative_pair). Coins without a score at that moment
+    (no data yet, warm-up, data ended) are left out of numerator and denominator.
+    No coin with a score -> no entry. Threshold fixed (50%), no sweep. Everything
+    else (stop, size, exits, max 3 trades) is unchanged.
+
+    Implementation note: breadth is computed from each coin's daily candles
+    (dp.get_pair_dataframe), not from the other coins' analysed 4h frames, which
+    in backtesting hold only the last 1000 candles.
+    """
+
+    breadth_min = BREADTH_MIN
+
+    def _breadth_dailies(self) -> dict:
+        return {p: self.dp.get_pair_dataframe(pair=p, timeframe=REGIME_TF) for p in self.dp.current_whitelist()}
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        decision = df["date"] + pd.Timedelta(minutes=timeframe_to_minutes(self.timeframe))
+        b = breadth_share(self._breadth_dailies(), decision, self.ema_fast, self.ema_slow, self.momentum_days)
+        df["breadth_up"] = b["up"].to_numpy()
+        df["breadth_n"] = b["n"].to_numpy()
+        df["breadth"] = b["share"].to_numpy()
+        return df
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        # NaN (no coin with a score) compares False -> blocked.
+        conds["long"]["breadth_ok"] = df["breadth"] >= self.breadth_min - 1e-12
+        return conds

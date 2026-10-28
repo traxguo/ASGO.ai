@@ -514,3 +514,71 @@ def test_v2_no_be_strong_close_needs_top_third_close_on_signal_candle():
     assert issubclass(pusula.PusulaV2NoBeStrongClose, pusula.PusulaV2NoBe)
     assert pusula.PusulaV2NoBeStrongClose.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
     assert pusula.PusulaV2NoBeStrongClose.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
+
+
+def test_v2_no_be_breadth_counts_closed_daily_scores_of_listed_coins_only():
+    """PusulaV2NoBeBreadth: share of list coins with last closed daily score >= +1 must be >= 50%; no lookahead."""
+    from types import SimpleNamespace
+
+    tf = pusula.REGIME_TF
+    rise = daily(np.linspace(100, 300, 200))  # score +3 from day 90
+    fall = daily(np.linspace(300, 100, 200))  # score -3
+    young = daily(np.linspace(100, 300, 60), start="2021-05-01")  # warm-up only: never a score
+    flip = daily(np.concatenate([np.linspace(300, 100, 150), np.linspace(100, 400, 50)]))
+    dailies = {"A": rise, "B": fall, "C": young, "D": flip}
+
+    def at(*stamps, d=dailies):
+        times = pd.Series(pd.to_datetime(list(stamps), utc=True))
+        return pusula.breadth_share(d, times)
+
+    day = pd.Timestamp("2021-06-10", tz="UTC")
+    b = at(day + pd.Timedelta(hours=24), day + pd.Timedelta(hours=20))
+    # Decision at midnight sees the daily candle that opened `day`; 20:00 still sees the day before.
+    s = {k: dict(zip(v["date"], pusula.regime_score(v))) for k, v in dailies.items()}
+    for row, d_open in ((0, day), (1, day - pd.Timedelta(days=1))):
+        known = [k for k in dailies if d_open in s[k] and not np.isnan(s[k][d_open])]
+        assert b["n"].iloc[row] == len(known) and "C" not in known
+        assert b["up"].iloc[row] == sum(s[k][d_open] >= 1 for k in known)
+    # Coin C (warm-up) and days before any data count nowhere; no coin with a score -> NaN share.
+    early = at("2021-01-05 00:00")
+    assert early["n"].iloc[0] == 0 and np.isnan(early["share"].iloc[0])
+    # Time units: ms data and ns decision times give the same answer.
+    ms = {k: v.assign(date=v["date"].astype("datetime64[ms, UTC]")) for k, v in dailies.items()}
+    pd.testing.assert_frame_equal(at(day, d=ms), at(day))
+    # No lookahead: cutting every coin's data after `day` changes nothing visible at `day` + 4h.
+    cut = {k: v[v["date"] <= day] for k, v in dailies.items()}
+    pd.testing.assert_frame_equal(at(day + pd.Timedelta(hours=4), d=cut), at(day + pd.Timedelta(hours=4)))
+    # A coin whose data stopped does not count later.
+    late = at(rise["date"].iloc[-1] + pd.Timedelta(days=5))
+    assert late["n"].iloc[0] == 0
+
+    # Whitelist from dp; the 4h frame gets breadth columns at decision time = date + 4h.
+    strat = pusula.PusulaV2NoBeBreadth.__new__(pusula.PusulaV2NoBeBreadth)
+    strat.dp = SimpleNamespace(current_whitelist=lambda: ["A", "B"],
+                               get_pair_dataframe=lambda pair, timeframe: dailies[pair])
+    assert set(strat._breadth_dailies()) == {"A", "B"}
+
+    # Entry: baseline conditions plus breadth >= 50% only.
+    n = 3
+    df = pd.DataFrame({
+        "close": [100.5, 100.5, 102.0], "high": [102.5] * n, "low": [101.5] * n, "atr": [1.0] * n,
+        "swing_low": [99.0] * n, "swing_high": [103.0] * n,
+        "dc_upper": [101.0] * n, "dc_lower": [90.0] * n,
+        f"score_{tf}": [1] * n, f"close_{tf}": [105.0] * n, f"ema_fast_{tf}": [100.0] * n, f"mkt_score_{tf}": [1] * n,
+    })
+
+    def entry_for(cls, value):
+        st = cls.__new__(cls)
+        st.mgmt = cls.mgmt
+        x = df.copy()
+        x["breadth"] = value
+        out = st.populate_entry_trend(x, {"pair": "X/USDT:USDT"})
+        return out.get("enter_long", pd.Series(np.nan, index=x.index)).fillna(0).astype(int).tolist()
+
+    assert entry_for(pusula.PusulaV2NoBe, 0.0) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeBreadth, 0.49) == [0, 0, 0]
+    assert entry_for(pusula.PusulaV2NoBeBreadth, 0.5) == [0, 0, 1]
+    assert entry_for(pusula.PusulaV2NoBeBreadth, np.nan) == [0, 0, 0]
+    assert issubclass(pusula.PusulaV2NoBeBreadth, pusula.PusulaV2NoBe)
+    assert pusula.PusulaV2NoBeBreadth.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
+    assert pusula.PusulaV2NoBeBreadth.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
