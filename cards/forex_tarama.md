@@ -19,5 +19,18 @@ Günlük trend: son kapanmış UTC günü; puan (kapanış EMA50 üstü, EMA20 E
 ## Geçme şartı (ilk eleme)
 Masraf sonrası işlem başı ortalama > 0 hem geliştirmede hem doğrulamada, günde ≥ 0.5 işlem (sembol başına ya da üç sembol toplamında), en az 3 geliştirme yılında artı.
 
-## Sonuçlar
-(ilk çalıştırmadan sonra eklenecek)
+## Sonuçlar (2026-10-29, ilk çalıştırma, masraf dahil işlem başı ortalama %)
+36 ayar (3 piyasa × 12). **Hiçbiri geçmedi.** Masrafsız ("brüt") sonuç neredeyse her yerde sıfır: sorun sadece masraf değil, bu basit kısa vadeli kurallarda avantaj yok.
+
+| Piyasa | En iyi ayar | Geliştirme 2020-24 | Doğrulama 2025-26/03 | Not |
+|---|---|---|---|---|
+| EUR/USD | B açılış kırılımı 1R, trend filtreli | +0.001% (0.23/gün) | +0.006% | sıfır; 2 kat masrafta eksi. Diğer 11 ayar geliştirmede eksi |
+| Altın | A limit k2, 3 saat | -0.006% (0.28/gün) | +0.104% | geliştirmede eksi; doğrulamadaki artı 2025 altın yükselişi (long +0.11, short -0.09) |
+| Altın | C RSI(2) 4 saat | -0.012% (1.22/gün) | +0.020% | geliştirmede eksi |
+| Nasdaq | B açılış kırılımı 2R, trend filtreli | +0.021% (0.22/gün) | -0.037% | doğrulamada eksi |
+
+- En sık işlem (A k1, C RSI2) günde 1.2-1.5 işlem verir ama her piyasada geliştirmede eksi.
+- 2 kat masrafla her şey daha kötü; sadece altın A k2 doğrulamada artı kalıyor (geliştirmede eksi).
+- Ham çıktı: PR #43'ün "Forex scan" iş kaydı.
+
+## Durum: ilk tarama reddedildi (2026-10-29)
