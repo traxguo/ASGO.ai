@@ -1193,3 +1193,15 @@ time,pair,event,detail
 2026-10-29T20:03:41.587982+00:00,LINK/USDT:USDT,limit placed,"185.0 @ 10.75 (hour open 11.685, score -1, derin)"
 2026-10-29T20:03:41.587982+00:00,TRX/USDT:USDT,limit placed,"6531.0 @ 0.30491 (hour open 0.33142, score -1, derin)"
 2026-10-29T20:03:41.587982+00:00,BCH/USDT:USDT,limit placed,"7.31 @ 272.4 (hour open 286.74, score +3, fitil)"
+2026-10-29T20:48:43.289000+00:00,ADA/USDT:USDT,limit cancelled,BTC guard
+2026-10-29T20:48:43.289000+00:00,BCH/USDT:USDT,filled,"panik fitili yakalandı, 7.31 adet @ 272.4"
+2026-10-29T20:48:43.289000+00:00,BCH/USDT:USDT,closed,"BTC de çakıldı, hemen satıldı, sonuç %+0.84"
+2026-10-29T20:48:43.289000+00:00,BNB/USDT:USDT,filled,"panik fitili yakalandı, 2.81 adet @ 707.28"
+2026-10-29T20:48:43.289000+00:00,BNB/USDT:USDT,closed,"BTC de çakıldı, hemen satıldı, sonuç %-2.31"
+2026-10-29T20:48:43.289000+00:00,DOGE/USDT:USDT,limit cancelled,BTC guard
+2026-10-29T20:48:43.289000+00:00,ETH/USDT:USDT,limit cancelled,BTC guard
+2026-10-29T20:48:43.289000+00:00,LINK/USDT:USDT,filled,"panik fitili yakalandı, 185.0 adet @ 10.75"
+2026-10-29T20:48:43.289000+00:00,LINK/USDT:USDT,closed,"BTC de çakıldı, hemen satıldı, sonuç %+nan"
+2026-10-29T20:48:43.289000+00:00,SOL/USDT:USDT,limit cancelled,BTC guard
+2026-10-29T20:48:43.289000+00:00,TRX/USDT:USDT,limit cancelled,BTC guard
+2026-10-29T20:48:43.289000+00:00,XRP/USDT:USDT,limit cancelled,BTC guard
