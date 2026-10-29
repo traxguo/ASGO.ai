@@ -14,10 +14,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pandas numpy pyarrow histdata
-      - run: python -u research/forex/probe_sources.py
       - uses: actions/cache@v4
         with:
           path: user_data/forex
-          key: forex-5m-${{ hashFiles('research/forex/fetch_dukascopy.py') }}
-      - run: python -u research/forex/fetch_dukascopy.py EURUSD XAUUSD USATECHIDXUSD --start 2020-01-01 --end 2026-10-01
-      - run: python research/forex/scan.py
+          key: forex-5m-${{ hashFiles('research/forex/fetch_histdata.py') }}
+      - run: python -u research/forex/fetch_histdata.py
+      - run: python -u research/forex/scan.py
+      - run: COST_MULT=2 python -u research/forex/scan.py

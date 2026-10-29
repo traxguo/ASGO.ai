@@ -6,9 +6,8 @@ GUO: kriptoda masraflar scalp'ı öldürdü; forex'te (EUR/USD, altın, Nasdaq) 
 Bu ilk tarama, kriptoda denenen en iyi üç kısa vadeli fikrin forex karşılığıdır. Kurallar ilk çalıştırmadan önce yazıldı.
 
 ## Veri ve masraf
-- Dukascopy 1 dakikalık alış (bid) ve satış (ask) mumları, 5 dakikalık mumlara çevrilir. 2020-01 → 2026-09.
-- Gerçek makas: piyasa alışı ask'tan, piyasa satışı bid'den. Limit emir sadece karşı taraf limitin içinden geçerse dolar.
-- EUR/USD'de ayrıca işlem başına %0.0035 komisyon (her yön). Altın ve Nasdaq'ta sadece makas.
+- HistData.com 1 dakikalık mumlar (ücretsiz, sadece alış fiyatı), 5 dakikalık mumlara çevrilir. 2020-01 → 2026-03. (Dukascopy denendi; GitHub sunucusunu yavaşlatıp engelledi.)
+- Masraf (makas + komisyon, gidiş-dönüş, tipik ECN hesap): EUR/USD %0.010, altın %0.015, Nasdaq %0.010. Satış fiyatına bu kadar eklenip "ask" yapılır: piyasa alışı ask'tan, satışı bid'den; limit emir sadece karşı taraf limitin içinden geçerse dolar. Her şey bir de **2 kat masrafla** çalıştırılır.
 - Dönemler: geliştirme 2020-2024, doğrulama 2025-01 → 2026-03. Kasa (2026-04 → 09) kullanılmaz.
 
 ## Kurallar

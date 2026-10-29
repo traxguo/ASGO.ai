@@ -1,26 +1,36 @@
 """
 First forex scan (2026-10-28, owner's question: is scalping easier in forex?). Rules were written
 down before the first run (cards/forex_tarama.md). Runs on a GitHub runner on the 5m bid/ask bars
-from fetch_dukascopy.py. Costs are real: market buys pay the ask, market sells get the bid, limit
-orders fill at their price only if the opposite side trades through, plus a commission on EURUSD.
+from fetch_histdata.py. Costs: a fixed round-trip cost per instrument (COST) is applied as an ask-bid gap; market buys pay
+the ask, market sells get the bid, limit orders fill only if the opposite side trades through.
 
     python research/forex/scan.py
 """
+
+import os
 
 import numpy as np
 import pandas as pd
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parents[2] / "user_data" / "forex"
-SYMBOLS = ["EURUSD", "XAUUSD", "USATECHIDXUSD"]
-COMMISSION = {"EURUSD": 0.000035, "XAUUSD": 0.0, "USATECHIDXUSD": 0.0}  # per side, ECN-style
+SYMBOLS = ["EURUSD", "XAUUSD", "NAS100"]
+# Round-trip cost (spread + commission) of a typical ECN account, as a fraction of price. The bars are
+# bid only, so this is applied as a fixed ask-bid gap. COST_MULT=2 reruns everything at double cost.
+COST = {"EURUSD": 0.00010, "XAUUSD": 0.00015, "NAS100": 0.00010}
+COMMISSION = {s: 0.0 for s in SYMBOLS}
 PERIODS = {"dev": ("2020-01-01", "2025-01-01"), "val": ("2025-01-01", "2026-04-01")}  # holdout untouched
 SESSIONS = {"EURUSD": ("Europe/London", "08:00", "13:00"), "XAUUSD": ("Europe/London", "08:00", "13:00"),
-            "USATECHIDXUSD": ("America/New_York", "09:30", "12:00")}
+            "NAS100": ("America/New_York", "09:30", "12:00")}
 
 
 def load(sym: str) -> pd.DataFrame:
-    df = pd.read_feather(DATA / f"{sym}_5m.feather").set_index("date")
+    bid = pd.read_feather(DATA / f"{sym}_5m.feather").set_index("date")
+    gap = bid.close * COST[sym] * float(os.environ.get("COST_MULT", "1"))
+    df = pd.DataFrame(index=bid.index)
+    for c in ("open", "high", "low", "close"):
+        df[f"bid_{c}"] = bid[c]
+        df[f"ask_{c}"] = bid[c] + gap
     df["mid_open"] = (df.bid_open + df.ask_open) / 2
     df["mid_high"] = (df.bid_high + df.ask_high) / 2
     df["mid_low"] = (df.bid_low + df.ask_low) / 2
