@@ -1184,3 +1184,33 @@ class PusulaV2NoBeBreadth(PusulaV2NoBe):
         # NaN (no coin with a score) compares False -> blocked.
         conds["long"]["breadth_ok"] = df["breadth"] >= self.breadth_min - 1e-12
         return conds
+
+
+class PusulaV2NoBeNoScore(PusulaV2NoBe):
+    """
+    Queue item 20 (2026-10-29, research/queue/pusula_kuyruk.md), removal test,
+    fixed before testing.
+
+    PusulaV2NoBe without the coin's daily regime score condition ("regime_up":
+    last closed daily score >= +1). The remaining long conditions are unchanged:
+    the 4h breakout ("breakout_up": first 4h close above the previous 20-candle
+    high), the last closed daily close above the daily EMA(20)
+    ("daily_above_ema20") and the shared plan check (stop distance within the
+    limit). Stop, size (1% risk), max 3 trades: unchanged.
+
+    Where a regime score is still used (kept as it is, on purpose):
+    - The BTC-turn exit (round 2a) uses BTC's last closed daily score <= -1
+      (`mkt_score_1d`), not the coin's own score. Unchanged. Because Freqtrade
+      ignores an entry signal on a candle that also has an exit signal, longs
+      stay blocked while BTC's score is <= -1, exactly as in the baseline.
+    - The daily EMA20 exit uses no score. Unchanged.
+    So only the entry condition changes. Side effect (by construction, not a
+    separate rule): the coin's score needs EMA50 + 90 days of daily history; the
+    EMA20 condition only needs 20 days, so a coin can now be traded earlier
+    after its listing.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"].pop("regime_up", None)
+        return conds

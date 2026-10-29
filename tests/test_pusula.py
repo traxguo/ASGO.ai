@@ -582,3 +582,51 @@ def test_v2_no_be_breadth_counts_closed_daily_scores_of_listed_coins_only():
     assert issubclass(pusula.PusulaV2NoBeBreadth, pusula.PusulaV2NoBe)
     assert pusula.PusulaV2NoBeBreadth.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
     assert pusula.PusulaV2NoBeBreadth.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
+
+
+def test_v2_no_be_no_score_drops_only_the_daily_score_entry_condition():
+    """PusulaV2NoBeNoScore: entry = first 4h breakout + daily close above EMA20; score ignored; exits unchanged."""
+    tf = pusula.REGIME_TF
+    n = 8
+    close = [100.0, 102.0, 101.0, 103.0, 101.0, 104.0, 101.0, 105.0]
+    df = pd.DataFrame({
+        "close": close,
+        "high": [c + 0.5 for c in close],
+        "low": [c - 0.5 for c in close],
+        "atr": [1.0] * n,
+        "swing_low": [99.0] * n,
+        "swing_high": [106.0] * n,
+        # previous 20-candle high: breakouts (first close above) on candles 1, 3, 5, 7
+        "dc_upper": [101.0] * n,
+        "dc_lower": [90.0] * n,
+        # score +1, -1, NaN (warm-up), -3; candle 5 is below the daily EMA20
+        f"score_{tf}": [1, 1, 1, -1, 1, np.nan, 1, -3],
+        f"close_{tf}": [105.0, 105.0, 105.0, 105.0, 105.0, 105.0, 105.0, 105.0],
+        f"ema_fast_{tf}": [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0],
+        f"mkt_score_{tf}": [1] * n,
+    })
+    df.loc[5, f"ema_fast_{tf}"] = np.nan  # EMA20 not ready -> still no entry
+
+    def entries(cls, frame):
+        strat = cls.__new__(cls)
+        strat.mgmt = cls.mgmt
+        out = strat.populate_entry_trend(frame.copy(), {"pair": "X/USDT:USDT"})
+        return out, out.get("enter_long", pd.Series(np.nan, index=frame.index)).fillna(0).astype(int).tolist()
+
+    base_df, base = entries(pusula.PusulaV2NoBe, df)
+    ns_df, ns = entries(pusula.PusulaV2NoBeNoScore, df)
+    assert base == [0, 1, 0, 0, 0, 0, 0, 0]
+    # score -1 (3) and -3 (7) now enter; EMA20 not ready (5) still blocks
+    assert ns == [0, 1, 0, 1, 0, 0, 0, 1]
+    below = df.copy()
+    below[f"close_{tf}"] = 95.0  # daily close below EMA20 blocks every breakout
+    assert entries(pusula.PusulaV2NoBeNoScore, below)[1] == [0] * n
+    pd.testing.assert_series_equal(base_df["long_stop"], ns_df["long_stop"])
+    assert issubclass(pusula.PusulaV2NoBeNoScore, pusula.PusulaV2NoBe)
+    assert pusula.PusulaV2NoBeNoScore.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
+    # Exits (EMA20, BTC-turn on BTC's score) are the baseline's own method.
+    assert pusula.PusulaV2NoBeNoScore.populate_exit_trend is pusula.PusulaV2NoBe.populate_exit_trend
+    ex = pd.DataFrame({f"close_{tf}": [105.0, 95.0, 105.0], f"ema_fast_{tf}": [100.0] * 3,
+                       f"mkt_score_{tf}": [1, 1, -1], f"score_{tf}": [-3, 3, 3]})
+    out = pusula.PusulaV2NoBeNoScore.__new__(pusula.PusulaV2NoBeNoScore).populate_exit_trend(ex.copy(), {})
+    assert out["exit_long"].fillna(0).astype(int).tolist() == [0, 1, 1]
