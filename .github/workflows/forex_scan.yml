@@ -13,7 +13,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pandas numpy pyarrow
+      - run: pip install pandas numpy pyarrow histdata
+      - run: python -u research/forex/probe_sources.py
       - uses: actions/cache@v4
         with:
           path: user_data/forex
