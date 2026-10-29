@@ -7,7 +7,7 @@ on:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,5 +18,5 @@ jobs:
         with:
           path: user_data/forex
           key: forex-5m-${{ hashFiles('research/forex/fetch_dukascopy.py') }}
-      - run: python research/forex/fetch_dukascopy.py EURUSD XAUUSD USATECHIDXUSD --start 2020-01-01 --end 2026-10-01
+      - run: python -u research/forex/fetch_dukascopy.py EURUSD XAUUSD USATECHIDXUSD --start 2020-01-01 --end 2026-10-01
       - run: python research/forex/scan.py

@@ -23,6 +23,7 @@ import pandas as pd
 
 OUT = Path(__file__).resolve().parents[2] / "user_data" / "forex"
 POINT = {"EURUSD": 1e5, "XAUUSD": 1e3, "USATECHIDXUSD": 1e3}
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 URL = "https://datafeed.dukascopy.com/datafeed/{sym}/{y}/{m:02d}/{d:02d}/{side}_candles_min_1.bi5"
 
 
@@ -30,7 +31,8 @@ def fetch_day(sym: str, day: date, side: str) -> list[tuple]:
     url = URL.format(sym=sym, y=day.year, m=day.month - 1, d=day.day, side=side)  # month is 0-based
     for attempt in range(5):
         try:
-            raw = urllib.request.urlopen(url, timeout=30).read()
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            raw = urllib.request.urlopen(req, timeout=20).read()
             break
         except urllib.error.HTTPError as e:
             if e.code == 404:  # no file for that day
@@ -54,9 +56,27 @@ def fetch_day(sym: str, day: date, side: str) -> list[tuple]:
     return rows
 
 
+def probe(sym: str) -> None:
+    """One request with timing, to see whether the source answers before a long download."""
+    day = date(2024, 3, 5)
+    url = URL.format(sym=sym, y=day.year, m=day.month - 1, d=day.day, side="BID")
+    t0 = time.time()
+    try:
+        raw = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=20).read()
+        rows = fetch_day(sym, day, "BID")
+        print(f"probe {sym}: {len(raw)} bytes in {time.time() - t0:.1f}s, {len(rows)} candles, first {rows[:1]}", flush=True)
+    except Exception as e:  # noqa: BLE001 - report and stop
+        print(f"probe {sym}: {type(e).__name__} {e} after {time.time() - t0:.1f}s", flush=True)
+        raise SystemExit(1)
+
+
 def bars(sym: str, days: list[date], side: str) -> pd.DataFrame:
-    with ThreadPoolExecutor(16) as ex:
-        parts = list(ex.map(lambda d: fetch_day(sym, d, side), days))
+    parts = []
+    with ThreadPoolExecutor(8) as ex:
+        for n, rows in enumerate(ex.map(lambda d: fetch_day(sym, d, side), days)):
+            parts.append(rows)
+            if n % 250 == 0:
+                print(f"  {sym} {side}: {n}/{len(days)} days", flush=True)
     df = pd.DataFrame([r for p in parts for r in p], columns=["date", "open", "high", "low", "close"]).set_index("date")
     return df.resample("5min").agg({"open": "first", "high": "max", "low": "min", "close": "last"}).dropna()
 
@@ -70,6 +90,8 @@ def main() -> None:
     d0, d1 = date.fromisoformat(a.start), date.fromisoformat(a.end)
     days = [d0 + timedelta(n) for n in range((d1 - d0).days) if (d0 + timedelta(n)).weekday() != 5]
     OUT.mkdir(parents=True, exist_ok=True)
+    for sym in a.symbols:
+        probe(sym)
     for sym in a.symbols:
         path = OUT / f"{sym}_5m.feather"
         if path.exists():
