@@ -26,8 +26,73 @@
    "ret_pct": -1.482,
    "pnl_usdt": -29.75,
    "size": 2007.194
+  },
+  {
+   "pair": "BNB/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-10-29T20:00:00+00:00",
+   "limit_price": 702.5819999999999,
+   "fill_time": "2026-10-29T20:30:00+00:00",
+   "entry": 702.5819999999999,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2001.244
+  },
+  {
+   "pair": "HBAR/USDT:USDT",
+   "mode": "derin",
+   "hour": "2026-10-29T20:00:00+00:00",
+   "limit_price": 0.066884,
+   "fill_time": "2026-10-29T20:45:00+00:00",
+   "entry": 0.066884,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2001.244
+  },
+  {
+   "pair": "ZEC/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-10-29T20:00:00+00:00",
+   "limit_price": 1242.0774999999999,
+   "fill_time": "2026-10-29T20:45:00+00:00",
+   "entry": 1242.0774999999999,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2001.244
+  },
+  {
+   "pair": "DASH/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-10-29T20:00:00+00:00",
+   "limit_price": 47.823,
+   "fill_time": "2026-10-29T20:45:00+00:00",
+   "entry": 47.823,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2001.244
+  },
+  {
+   "pair": "INJ/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-10-29T20:00:00+00:00",
+   "limit_price": 7.4442,
+   "fill_time": "2026-10-29T20:45:00+00:00",
+   "entry": 7.4442,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2001.244
   }
  ],
  "equity": 10006.22,
- "done_until": "2026-10-29T20:00:00+00:00"
+ "done_until": "2026-10-29T21:00:00+00:00"
 }

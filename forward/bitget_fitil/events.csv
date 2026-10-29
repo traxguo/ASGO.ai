@@ -1205,3 +1205,12 @@ time,pair,event,detail
 2026-10-29T20:48:43.289000+00:00,SOL/USDT:USDT,limit cancelled,BTC guard
 2026-10-29T20:48:43.289000+00:00,TRX/USDT:USDT,limit cancelled,BTC guard
 2026-10-29T20:48:43.289000+00:00,XRP/USDT:USDT,limit cancelled,BTC guard
+2026-10-29T21:03:37.656980+00:00,ETH/USDT:USDT,limit placed,"0.94 @ 2076.27 (hour open 2256.82, score -1, derin)"
+2026-10-29T21:03:37.656980+00:00,SOL/USDT:USDT,limit placed,"22.2 @ 88.415 (hour open 96.103, score -1, derin)"
+2026-10-29T21:03:37.656980+00:00,XRP/USDT:USDT,limit placed,"1725.0 @ 1.1387 (hour open 1.2377, score -1, derin)"
+2026-10-29T21:03:37.656980+00:00,BNB/USDT:USDT,limit placed,"2.96 @ 661.86 (hour open 696.69, score +3, fitil)"
+2026-10-29T21:03:37.656980+00:00,DOGE/USDT:USDT,limit placed,"28362.0 @ 0.06927 (hour open 0.07529, score -1, derin)"
+2026-10-29T21:03:37.656980+00:00,ADA/USDT:USDT,limit placed,"11213.0 @ 0.1752 (hour open 0.1904, score -1, derin)"
+2026-10-29T21:03:37.656980+00:00,LINK/USDT:USDT,limit placed,"194.0 @ 10.111 (hour open 10.99, score -1, derin)"
+2026-10-29T21:03:37.656980+00:00,TRX/USDT:USDT,limit placed,"6479.0 @ 0.3032 (hour open 0.32957, score -1, derin)"
+2026-10-29T21:03:37.656980+00:00,BCH/USDT:USDT,limit placed,"7.64 @ 256.91 (hour open 270.43, score +3, fitil)"
