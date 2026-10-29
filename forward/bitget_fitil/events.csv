@@ -833,3 +833,21 @@ time,pair,event,detail
 2026-10-29T00:03:33.198747+00:00,LINK/USDT:USDT,limit placed,"183.0 @ 10.865 (hour open 11.81, score -1, derin)"
 2026-10-29T00:03:33.198747+00:00,TRX/USDT:USDT,limit placed,"6568.0 @ 0.30317 (hour open 0.32953, score -1, derin)"
 2026-10-29T00:03:33.198747+00:00,BCH/USDT:USDT,limit placed,"7.25 @ 274.45 (hour open 288.89, score +3, fitil)"
+2026-10-29T01:03:36.649739+00:00,ADA/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,BCH/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,BNB/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,DOGE/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,ETH/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,LINK/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,SOL/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,TRX/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,XRP/USDT:USDT,limit cancelled,hour over
+2026-10-29T01:03:36.649739+00:00,ETH/USDT:USDT,limit placed,"0.91 @ 2165.09 (hour open 2353.36, score -1, derin)"
+2026-10-29T01:03:36.649739+00:00,SOL/USDT:USDT,limit placed,"21.2 @ 93.651 (hour open 101.795, score -1, derin)"
+2026-10-29T01:03:36.649739+00:00,XRP/USDT:USDT,limit placed,"1639.0 @ 1.2146 (hour open 1.3202, score -1, derin)"
+2026-10-29T01:03:36.649739+00:00,BNB/USDT:USDT,limit placed,"2.77 @ 717.4 (hour open 755.16, score +3, fitil)"
+2026-10-29T01:03:36.649739+00:00,DOGE/USDT:USDT,limit placed,"27250.0 @ 0.07308 (hour open 0.07944, score -1, derin)"
+2026-10-29T01:03:36.649739+00:00,ADA/USDT:USDT,limit placed,"10559.0 @ 0.1886 (hour open 0.205, score -1, derin)"
+2026-10-29T01:03:36.649739+00:00,LINK/USDT:USDT,limit placed,"184.0 @ 10.808 (hour open 11.748, score -1, derin)"
+2026-10-29T01:03:36.649739+00:00,TRX/USDT:USDT,limit placed,"6577.0 @ 0.30277 (hour open 0.3291, score -1, derin)"
+2026-10-29T01:03:36.649739+00:00,BCH/USDT:USDT,limit placed,"7.29 @ 273.09 (hour open 287.46, score +3, fitil)"
