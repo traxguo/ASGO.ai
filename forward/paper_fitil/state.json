@@ -91,8 +91,34 @@
    "ret_pct": -1.96,
    "pnl_usdt": -39.22,
    "size": 2001.244
+  },
+  {
+   "pair": "IMX/USDT:USDT",
+   "mode": "derin",
+   "hour": "2026-10-30T02:00:00+00:00",
+   "limit_price": 0.113528,
+   "fill_time": "2026-10-30T02:45:00+00:00",
+   "entry": 0.113528,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 1997.514
+  },
+  {
+   "pair": "ANKR/USDT:USDT",
+   "mode": "derin",
+   "hour": "2026-10-30T02:00:00+00:00",
+   "limit_price": 0.0034159600000000004,
+   "fill_time": "2026-10-30T03:00:00+00:00",
+   "entry": 0.0034159600000000004,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 1997.514
   }
  ],
  "equity": 9987.57,
- "done_until": "2026-10-30T02:00:00+00:00"
+ "done_until": "2026-10-30T03:00:00+00:00"
 }
