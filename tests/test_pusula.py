@@ -630,3 +630,57 @@ def test_v2_no_be_no_score_drops_only_the_daily_score_entry_condition():
                        f"mkt_score_{tf}": [1, 1, -1], f"score_{tf}": [-3, 3, 3]})
     out = pusula.PusulaV2NoBeNoScore.__new__(pusula.PusulaV2NoBeNoScore).populate_exit_trend(ex.copy(), {})
     assert out["exit_long"].fillna(0).astype(int).tolist() == [0, 1, 1]
+
+
+def test_v2_no_be_slot_swap_closes_worst_old_losing_trade_only_when_slots_are_full():
+    """PusulaV2NoBeSlotSwap: full slots + waiting signal -> the lowest-R trade open >= 10 days and below 0R exits once."""
+    from types import SimpleNamespace
+
+    cls = pusula.PusulaV2NoBeSlotSwap
+    candle = pd.Timestamp("2022-03-20 08:00", tz="UTC")
+    sig = candle - pd.Timedelta(hours=4)  # last closed 4h candle
+    later = candle + pd.Timedelta(hours=4)
+    strat = cls.__new__(cls)
+    strat._whitelist = lambda: ["A", "B", "C", "N", "M"]
+    strat._max_open = lambda: 3
+    strat._plan_for_trade = lambda t: {"stop": 90.0}  # open rate 100 -> 1R = 10
+
+    def book(enter=(), exit_=(), close=100.0):
+        return {"enter": set(enter), "exit": set(exit_), "close": {sig: close, later: close}}
+
+    # A: 12 days, -0.5R; B: 12 days, -0.8R (worst, but its close uses only the closed candle); C: 5 days, -2R (too young)
+    strat._slot_book = {"A": book(close=95.0), "B": book(close=92.0), "C": book(close=80.0), "N": book(enter=[sig]),
+                        "M": book(enter=[later + pd.Timedelta(hours=4)])}  # M: a future signal, never seen now
+    t = {p: SimpleNamespace(pair=p, is_short=False, open_rate=100.0, close_date_utc=None,
+                            open_date_utc=(candle - pd.Timedelta(days=d)).to_pydatetime())
+         for p, d in (("A", 12), ("B", 12), ("C", 5))}
+    open_trades = [t["A"], t["B"], t["C"]]
+    strat._trades = lambda is_open: open_trades if is_open else []
+    now = candle.to_pydatetime()
+
+    def ex(p, when=now):
+        return strat.custom_exit(p, t[p], when, 100.0, 0.0)
+
+    d = strat.swap_decision(now)
+    assert d["trade"] is t["B"] and d["r"] == pytest.approx(-0.8) and d["candidates"] == ["N"]
+    assert ex("A") is None and ex("C") is None
+    assert ex("B", (candle + pd.Timedelta(hours=1)).to_pydatetime()) is None  # only in the candle's first hour
+    copy_b = SimpleNamespace(**vars(t["B"]))  # backtesting hands a different object for the same trade
+    assert strat.custom_exit("B", copy_b, now, 100.0, 0.0) == "slot_swap"
+    assert ex("B") is None and ex("A") is None  # at most one swap per candle
+    strat._slot_swaps = set()
+    # No qualifying trade: B at 0R or above, A too young -> nothing changes.
+    strat._slot_book["B"] = book(close=100.0)
+    t["A"].open_date_utc = (candle - pd.Timedelta(days=9, hours=20)).to_pydatetime()  # 59 candles
+    assert strat.swap_decision(now) is None
+    # A free slot (or one leaving on its own exit signal) -> no swap; no waiting signal -> no swap.
+    strat._slot_book["B"] = book(close=92.0)
+    assert strat.swap_decision(now)["trade"] is t["B"]
+    strat._slot_book["C"]["exit"] = {sig}
+    assert strat.swap_decision(now) is None
+    strat._slot_book["C"]["exit"] = set()
+    strat._slot_book["N"]["enter"] = set()
+    assert strat.swap_decision(now) is None
+    assert issubclass(cls, pusula.PusulaV2NoBe)
+    assert cls.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
+    assert cls.populate_entry_trend is pusula.PusulaV2NoBe.populate_entry_trend

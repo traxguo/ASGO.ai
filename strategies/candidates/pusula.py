@@ -1214,3 +1214,150 @@ class PusulaV2NoBeNoScore(PusulaV2NoBe):
         conds = super().signal_conditions(df)
         conds["long"].pop("regime_up", None)
         return conds
+
+
+class PusulaV2NoBeSlotSwap(PusulaV2NoBe):
+    """
+    Queue item 21 (2026-10-30, research/queue/pusula_kuyruk.md), slot management,
+    fixed before testing.
+
+    Rule: when all slots are taken (max_open_trades, 3) and a valid new long
+    signal arrives, the worst open trade is closed at that candle so the new
+    signal can enter. Only trades open for at least 10 days (60 candles of 4h)
+    whose current result is below 0R qualify; "worst" = lowest current R. If no
+    open trade qualifies, nothing changes. At most one swap per 4h candle. Stop,
+    exits, 1% risk: unchanged. Thresholds fixed (10 days, 0R), no scanning.
+
+    Implementation (Freqtrade has no native "swap"):
+    - populate_exit_trend records, per pair, the 4h candles with a valid long
+      signal (enter_long and no exit_long, exactly what Freqtrade acts on), the
+      candles with an exit signal that will close an open trade (exit_long and no
+      enter_long, Freqtrade's own rule) and each candle's close.
+    - custom_exit runs for every open trade. At the start of a 4h candle (first
+      detail candle in backtesting, the first hour live) it rebuilds the decision
+      from the candle that has just closed (signal_time = current candle start -
+      one candle), and only from that candle: never a later one, so no lookahead.
+        candidates = whitelist pairs with a valid signal on that candle, no open
+                     trade or pending entry, and no trade closed during the current
+                     candle (Freqtrade skips such a pair for the candle);
+        slots full = open trades (pending entries count) minus trades leaving on
+                     their own exit signal this candle >= max_open_trades;
+        eligible   = open trades not leaving, open >= 10 days at the candle start,
+                     current R < 0, where current R = (signal-candle close - open
+                     rate) / (open rate - planned stop) (price only, before costs);
+        chosen     = eligible trade with the lowest current R (ties: oldest).
+      Only the chosen trade's custom_exit returns "slot_swap". It exits at the 4h
+      candle's open (Freqtrade's custom-exit price in backtesting).
+    - Freqtrade processes pairs with open trades before the others inside each
+      time step, so the freed slot is available when the candidate pairs' entry
+      signals are processed in the same step; they enter in Freqtrade's usual
+      pair order (whitelist order), as in the baseline. The new entry is the
+      normal limit order of the shared module; if it does not fill within its
+      3-candle validity the slot stays free (the swap is not undone).
+    - Swaps are written to the file in env PUSULA_SWAP_LOG (JSON lines), if set.
+    """
+
+    swap_min_age = pd.Timedelta(days=10)  # 60 candles of 4h
+    swap_max_r = 0.0  # strictly below 0R
+    swap_window = pd.Timedelta(hours=1)  # the decision is taken in the first hour of the 4h candle
+    swap_exit_tag = "slot_swap"
+
+    def _swap_book(self) -> dict:
+        if not hasattr(self, "_slot_book"):
+            self._slot_book = {}
+        return self._slot_book
+
+    def _swap_done(self) -> set:
+        if not hasattr(self, "_slot_swaps"):
+            self._slot_swaps = set()
+        return self._slot_swaps
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_exit_trend(df, metadata)
+        enter = df.get("enter_long", pd.Series(0, index=df.index)).fillna(0) == 1
+        exit_ = df.get("exit_long", pd.Series(0, index=df.index)).fillna(0) == 1
+        self._swap_book()[metadata["pair"]] = {
+            "enter": set(df.loc[enter & ~exit_, "date"]),
+            "exit": set(df.loc[exit_ & ~enter, "date"]),
+            "close": dict(zip(df["date"], df["close"])),
+        }
+        return df
+
+    def _whitelist(self) -> list:
+        return list(self.dp.current_whitelist())
+
+    def _trades(self, is_open: bool):
+        from freqtrade.persistence import Trade
+
+        return Trade.get_trades_proxy(is_open=is_open)
+
+    def _max_open(self) -> int:
+        return int(self.config.get("max_open_trades", self.max_open_trades))
+
+    def _current_r(self, trade, close: float) -> float | None:
+        plan = self._plan_for_trade(trade)
+        if plan is None:
+            return None
+        risk = trade.open_rate - plan["stop"]
+        if risk <= 0:
+            return None
+        return (close - trade.open_rate) / risk
+
+    def swap_decision(self, current_time) -> dict | None:
+        """The trade to close for a waiting signal at current_time, from the candle closed by then; else None."""
+        candle = pd.Timestamp(timeframe_to_prev_date(self.timeframe, current_time))
+        signal_time = candle - pd.Timedelta(minutes=timeframe_to_minutes(self.timeframe))
+        book = self._swap_book()
+        open_trades = list(self._trades(True))
+        busy = {t.pair for t in open_trades}
+        busy |= {t.pair for t in self._trades(False) if t.close_date_utc is not None and t.close_date_utc >= candle}
+        cands = [p for p in self._whitelist() if signal_time in book.get(p, {}).get("enter", ()) and p not in busy]
+        if not cands:
+            return None
+        staying = [t for t in open_trades if signal_time not in book.get(t.pair, {}).get("exit", ())]
+        if len(staying) < self._max_open():
+            return None  # a slot is (or becomes) free anyway
+        eligible = []
+        for t in staying:
+            if t.is_short or candle - pd.Timestamp(t.open_date_utc) < self.swap_min_age:
+                continue
+            close = book.get(t.pair, {}).get("close", {}).get(signal_time)
+            if close is None or pd.isna(close):
+                continue
+            r = self._current_r(t, float(close))
+            if r is not None and r < self.swap_max_r:
+                eligible.append((r, pd.Timestamp(t.open_date_utc), t))
+        if not eligible:
+            return None
+        r, _, worst = min(eligible, key=lambda e: (e[0], e[1]))
+        return {"candle": candle, "trade": worst, "r": r, "candidates": cands}
+
+    def custom_exit(self, pair, trade, current_time, current_rate, current_profit, **kwargs):
+        if trade.is_short:
+            return None
+        candle = pd.Timestamp(timeframe_to_prev_date(self.timeframe, current_time))
+        if pd.Timestamp(current_time) - candle >= self.swap_window or candle in self._swap_done():
+            return None
+        decision = self.swap_decision(current_time)
+        if decision is None or not self._same_trade(decision["trade"], trade):
+            return None
+        self._swap_done().add(candle)
+        self._log_swap(trade, decision)
+        return self.swap_exit_tag
+
+    @staticmethod
+    def _same_trade(a, b) -> bool:
+        # Trade.get_trades_proxy may return other objects for the same trade (backtesting): compare by identity data.
+        return a.pair == b.pair and a.open_date_utc == b.open_date_utc and getattr(a, "id", None) == getattr(b, "id", None)
+
+    def _log_swap(self, trade, decision):
+        import json
+        import os
+
+        path = os.environ.get("PUSULA_SWAP_LOG")
+        if not path:
+            return
+        rec = {"strategy": self.__class__.__name__, "time": str(decision["candle"]), "pair": trade.pair,
+               "open_date": str(trade.open_date_utc), "r_now": decision["r"], "candidates": decision["candidates"]}
+        with open(path, "a") as f:
+            f.write(json.dumps(rec) + "\n")
