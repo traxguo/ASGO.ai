@@ -1517,3 +1517,19 @@ time,pair,event,detail
 2026-10-30T14:03:39.984541+00:00,LTC/USDT:USDT,limit placed,"39.0 @ 50.9 (hour open 55.33, score -1, derin)"
 2026-10-30T14:03:39.984541+00:00,DOT/USDT:USDT,limit placed,"2291.0 @ 0.867 (hour open 0.942, score -1, derin)"
 2026-10-30T14:03:39.984541+00:00,TRX/USDT:USDT,limit placed,"6253.0 @ 0.31779 (hour open 0.33452, score +1, fitil)"
+2026-10-30T15:03:41.420455+00:00,ADA/USDT:USDT,limit cancelled,hour over
+2026-10-30T15:03:41.420455+00:00,DOGE/USDT:USDT,limit cancelled,hour over
+2026-10-30T15:03:41.420455+00:00,DOT/USDT:USDT,limit cancelled,hour over
+2026-10-30T15:03:41.420455+00:00,ETH/USDT:USDT,limit cancelled,hour over
+2026-10-30T15:03:41.420455+00:00,LINK/USDT:USDT,limit cancelled,hour over
+2026-10-30T15:03:41.420455+00:00,LTC/USDT:USDT,limit cancelled,hour over
+2026-10-30T15:03:41.420455+00:00,TRX/USDT:USDT,limit cancelled,hour over
+2026-10-30T15:03:41.420455+00:00,XRP/USDT:USDT,limit cancelled,hour over
+2026-10-30T15:03:41.420455+00:00,ETH/USDT:USDT,limit placed,"0.96 @ 2057.62 (hour open 2236.54, score -1, derin)"
+2026-10-30T15:03:41.420455+00:00,XRP/USDT:USDT,limit placed,"1737.0 @ 1.1435 (hour open 1.2429, score -1, derin)"
+2026-10-30T15:03:41.420455+00:00,DOGE/USDT:USDT,limit placed,"28539.0 @ 0.06963 (hour open 0.07568, score -1, derin)"
+2026-10-30T15:03:41.420455+00:00,ADA/USDT:USDT,limit placed,"11226.0 @ 0.177 (hour open 0.1924, score -1, derin)"
+2026-10-30T15:03:41.420455+00:00,LINK/USDT:USDT,limit placed,"194.0 @ 10.236 (hour open 11.126, score -1, derin)"
+2026-10-30T15:03:41.420455+00:00,LTC/USDT:USDT,limit placed,"38.8 @ 51.13 (hour open 55.58, score -1, derin)"
+2026-10-30T15:03:41.420455+00:00,DOT/USDT:USDT,limit placed,"2276.0 @ 0.873 (hour open 0.949, score -1, derin)"
+2026-10-30T15:03:41.420455+00:00,TRX/USDT:USDT,limit placed,"6210.0 @ 0.31999 (hour open 0.33683, score +1, fitil)"
