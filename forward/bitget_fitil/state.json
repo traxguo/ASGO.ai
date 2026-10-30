@@ -4639,12 +4639,16 @@
       "status": "cancelled"
     },
     "fitsol2026103012": {
+      "amount": 22.1,
+      "entry_fees": 0.3924297,
+      "fill_price": 88.785,
+      "fill_time": "2026-10-30T12:14:47.058000+00:00",
       "hour": "2026-10-30T12:00:00+00:00",
       "limit_price": 88.785,
       "mode": "derin",
       "order_id": "1500033715966246913",
       "pair": "SOL/USDT:USDT",
-      "status": "pending"
+      "status": "open"
     },
     "fittrx2026101700": {
       "hour": "2026-10-17T00:00:00+00:00",
