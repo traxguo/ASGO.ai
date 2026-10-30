@@ -47,10 +47,10 @@
    "limit_price": 0.066884,
    "fill_time": "2026-10-29T20:45:00+00:00",
    "entry": 0.066884,
-   "exit_time": null,
-   "exit": null,
-   "ret_pct": null,
-   "pnl_usdt": null,
+   "exit_time": "2026-10-30T00:00:00+00:00",
+   "exit": 0.06903,
+   "ret_pct": 3.079,
+   "pnl_usdt": 61.61,
    "size": 2001.244
   },
   {
@@ -60,10 +60,10 @@
    "limit_price": 1242.0774999999999,
    "fill_time": "2026-10-29T20:45:00+00:00",
    "entry": 1242.0774999999999,
-   "exit_time": null,
-   "exit": null,
-   "ret_pct": null,
-   "pnl_usdt": null,
+   "exit_time": "2026-10-30T00:00:00+00:00",
+   "exit": 1232.1,
+   "ret_pct": -0.933,
+   "pnl_usdt": -18.68,
    "size": 2001.244
   },
   {
@@ -73,10 +73,10 @@
    "limit_price": 47.823,
    "fill_time": "2026-10-29T20:45:00+00:00",
    "entry": 47.823,
-   "exit_time": null,
-   "exit": null,
-   "ret_pct": null,
-   "pnl_usdt": null,
+   "exit_time": "2026-10-30T00:00:00+00:00",
+   "exit": 47.58,
+   "ret_pct": -0.638,
+   "pnl_usdt": -12.77,
    "size": 2001.244
   },
   {
@@ -86,13 +86,13 @@
    "limit_price": 7.4442,
    "fill_time": "2026-10-29T20:45:00+00:00",
    "entry": 7.4442,
-   "exit_time": null,
-   "exit": null,
-   "ret_pct": null,
-   "pnl_usdt": null,
+   "exit_time": "2026-10-30T00:00:00+00:00",
+   "exit": 7.308,
+   "ret_pct": -1.96,
+   "pnl_usdt": -39.22,
    "size": 2001.244
   }
  ],
- "equity": 9996.63,
- "done_until": "2026-10-29T23:00:00+00:00"
+ "equity": 9987.57,
+ "done_until": "2026-10-30T00:00:00+00:00"
 }
