@@ -1361,3 +1361,73 @@ class PusulaV2NoBeSlotSwap(PusulaV2NoBe):
                "open_date": str(trade.open_date_utc), "r_now": decision["r"], "candidates": decision["candidates"]}
         with open(path, "a") as f:
             f.write(json.dumps(rec) + "\n")
+
+
+EXIT_CONFIRM_DAYS = 2
+
+
+def below_ema_run(daily: DataFrame, fast: int = EMA_FAST) -> Series:
+    """
+    Per daily candle: how many consecutive daily closes, ending with this one,
+    are below the daily EMA(fast). Same EMA as daily_regime_frame; candles
+    without an EMA yet count as "not below" (as in the baseline exit).
+    """
+    close = daily["close"]
+    ema = close.ewm(span=fast, adjust=False, min_periods=fast).mean()
+    below = (close < ema).astype(int)
+    run_id = (below == 0).cumsum()
+    return below.groupby(run_id).cumsum()
+
+
+def add_below_ema_run(df: DataFrame, daily: DataFrame, timeframe_inf: str = REGIME_TF,
+                      fast: int = EMA_FAST) -> DataFrame:
+    """
+    Add f"below_ema_days_{tf}" to a frame already merged with merge_informative_pair:
+    the run of the daily candle that row already sees (f"date_{tf}" = last CLOSED
+    daily candle), so no lookahead. Rows before any closed daily candle get NaN.
+    """
+    run = pd.Series(below_ema_run(daily, fast).to_numpy(), index=pd.DatetimeIndex(daily["date"]))
+    df[f"below_ema_days_{timeframe_inf}"] = df[f"date_{timeframe_inf}"].map(run)
+    return df
+
+
+class PusulaV2NoBeExit2d(PusulaV2NoBe):
+    """
+    Queue item 22 (2026-10-31, research/queue/pusula_kuyruk.md), exit loosening,
+    fixed before testing.
+
+    PusulaV2NoBe with a slower daily EMA20 exit: a long is closed only after
+    2 CONSECUTIVE closed daily closes below the daily EMA(20) (baseline: 1).
+    Only closed daily candles count: the run is taken from the last daily candle
+    that closed at or before the 4h candle's close (merge_informative_pair), the
+    same moment the baseline exit uses. The BTC-turn exit (last closed daily BTC
+    score <= -1), the fixed stop, the entries, 1% risk and max 3 trades are
+    unchanged. Threshold (2 days) fixed, no sweep.
+
+    Entry blocking: Freqtrade skips an entry on a candle that also has an exit
+    signal. Here this changes nothing:
+    - the long entry needs "daily_above_ema20" (last closed daily close above
+      EMA20), so on any candle with an entry signal the below-EMA20 run is 0 and
+      neither the old 1-day nor the new 2-day EMA20 exit can be true there; the
+      EMA20 exit never blocked an entry in the baseline either;
+    - on the first day below EMA20 (exit no longer true) the entry stays blocked
+      by its own "daily_above_ema20" condition, so no new trade can open then;
+    - the BTC-turn exit is unchanged, so it blocks exactly the same entry
+      candles as in the baseline.
+    So the entry candles are identical to the baseline; only open trades can be
+    held longer (which can still shift later entries through the 3-slot limit).
+    """
+
+    exit_confirm_days = EXIT_CONFIRM_DAYS
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        daily = self.dp.get_pair_dataframe(pair=metadata["pair"], timeframe=REGIME_TF)
+        return add_below_ema_run(df, daily, REGIME_TF, self.ema_fast)
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        close_1d, ema_fast = df[f"close_{REGIME_TF}"], df[f"ema_fast_{REGIME_TF}"]
+        df.loc[df[f"below_ema_days_{REGIME_TF}"] >= self.exit_confirm_days, "exit_long"] = 1
+        df.loc[close_1d > ema_fast, "exit_short"] = 1  # unused (long only), kept as in PusulaTrend
+        df.loc[df[f"mkt_score_{REGIME_TF}"] <= -1, "exit_long"] = 1  # BTC-turn exit (round 2a), unchanged
+        return df

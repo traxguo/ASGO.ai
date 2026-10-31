@@ -684,3 +684,62 @@ def test_v2_no_be_slot_swap_closes_worst_old_losing_trade_only_when_slots_are_fu
     assert issubclass(cls, pusula.PusulaV2NoBe)
     assert cls.custom_stoploss is pusula.PusulaV2NoBe.custom_stoploss
     assert cls.populate_entry_trend is pusula.PusulaV2NoBe.populate_entry_trend
+
+
+def test_v2_no_be_exit_2d_needs_two_closed_daily_closes_below_ema20():
+    """PusulaV2NoBeExit2d: EMA20 exit after 2 consecutive closed daily closes below EMA20; BTC exit and entries unchanged."""
+    from freqtrade.strategy import merge_informative_pair
+
+    tf = pusula.REGIME_TF
+    # Run counter against a plain loop, on a series with one-day and multi-day dips below EMA20.
+    closes = np.concatenate([np.linspace(100, 200, 60), [180.0], np.linspace(195, 220, 10), [150.0, 140.0, 130.0],
+                             np.linspace(135, 250, 40)])
+    d = daily(closes)
+    run = pusula.below_ema_run(d)
+    ema = d["close"].ewm(span=pusula.EMA_FAST, adjust=False, min_periods=pusula.EMA_FAST).mean()
+    expect = 0
+    for i in range(len(d)):
+        expect = expect + 1 if d["close"].iloc[i] < ema.iloc[i] else 0
+        assert run.iloc[i] == expect
+    assert (run == 1).any() and (run >= 2).any()
+    assert run.iloc[: pusula.EMA_FAST - 1].eq(0).all()  # no EMA yet -> not below
+
+    # Merge: a 4h row sees the run of the last CLOSED daily candle; cutting the data changes nothing visible.
+    h4 = pd.DataFrame({"date": pd.date_range(pd.Timestamp("2021-01-25", tz="UTC"), d["date"].iloc[-1], freq="4h")})
+    h4["close"] = 1.0
+
+    def merged(dd):
+        out = merge_informative_pair(h4.copy(), dd[["date", "close"]].copy(), "4h", tf, ffill=True)
+        return pusula.add_below_ema_run(out, dd, tf)
+
+    out = merged(d)
+    day = pd.Timestamp("2021-03-05", tz="UTC")
+    run_of = dict(zip(d["date"], run))
+    row = out.set_index("date")[f"below_ema_days_{tf}"]
+    assert row[day + pd.Timedelta(hours=20)] == run_of[day]
+    assert row[day + pd.Timedelta(hours=16)] == run_of[day - pd.Timedelta(days=1)]
+    cut_day = pd.Timestamp("2021-03-20", tz="UTC")
+    cut = merged(d[d["date"] <= cut_day])
+    upto = out["date"] < cut_day
+    pd.testing.assert_series_equal(out.loc[upto, f"below_ema_days_{tf}"], cut.loc[upto, f"below_ema_days_{tf}"])
+
+    # Exit signal: baseline exits on day 1 below EMA20, new class only from day 2; BTC turn exits in both.
+    df = pd.DataFrame({
+        f"close_{tf}": [105.0, 95.0, 94.0, 105.0, 95.0, 105.0, 105.0],
+        f"ema_fast_{tf}": [100.0] * 7,
+        f"below_ema_days_{tf}": [0, 1, 2, 0, 1, 0, np.nan],
+        f"mkt_score_{tf}": [1, 1, 1, 1, 1, -1, 1],
+    })
+
+    def exits(cls):
+        strat = cls.__new__(cls)
+        out = strat.populate_exit_trend(df.copy(), {"pair": "X/USDT:USDT"})
+        return out.get("exit_long", pd.Series(np.nan, index=df.index)).fillna(0).astype(int).tolist()
+
+    assert exits(pusula.PusulaV2NoBe) == [0, 1, 1, 0, 1, 1, 0]
+    assert exits(pusula.PusulaV2NoBeExit2d) == [0, 0, 1, 0, 0, 1, 0]
+    assert issubclass(pusula.PusulaV2NoBeExit2d, pusula.PusulaV2NoBe)
+    assert pusula.PusulaV2NoBeExit2d.exit_confirm_days == 2
+    for name in ("custom_stoploss", "signal_conditions", "populate_entry_trend", "custom_stake_amount"):
+        if hasattr(pusula.PusulaV2NoBe, name):
+            assert getattr(pusula.PusulaV2NoBeExit2d, name) is getattr(pusula.PusulaV2NoBe, name)
