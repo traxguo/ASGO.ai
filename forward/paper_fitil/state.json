@@ -117,8 +117,21 @@
    "ret_pct": 3.443,
    "pnl_usdt": 68.77,
    "size": 1997.514
+  },
+  {
+   "pair": "RUNE/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-10-31T21:00:00+00:00",
+   "limit_price": 0.641155,
+   "fill_time": "2026-10-31T21:45:00+00:00",
+   "entry": 0.641155,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2016.984
   }
  ],
  "equity": 10084.92,
- "done_until": "2026-10-31T21:00:00+00:00"
+ "done_until": "2026-10-31T22:00:00+00:00"
 }
