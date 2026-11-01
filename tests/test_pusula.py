@@ -743,3 +743,59 @@ def test_v2_no_be_exit_2d_needs_two_closed_daily_closes_below_ema20():
     for name in ("custom_stoploss", "signal_conditions", "populate_entry_trend", "custom_stake_amount"):
         if hasattr(pusula.PusulaV2NoBe, name):
             assert getattr(pusula.PusulaV2NoBeExit2d, name) is getattr(pusula.PusulaV2NoBe, name)
+
+
+def test_v2_no_be_market_entry_sizes_from_fill_and_skips_wide_stop():
+    """PusulaV2NoBeMarketEntry: market entry, same stop level, size/leverage from the fill price, no entry if stop > 8%."""
+    from types import SimpleNamespace
+
+    from strategies.common import trade_management as tm
+
+    cls = pusula.PusulaV2NoBeMarketEntry
+    assert issubclass(cls, pusula.PusulaV2NoBe)
+    assert cls.order_types["entry"] == "market" and pusula.PusulaV2NoBe.order_types["entry"] == "limit"
+    assert cls.order_types["stoploss"] == pusula.PusulaV2NoBe.order_types["stoploss"]
+    # Entry only at the open of the candle after the signal: no retry later in that 4h candle.
+    assert 0 < cls.ignore_buying_expired_candle_after < 3600
+    assert pusula.PusulaV2NoBe.ignore_buying_expired_candle_after == 0
+    sig = pd.Timestamp("2024-01-01 00:00", tz="UTC").to_pydatetime()  # signal candle start; open of next = 04:00
+    probe = cls.__new__(cls)
+    assert not probe.ignore_expired_candle(sig, sig + pd.Timedelta(hours=4), 4 * 3600, True)  # first 1h detail candle
+    assert probe.ignore_expired_candle(sig, sig + pd.Timedelta(hours=5), 4 * 3600, True)  # later detail candle: no entry
+    for name in ("custom_stoploss", "signal_conditions", "populate_entry_trend", "populate_exit_trend",
+                 "add_plan_columns"):
+        assert getattr(cls, name) is getattr(pusula.PusulaV2NoBe, name)
+
+    params = tm.DEFAULT_PARAMS
+    assert pusula.market_entry_check(100.0, 93.0, params) == "ok"
+    assert pusula.market_entry_check(100.0, 92.0, params) == "ok"  # exactly 8%
+    assert pusula.market_entry_check(100.0, 91.0, params) == "stop_too_far"
+    assert pusula.market_entry_check(90.0, 90.0, params) == "stop_above_entry"
+    assert pusula.market_entry_check(89.0, 90.0, params) == "stop_above_entry"
+
+    # Signal row: zone middle 100, stop 95. Equity 10000 -> 1% risk = 100 USDT.
+    row = pd.Series({"long_entry": 100.0, "long_stop": 95.0})
+
+    def make(cls_):
+        s = cls_.__new__(cls_)
+        s.mgmt = params
+        s._last_row = lambda pair: row
+        s.wallets = SimpleNamespace(get_total_stake_amount=lambda: 10_000.0)
+        return s
+
+    new, base = make(cls), make(pusula.PusulaV2NoBe)
+    kw = dict(pair="X/USDT:USDT", current_time=pd.Timestamp("2024-01-01", tz="UTC"), proposed_stake=0.0,
+              min_stake=0.0, max_stake=1e9, entry_tag="long stop=95", side="long")
+    # Baseline sizes from the zone middle whatever the fill; new class from the fill (open of next candle).
+    assert base.custom_stake_amount(current_rate=102.0, leverage=1.0, **kw) == pytest.approx(10_000 * 0.01 / 0.05)
+    fill = 102.0
+    lev = new.leverage("X/USDT:USDT", None, fill, 1.0, 10.0, "long stop=95", "long")
+    assert lev == tm.safe_leverage("long", fill, 95.0, params) == 3.0
+    stake = new.custom_stake_amount(current_rate=fill, leverage=lev, **kw)
+    amount = stake * lev / fill
+    assert amount * (fill - 95.0) == pytest.approx(100.0)  # a stop-out at the same level loses exactly 1%
+    # Fill gapped so far up that the stop is > 8% away, or down through the stop: no entry.
+    assert new.custom_stake_amount(current_rate=104.0, leverage=1.0, **kw) == 0.0  # 8.65%
+    assert new.custom_stake_amount(current_rate=94.0, leverage=1.0, **kw) == 0.0
+    assert new.custom_stake_amount(current_rate=fill, leverage=lev, **{**kw, "max_stake": 1.0}) == 0.0
+    assert new.custom_entry_price("X/USDT:USDT", None, None, 101.3, "long stop=95", "long") == 101.3

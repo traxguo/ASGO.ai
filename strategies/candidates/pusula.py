@@ -40,6 +40,7 @@ from freqtrade.strategy import merge_informative_pair, stoploss_from_absolute  #
 from pandas import DataFrame, Series  # noqa: E402
 
 from strategies.common.freqtrade_mixin import ManagedStrategy  # noqa: E402
+from strategies.common import trade_management as tm  # noqa: E402
 
 REGIME_TF = "1d"
 MARKET_PAIR = "BTC/USDT:USDT"
@@ -1431,3 +1432,116 @@ class PusulaV2NoBeExit2d(PusulaV2NoBe):
         df.loc[close_1d > ema_fast, "exit_short"] = 1  # unused (long only), kept as in PusulaTrend
         df.loc[df[f"mkt_score_{REGIME_TF}"] <= -1, "exit_long"] = 1  # BTC-turn exit (round 2a), unchanged
         return df
+
+
+def market_entry_check(entry: float, stop: float, params) -> str:
+    """
+    Whether a long market fill at `entry` may be taken with the planned `stop`:
+    "ok", "stop_above_entry" (price already at / below the stop) or "stop_too_far"
+    (stop distance from the real fill above params.max_stop_pct, 8%).
+    """
+    if not np.isfinite(entry) or not np.isfinite(stop) or entry <= stop:
+        return "stop_above_entry"
+    if (entry - stop) / entry > params.max_stop_pct:
+        return "stop_too_far"
+    return "ok"
+
+
+class PusulaV2NoBeMarketEntry(PusulaV2NoBe):
+    """
+    Queue item 23 (2026-11-01, research/queue/pusula_kuyruk.md), entry order,
+    fixed before testing.
+
+    PusulaV2NoBe, but the entry is a MARKET order at the open of the 4h candle
+    right after the signal candle, instead of the shared module's limit order at
+    the middle of the entry zone (which waits up to 3 candles for a pullback and
+    is cancelled if price reaches the stop first). Signals, the stop LEVEL, exits
+    (daily EMA20, BTC-turn), 1% risk, max 3 trades and costs (0.1% per order,
+    config fee) are unchanged. No threshold, no sweep.
+
+    How the shared module handles entry, stop and R, and what changes here:
+    - strategies/common/freqtrade_mixin.py writes the plan on the signal candle:
+      `long_entry` = zone middle, `long_stop` = wider of zone middle - 1.5 ATR and
+      the 10-candle swing low - 0.1 ATR, `long_plan_ok` = stop distance from the
+      zone middle <= 8% (ManagementParams.max_stop_pct). The stop goes into the
+      enter_tag ("long stop=..."). Signal candles are identical here: the same
+      plan columns and the same plan_ok filter are used, so the stop level is the
+      exact baseline level.
+    - Baseline sizing (leverage, custom_stake_amount) uses the zone middle as the
+      entry price. Here both use the real fill price instead: Freqtrade passes the
+      market rate as `current_rate` (in backtesting: the open of the candle after
+      the signal candle, which is also the fill price). Position notional =
+      equity * 1% / ((fill - stop) / fill), so a stop-out still loses 1% of equity;
+      leverage = tm.safe_leverage(fill, stop) (liquidation >= 2x stop distance, max 3x).
+    - The stop distance limit is checked again against the real fill: if
+      (fill - stop) / fill > 8%, or the fill is already at / below the stop (gap
+      down through the stop), there is no entry (stake 0, Freqtrade skips the
+      signal). Skips are written to the file in env PUSULA_SKIP_LOG (JSON lines), if set.
+    - custom_stoploss (PusulaV2NoBe) reads only plan["stop"], the signal-candle
+      stop, so the stop level does not move.
+    - R: scripts/make_report.py computes R = profit_abs / (entry amount *
+      |entry fill price - stop|), i.e. from the real fill, net of fees and funding.
+      Nothing in the shared module needs to change for that.
+    - Fill timing in backtesting: Freqtrade shifts signals by one candle and
+      enters on the next candle; a market order is priced at that candle's open
+      (Backtesting.get_valid_entry_price_and_stake uses row OPEN, custom_entry_price
+      is only called for limit orders) and fills at once because the open is
+      inside the candle's range. With --timeframe-detail 1h the entry happens on
+      the first 1h detail candle, whose open is the 4h open. Live / dry-run, the
+      bot acts right after the signal candle closes, i.e. at about that open.
+    - The order validity / "stop touched before fill" cancel of the shared module
+      no longer matters: a market order fills immediately.
+    - Only AT the open: Freqtrade keeps a 4h entry signal valid for the whole next
+      4h candle and, with --timeframe-detail, retries the entry on every 1h detail
+      candle (live: every loop) when it did not happen at the open, e.g. because no
+      slot was free yet or because the stop-distance check refused it. That would
+      be a later entry at another price, not the tested rule, so
+      ignore_buying_expired_candle_after = 1800 s: an entry is only allowed in the
+      first 30 minutes of the candle after the signal candle (backtesting: only the
+      first 1h detail candle, whose open is the 4h open). A signal that cannot be
+      entered at the open (slots full, coin busy, stop > 8% from the open) is
+      dropped. The baseline's limit order can still be placed later in that candle.
+    """
+
+    order_types = {**PusulaV2NoBe.order_types, "entry": "market"}
+    ignore_buying_expired_candle_after = 1800  # seconds: enter at the open or not at all
+
+    def custom_entry_price(self, pair, trade, current_time, proposed_rate, entry_tag, side, **kwargs) -> float:
+        return proposed_rate  # market order: no limit price
+
+    def leverage(self, pair, current_time, current_rate, proposed_leverage, max_leverage, entry_tag, side, **kwargs) -> float:
+        row = self._last_row(pair)
+        if row is None:
+            return 1.0
+        stop = float(row[f"{side}_stop"])
+        if market_entry_check(float(current_rate), stop, self.mgmt) != "ok":
+            return 1.0  # entry is skipped in custom_stake_amount anyway
+        lev = tm.safe_leverage(side, float(current_rate), stop, self.mgmt)
+        return min(lev or 1.0, max_leverage)
+
+    def custom_stake_amount(self, pair, current_time, current_rate, proposed_stake, min_stake, max_stake, leverage, entry_tag, side, **kwargs) -> float:
+        row = self._last_row(pair)
+        if row is None or side != "long":
+            return 0.0
+        entry, stop = float(current_rate), float(row[f"{side}_stop"])
+        check = market_entry_check(entry, stop, self.mgmt)
+        if check != "ok" or tm.safe_leverage(side, entry, stop, self.mgmt) is None:
+            self._log_skip(pair, current_time, entry, stop, check if check != "ok" else "liquidation_too_close")
+            return 0.0
+        equity = self.wallets.get_total_stake_amount()
+        stake = tm.position_notional(equity, entry, stop, self.mgmt) / leverage
+        if stake > max_stake:
+            return 0.0  # same as the shared module: never take a different risk than tested
+        return stake
+
+    def _log_skip(self, pair, current_time, entry, stop, reason):
+        import json
+        import os
+
+        path = os.environ.get("PUSULA_SKIP_LOG")
+        if not path:
+            return
+        rec = {"strategy": self.__class__.__name__, "pair": pair, "time": str(current_time), "entry": entry,
+               "stop": stop, "stop_pct": (entry - stop) / entry if entry else None, "reason": reason}
+        with open(path, "a") as f:
+            f.write(json.dumps(rec) + "\n")
