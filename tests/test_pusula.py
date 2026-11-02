@@ -799,3 +799,76 @@ def test_v2_no_be_market_entry_sizes_from_fill_and_skips_wide_stop():
     assert new.custom_stake_amount(current_rate=94.0, leverage=1.0, **kw) == 0.0
     assert new.custom_stake_amount(current_rate=fill, leverage=lev, **{**kw, "max_stake": 1.0}) == 0.0
     assert new.custom_entry_price("X/USDT:USDT", None, None, 101.3, "long stop=95", "long") == 101.3
+
+
+def test_v2_no_be_half_ema50_sells_half_at_ema20_once_and_rest_below_ema50():
+    """PusulaV2NoBeHalfEma50: EMA20 exit sells half once (partial exit); rest on EMA50 / BTC turn / stop."""
+    from types import SimpleNamespace
+
+    cls = pusula.PusulaV2NoBeHalfEma50
+    tf = pusula.REGIME_TF
+    assert issubclass(cls, pusula.PusulaV2NoBe) and cls.half_exit_fraction == 0.5
+    assert cls.position_adjustment_enable and cls.use_exit_signal
+    for name in ("signal_conditions", "populate_entry_trend", "custom_stake_amount", "leverage",
+                 "custom_entry_price", "add_plan_columns"):
+        assert getattr(cls, name) is getattr(pusula.PusulaV2NoBe, name)
+
+    # Exit signal: only daily close below EMA50 or BTC turn; a close below EMA20 alone is no full exit.
+    df = pd.DataFrame({
+        f"close_{tf}": [105.0, 95.0, 85.0, 105.0, np.nan],
+        f"ema_fast_{tf}": [100.0] * 5,
+        f"ema_slow_{tf}": [90.0] * 5,
+        f"mkt_score_{tf}": [1, 1, 1, -1, 1],
+    })
+    strat = cls.__new__(cls)
+    out = strat.populate_exit_trend(df.copy(), {"pair": "X/USDT:USDT"})
+    assert out["exit_long"].fillna(0).astype(int).tolist() == [0, 0, 1, 1, 0]
+    assert out["exit_tag"].tolist()[2:4] == ["ema50", "btc_turn"]
+
+    # Partial exit: driven by the last closed row the DataProvider gives (close_1d vs EMA20).
+    rows = {"above": pd.Series({f"close_{tf}": 105.0, f"ema_fast_{tf}": 100.0}),
+            "below": pd.Series({f"close_{tf}": 95.0, f"ema_fast_{tf}": 100.0}),
+            "nan": pd.Series({f"close_{tf}": np.nan, f"ema_fast_{tf}": 100.0})}
+
+    def adjust(row_key, exits=0, open_orders=False, short=False):
+        s = cls.__new__(cls)
+        s._last_row = lambda pair: rows[row_key]
+        trade = SimpleNamespace(pair="X/USDT:USDT", is_short=short, has_open_orders=open_orders,
+                                nr_of_successful_exits=exits, stake_amount=300.0)
+        return s.adjust_trade_position(trade, None, 100.0, 0.0, 0.0, 1e9)
+
+    assert adjust("below") == (-150.0, "ema20_half")
+    assert adjust("above") is None and adjust("nan") is None
+    assert adjust("below", exits=1) is None  # only one half exit per trade
+    assert adjust("below", open_orders=True) is None and adjust("below", short=True) is None
+    # Baseline never adjusts (its EMA20 exit is a full exit signal).
+    base = pusula.PusulaV2NoBe.__new__(pusula.PusulaV2NoBe)
+    assert base.adjust_trade_position(None, None, 100.0, 0.0, 0.0, 1e9) is None
+
+    # Stop stays at the planned level after the half exit. Freqtrade (backtesting) first applies the after-fill
+    # ratio at the fill price (allowed in both directions), then re-applies the same ratio to the entry price
+    # (only upwards). Live the order is reversed (the recalculation is already done).
+    def order(side, amount):
+        return SimpleNamespace(ft_is_open=False, filled=amount, safe_amount_after_fee=amount, ft_order_side=side)
+
+    def stop_after_half(fill, pending):
+        s = cls.__new__(cls)
+        s._plan_for_trade = lambda trade: {"stop": 95.0}
+        orders = [order("buy", 1.0), order("sell", 0.5)]
+        trade = SimpleNamespace(is_short=False, leverage=3.0, open_rate=100.0, entry_side="buy", orders=orders,
+                                amount=1.0 if pending else 0.5)
+        assert cls.exit_recalc_pending(trade) is pending
+        ratio = s.custom_stoploss("X/USDT:USDT", trade, None, fill, 0.0, after_fill=True)
+        at_fill = fill * (1 - ratio / trade.leverage)
+        if not pending:
+            return at_fill
+        return max(at_fill, trade.open_rate * (1 - ratio / trade.leverage))
+
+    for fill in (98.0, 100.0, 112.0):  # half sold below, at and above the entry price
+        assert stop_after_half(fill, pending=True) == pytest.approx(95.0)
+        assert stop_after_half(fill, pending=False) == pytest.approx(95.0)
+    # The baseline formula would have lifted the stop when the half was sold below the entry price.
+    base_self = SimpleNamespace(_plan_for_trade=lambda t: {"stop": 95.0})
+    base_trade = SimpleNamespace(is_short=False, leverage=3.0)
+    base_ratio = pusula.PusulaV2NoBe.custom_stoploss(base_self, "X/USDT:USDT", base_trade, None, 98.0, 0.0, True)
+    assert 100.0 * (1 - base_ratio / 3.0) > 95.5

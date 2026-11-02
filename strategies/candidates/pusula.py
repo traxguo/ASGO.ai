@@ -1545,3 +1545,114 @@ class PusulaV2NoBeMarketEntry(PusulaV2NoBe):
                "stop": stop, "stop_pct": (entry - stop) / entry if entry else None, "reason": reason}
         with open(path, "a") as f:
             f.write(json.dumps(rec) + "\n")
+
+
+class PusulaV2NoBeHalfEma50(PusulaV2NoBe):
+    """
+    Queue item 25 (2026-11-02, research/queue/pusula_kuyruk.md), half exit,
+    fixed before testing.
+
+    PusulaV2NoBe, but the daily EMA20 exit closes only HALF of the position:
+    - when the last closed daily close is below the daily EMA(20) (the baseline
+      exit rule, same moment), half of the position is sold (one partial exit,
+      exit tag "ema20_half");
+    - the other half is closed when the last closed daily close is below the
+      daily EMA(50) (exit tag "ema50"), or by the BTC-turn exit (last closed
+      daily BTC score <= -1, tag "btc_turn"), or by the fixed stop.
+    Entries, the stop level (never moves), 1% risk and max 3 trades are the
+    same. A half-open trade keeps its slot (it is still an open trade). Ratios
+    (50%, EMA50) fixed, no sweep.
+
+    How it works in Freqtrade:
+    - position_adjustment_enable is already on (ManagedStrategy).
+      adjust_trade_position returns a negative stake (-50% of the current stake)
+      once, on the first call where the last CLOSED 4h candle of the analyzed
+      dataframe (DataProvider slices it to the current time) has a closed daily
+      close below the daily EMA20. That is the same row the baseline exit signal
+      uses, so the half is sold at the same moment the baseline sells all
+      (backtesting: the open of the next candle; with --timeframe-detail the
+      first detail candle, whose open is the 4h open). After one partial exit
+      (nr_of_successful_exits >= 1) it never sells again; a later EMA20 dip does
+      nothing.
+    - The EMA50 and BTC-turn exits are normal exit signals (populate_exit_trend);
+      an exit signal sells the whole remaining amount. If the EMA20 half and the
+      EMA50 / BTC exit come on the same candle, Freqtrade runs the position
+      adjustment first and the exit signal after it at the same price: the
+      result equals a full exit.
+    - Entry blocking: Freqtrade skips an entry on a candle with an exit signal.
+      The entry needs a score >= +1 and a closed daily close above EMA20; with
+      that, close < EMA50 is impossible (it would need EMA20 > EMA50 for the
+      score, but close > EMA20 > EMA50), so the EMA50 exit never blocks an entry;
+      the BTC-turn exit blocks the same candles as in the baseline. Entry candles
+      are identical to the baseline. Only a half-open trade keeps its coin and
+      its slot busy, which can shift later entries.
+    - Stop after the half exit (Freqtrade quirk, found in the first run): after a
+      partial exit Freqtrade re-applies the trade's last stop RATIO to the
+      average entry price (LocalTrade.recalc_trade_from_orders ->
+      adjust_stop_loss(open_rate, stop_loss_pct)), and a stop may only move up.
+      In backtesting the after-fill stop callback runs BEFORE that recalculation
+      (live: after it). The ratio is set relative to the half-exit price, so when
+      the half was sold below the entry price the stop jumped up (BTC 2020-05:
+      planned 8601, became 8804). Fix in custom_stoploss: on the after-fill call
+      of a partial exit whose recalculation is still pending (backtesting), the
+      ratio is given relative to max(fill price, entry price). Then the stop
+      ends exactly at the planned level after the recalculation in both cases
+      (sold above entry: set now, the recalculation would lower it, so it is
+      kept; sold below entry: briefly lower, the recalculation raises it to the
+      plan). When the recalculation already happened (live) the normal ratio is
+      used. Side effect: in the "sold below entry" case Freqtrade marks the stop
+      as trailing, so a later stop-out is labelled "trailing_stop_loss"; it is
+      the same fixed planned stop.
+    - R: the trade's profit_abs (Freqtrade adds the realised profit of the
+      partial exit to the final one) / (full entry amount * |entry - stop|), as
+      in scripts/make_report.py, i.e. the weighted sum of the two halves, fees
+      and funding included.
+    """
+
+    half_exit_fraction = 0.5
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        close_1d = df[f"close_{REGIME_TF}"]
+        below_slow = close_1d < df[f"ema_slow_{REGIME_TF}"]
+        btc_turn = df[f"mkt_score_{REGIME_TF}"] <= -1
+        df.loc[below_slow, "exit_long"] = 1
+        df.loc[below_slow, "exit_tag"] = "ema50"
+        df.loc[btc_turn, "exit_long"] = 1  # BTC-turn exit (round 2a), unchanged
+        df.loc[btc_turn, "exit_tag"] = "btc_turn"
+        df.loc[close_1d > df[f"ema_fast_{REGIME_TF}"], "exit_short"] = 1  # unused (long only), kept as in PusulaTrend
+        return df
+
+    @staticmethod
+    def exit_recalc_pending(trade) -> bool:
+        """True when a filled exit order is not yet subtracted from trade.amount (backtesting order of calls)."""
+        held = 0.0
+        for o in trade.orders:
+            if o.ft_is_open or not o.filled:
+                continue
+            held += o.safe_amount_after_fee * (1 if o.ft_order_side == trade.entry_side else -1)
+        return trade.amount > held * (1 + 1e-9) + 1e-12
+
+    def custom_stoploss(self, pair, trade, current_time, current_rate, current_profit, after_fill, **kwargs):
+        plan = self._plan_for_trade(trade)
+        if plan is None:
+            return None
+        ref = current_rate
+        if after_fill and not trade.is_short and self.exit_recalc_pending(trade):
+            ref = max(current_rate, trade.open_rate)
+        return stoploss_from_absolute(plan["stop"], ref, is_short=trade.is_short, leverage=trade.leverage)
+
+    def half_exit_due(self, row) -> bool:
+        """True when the last closed daily close (as seen by this 4h row) is below the daily EMA20."""
+        if row is None:
+            return False
+        close_1d, ema_fast = row.get(f"close_{REGIME_TF}"), row.get(f"ema_fast_{REGIME_TF}")
+        if close_1d is None or ema_fast is None or pd.isna(close_1d) or pd.isna(ema_fast):
+            return False
+        return bool(close_1d < ema_fast)
+
+    def adjust_trade_position(self, trade, current_time, current_rate, current_profit, min_stake, max_stake, **kwargs):
+        if trade.is_short or trade.has_open_orders or trade.nr_of_successful_exits >= 1:
+            return None
+        if not self.half_exit_due(self._last_row(trade.pair)):
+            return None
+        return -trade.stake_amount * self.half_exit_fraction, "ema20_half"
