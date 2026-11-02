@@ -2826,3 +2826,27 @@ time,pair,event,detail
 2026-11-02T03:03:29.172432+00:00,AVAX/USDT:USDT,limit placed,"250.9 @ 7.932 (hour open 8.622, score -1, derin)"
 2026-11-02T03:03:29.172432+00:00,TRX/USDT:USDT,limit placed,"6892.0 @ 0.2888 (hour open 0.31391, score -3, derin)"
 2026-11-02T03:03:29.172432+00:00,BCH/USDT:USDT,limit placed,"7.36 @ 270.31 (hour open 284.54, score +3, fitil)"
+2026-11-02T04:03:39.712320+00:00,ADA/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,AVAX/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,BCH/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,BNB/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,DOGE/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,DOT/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,ETH/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,LINK/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,LTC/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,SOL/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,TRX/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,XRP/USDT:USDT,limit cancelled,hour over
+2026-11-02T04:03:39.712320+00:00,ETH/USDT:USDT,limit placed,"0.93 @ 2123.39 (hour open 2308.03, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,SOL/USDT:USDT,limit placed,"22.6 @ 87.903 (hour open 95.547, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,XRP/USDT:USDT,limit placed,"1715.0 @ 1.16 (hour open 1.2609, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,BNB/USDT:USDT,limit placed,"3.03 @ 656.59 (hour open 713.68, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,DOGE/USDT:USDT,limit placed,"28423.0 @ 0.07003 (hour open 0.07612, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,ADA/USDT:USDT,limit placed,"11170.0 @ 0.1782 (hour open 0.1937, score -3, derin)"
+2026-11-02T04:03:39.712320+00:00,LINK/USDT:USDT,limit placed,"190.0 @ 10.445 (hour open 11.353, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,LTC/USDT:USDT,limit placed,"38.6 @ 51.54 (hour open 56.02, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,DOT/USDT:USDT,limit placed,"2246.0 @ 0.886 (hour open 0.963, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,AVAX/USDT:USDT,limit placed,"249.0 @ 7.994 (hour open 8.689, score -1, derin)"
+2026-11-02T04:03:39.712320+00:00,TRX/USDT:USDT,limit placed,"6893.0 @ 0.28876 (hour open 0.31387, score -3, derin)"
+2026-11-02T04:03:39.712320+00:00,BCH/USDT:USDT,limit placed,"7.32 @ 271.7 (hour open 286, score +3, fitil)"
