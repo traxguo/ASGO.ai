@@ -1,6 +1,6 @@
 # Göreli Güç (haftalık coin sıralaması, long + short) — ARAŞTIRMA
 
-**Durum:** ilk tarama umut verici (2026-11-03). Strateji değil, aday. Kasa (holdout) kullanılmadı.
+**Durum:** REDDEDİLDİ (2026-11-03, aynı gün). Kasa (holdout) kullanılmadı.
 
 ## Fikir (sade Türkçe)
 Coinleri zamana göre değil, birbirine göre karşılaştırırız. Her 2-3 haftada bir, son 14 günde en çok yükselen birkaç coini **alırız** (long), en çok düşen birkaç coini **satarız** (short). Para iki tarafa eşit bölünür. Piyasa toptan düşse de çıksa da önemli olan "güçlü olan zayıftan iyi gidiyor mu?" sorusudur. Bu yüzden bot düşüş piyasasında da çalışır.
@@ -19,7 +19,14 @@ Coinleri zamana göre değil, birbirine göre karşılaştırırız. Her 2-3 haf
 - Tersi (zayıfı al, güçlüyü sat) her yerde eksi.
 - **Zayıflıklar:** düşüşler büyük (kasa %23-70 geriliyor). 15 demo coinde doğrulamada eksi (az coin yetmiyor). Long tek başına 2025'te, short tek başına 2020-24'te kötü; ikisi birlikte çalışıyor. Bugün listede olan coinlerle test edildi (sonradan silinen coinler yok, sonucu güzelleştirebilir).
 
-## Sıradaki
-1. Kasa düşüşünü azaltan basit yollar (boyut, daha çok coin) — kural eklemeden önce.
-2. Silinen coin etkisinin kaba tahmini.
-3. Sonra kasa testi (bir kez), geçerse 76 coinde kâğıt takip (Bitget demo sadece 15 coin listeliyor).
+## Silinen coin kontrolü (2026-11-03) — eleme nedeni
+- data.binance.vision'dan bugüne kadar listelenmiş **tüm** USDT vadeli coinlerin (680, silinenler dahil) günlük verisi indirildi (`research/xsec/fetch_all_daily.py`).
+- Her yeniden dengelemede o günün en çok işlem gören 80 coini evren alındı (`research/xsec/xsmom_allcoins.py`, funding hariç).
+- Yeni listelenen coinler dahil: short bacağı patlayan yeni coinlerde çöküyor, kasa düşüşü %60-140, birleşik getiri çoğu ayarda eksi.
+- En az 180 gün geçmişi olan coinler: ortalama hafif artı ama birleşik toplam ~0 (-35%..+26%), düşüş %42-76.
+- En az 365 gün geçmişi olan coinler: neredeyse her ayar hem geliştirmede hem doğrulamada eksi.
+- Aynı kod sadece bizim 81 coinle eski sonucu veriyor (kod hatası değil).
+
+**Sonuç:** 81 coinlik listedeki kâr, listenin bugün hâlâ işlem gören "hayatta kalan" coinlerden oluşmasından geliyor. Gerçek hayatta hangi coinin hayatta kalacağını önceden bilemeyiz. Strateji elendi.
+
+**Ders:** coin sıralaması yapan her fikir silinen coinler dahil evrende test edilmeli (`user_data/data/xsec_all_1d.feather`).
