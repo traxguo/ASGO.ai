@@ -6,3 +6,4 @@
 | `ft.sh` | Freqtrade komutlarını çalıştırır; **her seferinde önce** güvenlik kontrolünü çalıştırır. |
 | `download_data.sh` | Seviye 1 coinleri için 1h/4h mumlar + funding + mark price indirir, sonra doğrular. |
 | `make_report.py` | Bir backtest sonucundan Türkçe rapor (`results/.../rapor.md`) üretir: R cinsinden, maliyet ve funding dahil, al-tut kıyaslı. |
+| `build_dashboard.py` | **ASGO TAKİP** sayfasını (`dashboard/asgo_takip.html`) repodaki kartlar, raporlar, günlük ve kararlardan üretir. Rakam uydurmaz, sadece dosyalarda yazanı gösterir. Çalıştırmak: `python scripts/build_dashboard.py` |
