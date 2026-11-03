@@ -872,3 +872,27 @@ def test_v2_no_be_half_ema50_sells_half_at_ema20_once_and_rest_below_ema50():
     base_trade = SimpleNamespace(is_short=False, leverage=3.0)
     base_ratio = pusula.PusulaV2NoBe.custom_stoploss(base_self, "X/USDT:USDT", base_trade, None, 98.0, 0.0, True)
     assert 100.0 * (1 - base_ratio / 3.0) > 95.5
+
+
+def test_v2_no_be_half_slot_counts_half_trades_as_half_a_slot():
+    """PusulaV2NoBeHalfSlot: item 25 unchanged; a half-sold trade weighs 0.5; enter only if weights + 1 <= 3."""
+    from types import SimpleNamespace
+
+    cls = pusula.PusulaV2NoBeHalfSlot
+    assert issubclass(cls, pusula.PusulaV2NoBeHalfEma50)
+    assert cls.slot_weight_limit == 3.0 and cls.half_slot_weight == 0.5
+    for name in ("populate_exit_trend", "custom_stoploss", "adjust_trade_position", "half_exit_due",
+                 "signal_conditions", "populate_entry_trend", "custom_stake_amount", "leverage"):
+        assert getattr(cls, name) is getattr(pusula.PusulaV2NoBeHalfEma50, name)
+
+    def confirm(full, half):
+        s = cls.__new__(cls)
+        trades = [SimpleNamespace(nr_of_successful_exits=0)] * full + [SimpleNamespace(nr_of_successful_exits=1)] * half
+        s._open_trades = lambda: trades
+        return s.confirm_trade_entry("X/USDT:USDT", "limit", 1.0, 100.0, "GTC", None, None, "long")
+
+    # (full trades, half trades) -> weighted count 0 .. 3
+    allowed = [(0, 0), (2, 0), (1, 2), (0, 4), (1, 1), (0, 3)]
+    blocked = [(3, 0), (2, 1), (1, 3), (0, 5), (2, 2), (0, 6)]
+    assert all(confirm(f, h) for f, h in allowed)
+    assert not any(confirm(f, h) for f, h in blocked)

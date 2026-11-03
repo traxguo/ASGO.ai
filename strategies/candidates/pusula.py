@@ -1656,3 +1656,68 @@ class PusulaV2NoBeHalfEma50(PusulaV2NoBe):
         if not self.half_exit_due(self._last_row(trade.pair)):
             return None
         return -trade.stake_amount * self.half_exit_fraction, "ema20_half"
+
+
+class PusulaV2NoBeHalfSlot(PusulaV2NoBeHalfEma50):
+    """
+    Queue item 26 (2026-11-03, research/queue/pusula_kuyruk.md), slot counting,
+    fixed before testing.
+
+    PusulaV2NoBeHalfEma50 (item 25) unchanged (half sold at the daily EMA20
+    exit, the rest at EMA50 / BTC-turn / fixed stop, same stop fix), with one
+    difference: a half-sold open trade counts as 0.5 in the slot count.
+    - Slot weight of an open trade: 1 while it holds the full position (also a
+      pending entry order), 0.5 once its half exit has filled
+      (nr_of_successful_exits >= 1).
+    - A new entry is taken only if (sum of open weights) + 1 <= 3. Thresholds
+      (0.5, 3) fixed, no sweep. Physically at most 6 trades (6 halves).
+    - Open risk at the stop stays at most ~3%: a full trade risks 1R (1% of the
+      closed-trade equity when it opened), a half trade at most 0.5R (the stop
+      never moves). Sizing is unchanged (closed balance), one trade per coin.
+
+    Implementation: the weighted limit is enforced in confirm_trade_entry,
+    which Freqtrade calls right before it creates a new trade (backtesting:
+    Backtesting._enter_trade, after the max_open_trades check; live/dry-run:
+    FreqtradeBot.execute_entry). The trade being confirmed is not yet in the
+    open trades, so the check is "open weights + 1 <= 3". Weights can only fall
+    after an entry (1 -> 0.5 -> 0), so the limit holds at every moment.
+    Freqtrade's own max_open_trades must be at least 6 for this class (run it
+    with --max-open-trades 6), otherwise Freqtrade's physical limit binds
+    before the weighted one. With 6 it never binds: weighted <= 3 implies at
+    most 6 trades. Entries the weighted limit rejects are written to the file in
+    env PUSULA_SLOT_LOG (JSON lines), if set.
+    """
+
+    slot_weight_limit = 3.0
+    half_slot_weight = 0.5
+
+    def _open_trades(self):
+        from freqtrade.persistence import Trade
+
+        return list(Trade.get_trades_proxy(is_open=True))
+
+    def slot_weight(self, trade) -> float:
+        return self.half_slot_weight if trade.nr_of_successful_exits >= 1 else 1.0
+
+    def open_slot_weight(self) -> float:
+        return float(sum(self.slot_weight(t) for t in self._open_trades()))
+
+    def confirm_trade_entry(self, pair, order_type, amount, rate, time_in_force, current_time, entry_tag, side,
+                            **kwargs) -> bool:
+        used = self.open_slot_weight()
+        if used + 1 <= self.slot_weight_limit + 1e-9:
+            return True
+        self._log_slot_reject(pair, current_time, used)
+        return False
+
+    def _log_slot_reject(self, pair, current_time, used):
+        import json
+        import os
+
+        path = os.environ.get("PUSULA_SLOT_LOG")
+        if not path:
+            return
+        rec = {"strategy": self.__class__.__name__, "time": str(current_time), "pair": pair, "weight": used,
+               "open": len(self._open_trades())}
+        with open(path, "a") as f:
+            f.write(json.dumps(rec) + "\n")
