@@ -15,6 +15,7 @@ Usage: python scripts/offline_freqtrade.py <freqtrade command> <normal args>
 import sys
 from unittest import mock
 
+from freqtrade.exchange.binance import Binance
 from freqtrade.exchange.exchange import Exchange
 from freqtrade.main import main as ft_main
 
@@ -105,6 +106,12 @@ SYMBOLS = {
     "C98": (0.00001, 0.1),
     "SXP": (0.00001, 0.1),
 }
+# point-in-time universe check (config/pairs_top36_yearly_union.json, 2026-11-03): generic fine precision
+for _b in ("1000BONK 1000LUNC 1000PEPE 1000SATS 1000SHIB 1MBABYDOGE ACT AIA APT ARB ASTER BEAT BIGTIME BLUR COAI "
+           "ENA EOS FARTCOIN FOLKS FTM FTT GAS GIGGLE GOAT HYPE IOTX JTO LIT LOOM LUNA MATIC ME MEME MMT MOODENG "
+           "MOVE NEIRO NIGHT OMG ORDI PAXG PIEVERSE PIPPIN PNUT PUMP REEF SEI SUI TAO THE TIA TRB TRUMP USTC "
+           "UXLINK WAVES WIF WLD XMR XPL YFI YFII").split():
+    SYMBOLS.setdefault(_b, (1e-8, 0.001))
 
 
 def _market(base: str, tick: float, step: float) -> dict:
@@ -146,6 +153,20 @@ async def _fake_reload(self, reload=False):
     self._api_async.set_markets(MARKETS)
 
 
+_orig_tiers = Binance.load_leverage_tiers
+
+
+def _tiers_with_delisted(self):
+    """The bundled tier file only knows coins listed today; delisted coins get a small-coin template."""
+    tiers = _orig_tiers(self)
+    template = tiers.get("SAND/USDT:USDT")
+    for sym in MARKETS:
+        if sym not in tiers and template:
+            tiers[sym] = template
+    return tiers
+
+
 if __name__ == "__main__":
-    with mock.patch.object(Exchange, "_api_reload_markets", _fake_reload):
+    with mock.patch.object(Exchange, "_api_reload_markets", _fake_reload), \
+            mock.patch.object(Binance, "load_leverage_tiers", _tiers_with_delisted):
         ft_main(sys.argv[1:])
