@@ -1,7 +1,7 @@
 # Daily OHLCV + funding for EVERY Binance USDⓈ-M USDT perpetual ever listed (delisted included), from data.binance.vision.
 # Survivorship-free universe for the short-side research (cards/yeni_coin_short.md etc.).
 # Output (not committed): user_data/data/allc_1d.feather, user_data/data/allc_funding.feather
-import io, re, time, zipfile, urllib.request
+import io, os, re, time, zipfile, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 
@@ -9,7 +9,8 @@ S3 = "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision?prefix={p}&del
 KL = "data/futures/um/monthly/klines/{s}/1d/"
 FR = "data/futures/um/monthly/fundingRate/{s}/"
 BASE = "https://data.binance.vision/"
-LAST = "2026-03"  # never fetch holdout months
+LAST = os.environ.get("LAST", "2026-03")  # holdout months only with LAST=2026-10 and SUFFIX=_full (approved one-off run)
+SUF = os.environ.get("SUFFIX", "")
 
 
 def get(url):
@@ -89,12 +90,12 @@ if __name__ == "__main__":
     D = pd.concat(K)
     D["date"] = pd.to_datetime(D.ts.astype("int64"), unit="ms", utc=True).dt.normalize()
     D = D.drop(columns="ts").drop_duplicates(["symbol", "date"]).sort_values(["symbol", "date"]).reset_index(drop=True)
-    D.to_feather("user_data/data/allc_1d.feather")
+    D.to_feather(f"user_data/data/allc_1d{SUF}.feather")
     print(D.symbol.nunique(), "kline symbols", len(D), "rows", flush=True)
     with ThreadPoolExecutor(24) as ex:
         F = [p for p in ex.map(fr, syms) if p is not None]
     F = pd.concat(F)
     F["time"] = pd.to_datetime(F.ts.astype("int64"), unit="ms", utc=True)
     F = F.drop(columns="ts").drop_duplicates(["symbol", "time"]).reset_index(drop=True)
-    F.to_feather("user_data/data/allc_funding.feather")
+    F.to_feather(f"user_data/data/allc_funding{SUF}.feather")
     print(F.symbol.nunique(), "funding symbols", len(F), "rows")

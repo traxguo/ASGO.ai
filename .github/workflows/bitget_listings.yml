@@ -1,0 +1,16 @@
+name: Bitget listing dates (research)
+# Research only: reads public Bitget contract data (no keys) and prints listing dates to the log.
+on:
+  pull_request:
+    paths: ["research/shortside/bitget_listings.py", ".github/workflows/bitget_listings.yml"]
+  workflow_dispatch:
+jobs:
+  listings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -u research/shortside/bitget_listings.py
