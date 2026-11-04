@@ -1721,3 +1721,26 @@ class PusulaV2NoBeHalfSlot(PusulaV2NoBeHalfEma50):
                "open": len(self._open_trades())}
         with open(path, "a") as f:
             f.write(json.dumps(rec) + "\n")
+
+
+class PusulaV2NoBeEveryBreakout(PusulaV2NoBe):
+    """
+    Queue item 27 (2026-11-04, research/queue/pusula_kuyruk.md), removal test,
+    fixed before testing.
+
+    PusulaV2NoBe without the "first close" restriction (first_true) on the long
+    4h breakout: EVERY 4h close above the previous 20-candle high is a signal,
+    not only the first candle of a run of such closes. So when a breakout is
+    missed (all 3 slots in use, the coin was busy, the limit order expired
+    unfilled), the next candle that still closes above the previous 20-candle
+    high gives a new chance. All other conditions (daily score >= +1), the
+    limit order in the entry zone, the stop, the exits, 1% risk and max 3
+    trades are unchanged. Freqtrade allows one trade per coin, so there is
+    still no entry on a coin that already has an open trade (or a pending entry
+    order). No threshold, no sweep. Shorts stay off (PusulaTrendLong).
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["breakout_up"] = df["close"] > df["dc_upper"]
+        return conds

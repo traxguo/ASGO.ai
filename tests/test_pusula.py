@@ -896,3 +896,39 @@ def test_v2_no_be_half_slot_counts_half_trades_as_half_a_slot():
     blocked = [(3, 0), (2, 1), (1, 3), (0, 5), (2, 2), (0, 6)]
     assert all(confirm(f, h) for f, h in allowed)
     assert not any(confirm(f, h) for f, h in blocked)
+
+
+def test_v2_no_be_every_breakout_signals_on_every_close_above_the_channel():
+    """PusulaV2NoBeEveryBreakout: every 4h close above the previous 20-candle high is a signal, not only the first."""
+    tf = pusula.REGIME_TF
+    cls = pusula.PusulaV2NoBeEveryBreakout
+    assert issubclass(cls, pusula.PusulaV2NoBe)
+    for name in ("custom_stoploss", "populate_exit_trend", "populate_indicators", "populate_entry_trend",
+                 "add_plan_columns", "custom_stake_amount", "leverage", "custom_entry_price", "check_entry_timeout"):
+        assert getattr(cls, name) is getattr(pusula.PusulaV2NoBe, name)
+    assert "confirm_trade_entry" not in cls.__dict__  # one trade per coin is Freqtrade's own rule, unchanged
+
+    # Candles 1-3 close above the channel (a run), 4 falls back, 5 above again; candle 3 has score -1.
+    n = 6
+    df = pd.DataFrame({
+        "close": [100.5, 102.0, 102.5, 102.2, 100.8, 102.1], "high": [102.6] * n, "low": [101.5] * n,
+        "atr": [1.0] * n, "swing_low": [99.0] * n, "swing_high": [103.0] * n,
+        "dc_upper": [101.0] * n, "dc_lower": [90.0] * n,
+        f"score_{tf}": [1, 1, 1, -1, 1, 1], f"close_{tf}": [105.0] * n, f"ema_fast_{tf}": [100.0] * n,
+        f"mkt_score_{tf}": [1] * n,
+    })
+
+    def entries(c, frame):
+        s = c.__new__(c)
+        s.mgmt = c.mgmt
+        out = s.populate_entry_trend(frame.copy(), {"pair": "X/USDT:USDT"})
+        return out.get("enter_long", pd.Series(np.nan, index=frame.index)).fillna(0).astype(int).tolist()
+
+    assert entries(pusula.PusulaV2NoBe, df) == [0, 1, 0, 0, 0, 1]
+    assert entries(cls, df) == [0, 1, 1, 0, 0, 1]
+    # No lookahead: a later candle does not change earlier verdicts.
+    longer = pd.concat([df, df.iloc[[-1]].assign(close=150.0)], ignore_index=True)
+    assert entries(cls, longer)[:n] == [0, 1, 1, 0, 0, 1]
+    # Shorts stay off.
+    s = cls.__new__(cls)
+    assert cls.signal_conditions(s, df)["short"] == {}
