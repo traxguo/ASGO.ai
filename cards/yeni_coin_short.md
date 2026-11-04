@@ -1,6 +1,6 @@
 # Yeni Coin Short (yeni listelenen coinleri kısa süre satmak) — ARAŞTIRMA
 
-**Durum:** KASADA KALDI (2026-11-04). Geliştirme + doğrulama geçti, ama denetleyicinin onayıyla bir kez yapılan kasa testinde (2026-04 → 2026-09) değerlendirilen 7 günlük kural eksi çıktı. Demo botlara eklenmedi. Kasa artık kullanıldı; bu kural ailesi için tekrar kasa testi yapılmaz.
+**Durum:** KASADA KALDI (2026-11-04); 14 günlük sürüm sadece kâğıt takipte (bkz. aşağı). Geliştirme + doğrulama geçti, ama denetleyicinin onayıyla bir kez yapılan kasa testinde (2026-04 → 2026-09) değerlendirilen 7 günlük kural eksi çıktı. Demo botlara eklenmedi. Kasa artık kullanıldı; bu kural ailesi için tekrar kasa testi yapılmaz.
 
 ## Hipotez
 Binance'te yeni listelenen bir vadeli coin ilk günlerde genelde değer kaybeder: airdrop ve erken yatırımcılar satar, ilk heyecan söner. Coin listelendikten sonraki gün açığa satıp (short) bir hafta tutarsak bu düşüşten pay alırız. Bu fikir coin "seçmez", listelenen HER coine uygulanır; bu yüzden "bugün hâlâ yaşayan coinler" yanılgısı (survivorship) yoktur.
@@ -62,6 +62,15 @@ Geçme şartı önceden belirlendi: ortalama R > 0, PF > 1.1, DD < %20. Değerle
 - BTC al-tut aynı dönemde +24.6% (DD 28.7%).
 - 7 günlük kural 6 ayın 4'ünde eksi. **Sonuç: değerlendirilen kural kasada geçemedi.**
 - 14 günlük ana kural kasada geçti, ama geliştirmede çok zayıftı (PF 1.04). Sonradan "14 gün daha iyiymiş" diyerek ona geçmek, kasayı seçim için kullanmak olur; bu yüzden kabul edilmedi. Üç dönemin üçünde de artı olan tek sürüm H14, ancak geliştirmedeki zayıflık yüzünden bunu güçlü kanıt saymıyoruz.
+
+## Kâğıt takip (2026-11-04'ten itibaren, sadece 14 günlük sürüm)
+Denetleyici kararı: 7 günlük kural reddedildi. 14 günlük sürüm "active" olmadı; sadece ileriye dönük **kâğıt** takipte. Emir yok, demo hesap yok. Kurallar 2026-11-30 değerlendirmesine kadar donduruldu.
+- Kod: `scripts/paper_yeni_coin.py`, test `tests/test_paper_yeni_coin.py`, iş akışı `.github/workflows/paper_yeni_coin.yml` (günde 2 kez, 06:17 ve 18:17 UTC).
+- Binance'in yeni listelemeleri herkese açık data.binance.vision arşivinden okunur (Binance API'si GitHub'da engelli). Arşive yeni giren coinin ilk günlük mum tarihi = listeleme günü.
+- Giriş: ertesi günün Bitget günlük açılışı. Stop %40 (+%0.3 kayma), 14. günün kapanışında çıkış, %1 risk, en fazla 10 açık, %0.20 masraf, Bitget funding dahil.
+- Bitget'te olmayan veya giriş gününde Bitget'te işlem görmeyen coinler "atlandı" diye kaydedilir. Arşiv geç yayınlanırsa (giriş gününden 3 günden fazla sonra bulunursa) işlem açılmaz.
+- Kayıt: `forward/paper_yeni_coin/` (state.json, trades.csv). Telegram'a "KÂĞIT short / kapanış / atlandı" mesajları gider.
+- Farklar (test ile): testte giriş fiyatı Binance açılışıydı, burada Bitget açılışı.
 
 ## Sıradaki adım (önceki öneri, kasa öncesi)
 1. Denetleyici onayıyla kasa (2026-04 → 2026-09) bir kez: K1 H7 S40, değiştirmeden.
