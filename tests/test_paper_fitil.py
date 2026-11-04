@@ -53,3 +53,26 @@ def test_open_hour_is_not_judged_yet():
     state = {"done_until": H.isoformat()}
     pf.run_once(Pub(), state, H + timedelta(minutes=50), ["ETH/USDT:USDT"])
     assert state["trades"] == [] and state["done_until"] == H.isoformat()
+
+
+class _Pub15:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def fetch_ohlcv(self, pair, tf, since=None, limit=200):
+        return [[since + i * 900000, *r, 1] for i, r in enumerate(self.rows)][:limit]
+
+
+def test_derin_stop_exits_at_the_stop_or_a_gap_open():
+    from datetime import datetime, timedelta, timezone
+    import paper_fitil as pf
+    fill = datetime(2026, 11, 1, 10, 0, tzinfo=timezone.utc)
+    t = {"pair": "X/USDT:USDT", "mode": "derin", "fill_time": fill.isoformat(), "entry": 100.0}
+    now = fill + timedelta(hours=4)
+    # o, h, l, c: fill candle ok, then a dip through 96
+    assert pf.deep_stop(_Pub15([[100, 101, 99, 100], [100, 100, 95, 97]]), t, now)[1] == 96.0
+    # gap: the next candle opens at 94 under the stop
+    assert pf.deep_stop(_Pub15([[100, 101, 99, 100], [94, 95, 93, 94]]), t, now)[1] == 94.0
+    # fill candle already closes under the stop
+    assert pf.deep_stop(_Pub15([[100, 101, 95, 95.5]]), t, now)[1] == 95.5
+    assert pf.deep_stop(_Pub15([[100, 101, 99, 100], [100, 101, 97, 98]]), t, now) is None

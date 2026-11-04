@@ -63,3 +63,9 @@ Rapor: [results/2026-11-04_derin_fitil_stop/rapor.md](../results/2026-11-04_deri
 | Stop %8 + 24s | +56.4% / -11.1% | +31.2% / -13.5% | +44.8% / +24.8% |
 Üçü de şartları geçti. Ama en iyi 5 gün çıkarılınca hepsi eksi, kârın çoğu 2022'de, 2024 ve 2026 Q1 eksi; 24 saat kuralı LUNA görüldükten sonra önerildi.
 Demo bot değişmedi; karar yönetici ve GUO'da.
+
+## 2026-11-04 demoya geçiş: stop %4 + 24 saat bekleme
+GUO kartta "Stoplu sürümü test et, geçerse onunla değiştir" dedi; üç varyant da geçti. Demo botuna en düşük düşüşlü olan girdi (`scripts/bitget_fitil.py`, kâğıt takip `scripts/paper_fitil.py` aynı kural):
+- Derin Fitil işlemi, dolumdan sonra 15 dakikalık mumların dibi giriş fiyatının %4 altına inerse hemen piyasa emriyle kapanır. Canlıda kontrol 15 dakikada bir yapıldığı için çıkış fiyatı testteki stoptan biraz kötü olabilir.
+- Bir coinde Derin Fitil dolumundan sonra 24 saat o coine yeni Derin Fitil emri konmaz.
+- Fitil Avcısı (yükselen coin, %5) değişmedi: stop yok, 3 saat tutma.
