@@ -1,0 +1,49 @@
+== (d) funding carry ==
+FUND LB3 K5 H1
+   cost 0.0%: dev +666% | val +12%
+   cost 0.2%: dev tot  +229.5% cagr  +26.9% dd  51.3% sh +0.77 [L +521% S -96%] | val tot    -8.7% cagr   -7.0% dd  44.5% sh +0.25 [L -72% S -22%]
+   cost 0.4%: dev +42% | val -26%
+FUND LB3 K5 H7
+   cost 0.0%: dev +220% | val -21%
+   cost 0.2%: dev tot  +143.6% cagr  +19.5% dd  41.8% sh +0.74 [L +897% S -97%] | val tot   -26.8% cagr  -22.1% dd  44.8% sh -0.20 [L -82% S +8%]
+   cost 0.4%: dev +85% | val -32%
+FUND LB3 K10 H1
+   cost 0.0%: dev +148% | val +31%
+   cost 0.2%: dev tot   +30.0% cagr   +5.4% dd  33.4% sh +0.34 [L -35% S -90%] | val tot    +6.0% cagr   +4.8% dd  25.0% sh +0.31 [L -62% S +18%]
+   cost 0.4%: dev -32% | val -14%
+FUND LB3 K10 H7
+   cost 0.0%: dev +141% | val +13%
+   cost 0.2%: dev tot   +93.0% cagr  +14.0% dd  34.4% sh +0.80 [L +51% S -82%] | val tot    +5.1% cagr   +4.1% dd  21.9% sh +0.28 [L -67% S +58%]
+   cost 0.4%: dev +55% | val -2%
+FUND LB7 K5 H1
+   cost 0.0%: dev +459% | val +20%
+   cost 0.2%: dev tot  +217.0% cagr  +25.9% dd  49.6% sh +0.76 [L +305% S -96%] | val tot    +4.7% cagr   +3.7% dd  43.2% sh +0.41 [L -69% S -9%]
+   cost 0.4%: dev +80% | val -9%
+FUND LB7 K5 H7
+   cost 0.0%: dev +293% | val -13%
+   cost 0.2%: dev tot  +202.9% cagr  +24.8% dd  31.9% sh +0.91 [L +394% S -95%] | val tot   -18.4% cagr  -15.1% dd  43.6% sh -0.01 [L -84% S +39%]
+   cost 0.4%: dev +133% | val -24%
+FUND LB7 K10 H1
+   cost 0.0%: dev +199% | val +55%
+   cost 0.2%: dev tot   +99.9% cagr  +14.8% dd  33.7% sh +0.73 [L -30% S -78%] | val tot   +36.3% cagr  +28.2% dd  23.4% sh +0.79 [L -52% S +55%]
+   cost 0.4%: dev +34% | val +20%
+FUND LB7 K10 H7
+   cost 0.0%: dev +162% | val +16%
+   cost 0.2%: dev tot  +114.5% cagr  +16.5% dd  28.2% sh +0.91 [L +4% S -77%] | val tot    +9.3% cagr   +7.4% dd  20.6% sh +0.37 [L -69% S +67%]
+   cost 0.4%: dev +76% | val +3%
+FUND LB14 K5 H1
+   cost 0.0%: dev +338% | val -11%
+   cost 0.2%: dev tot  +199.1% cagr  +24.5% dd  50.9% sh +0.80 [L +242% S -96%] | val tot   -18.7% cagr  -15.3% dd  47.3% sh +0.15 [L -82% S -1%]
+   cost 0.4%: dev +104% | val -26%
+FUND LB14 K5 H7
+   cost 0.0%: dev +190% | val -34%
+   cost 0.2%: dev tot  +137.9% cagr  +18.9% dd  36.0% sh +0.73 [L +350% S -97%] | val tot   -37.7% cagr  -31.6% dd  44.6% sh -0.34 [L -85% S -15%]
+   cost 0.4%: dev +95% | val -41%
+FUND LB14 K10 H1
+   cost 0.0%: dev +211% | val +22%
+   cost 0.2%: dev tot  +135.6% cagr  +18.7% dd  30.2% sh +0.91 [L -34% S -67%] | val tot   +11.5% cagr   +9.1% dd  25.8% sh +0.41 [L -69% S +62%]
+   cost 0.4%: dev +78% | val +2%
+FUND LB14 K10 H7
+   cost 0.0%: dev +163% | val -11%
+   cost 0.2%: dev tot  +126.9% cagr  +17.8% dd  24.0% sh +0.97 [L -17% S -72%] | val tot   -15.1% cagr  -12.3% dd  33.2% sh -0.22 [L -77% S +37%]
+   cost 0.4%: dev +96% | val -19%
