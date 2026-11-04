@@ -49,7 +49,7 @@ def append(rows: list[dict], path: Path = OUT) -> None:
 def main() -> None:
     import ccxt
 
-    ex = ccxt.bitget({"options": {"defaultType": "swap"}, "enableRateLimit": True})
+    ex = ccxt.bitget({"options": {"defaultType": "swap", "fetchMarkets": {"types": ["swap"]}}, "enableRateLimit": True})
     ex.load_markets()
     pairs = json.loads(PAIRS_FILE.read_text(encoding="utf-8"))["exchange"]["pair_whitelist"]
     rows = snapshot(ex, pairs, datetime.now(timezone.utc))
