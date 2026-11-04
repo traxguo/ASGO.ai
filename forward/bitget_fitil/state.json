@@ -11056,6 +11056,10 @@
     "fitltc2026110412": {
       "amount": 39.5,
       "entry_fees": 0.397923,
+      "exit_price": 58.51683544303798,
+      "exit_reason": "time_exit",
+      "exit_time": "2026-11-04T15:18:36.223856+00:00",
+      "fees_usdt": 1.7848,
       "fill_price": 50.37,
       "fill_time": "2026-11-04T12:12:31.460000+00:00",
       "hour": "2026-11-04T12:00:00+00:00",
@@ -11063,7 +11067,9 @@
       "mode": "derin",
       "order_id": "1501845675053613057",
       "pair": "LTC/USDT:USDT",
-      "status": "open"
+      "pnl_usdt": 320.0152,
+      "ret_pct": 16.084,
+      "status": "closed"
     },
     "fitnear2026101213": {
       "hour": "2026-10-12T13:00:00+00:00",
@@ -13557,12 +13563,16 @@
       "status": "cancelled"
     },
     "fitsol2026110415": {
+      "amount": 23.4,
+      "entry_fees": 0.40960296,
+      "fill_price": 87.522,
+      "fill_time": "2026-11-04T15:17:40.881000+00:00",
       "hour": "2026-11-04T15:00:00+00:00",
       "limit_price": 87.522,
       "mode": "derin",
       "order_id": "1501890993405231105",
       "pair": "SOL/USDT:USDT",
-      "status": "pending"
+      "status": "open"
     },
     "fittrx2026101700": {
       "hour": "2026-10-17T00:00:00+00:00",
