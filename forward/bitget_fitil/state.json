@@ -13781,6 +13781,10 @@
     "fitsol2026110415": {
       "amount": 23.4,
       "entry_fees": 0.40960296,
+      "exit_price": 96.907,
+      "exit_reason": "time_exit",
+      "exit_time": "2026-11-04T18:18:43.437310+00:00",
+      "fees_usdt": 1.7702,
       "fill_price": 87.522,
       "fill_time": "2026-11-04T15:17:40.881000+00:00",
       "hour": "2026-11-04T15:00:00+00:00",
@@ -13788,7 +13792,9 @@
       "mode": "derin",
       "order_id": "1501890993405231105",
       "pair": "SOL/USDT:USDT",
-      "status": "open"
+      "pnl_usdt": 217.8388,
+      "ret_pct": 10.637,
+      "status": "closed"
     },
     "fittrx2026101700": {
       "hour": "2026-10-17T00:00:00+00:00",
