@@ -28,6 +28,8 @@ Tersine, düşen coinlerde **çok derin** (%6-10) panik fitilleri geri dönüyor
 | %10 | 2025-01 → 2026-03 | 0.06 | +7.77% | +47.2% | -0.7% |
 | %8 | **kasa 2026-04 → 2026-09 (bir kez), 36 coin** | 0.02 (4 işlem) | +2.12% | +1.7% | -0.7% |
 | %8 | **kasa, 45 hiç bakılmamış coin** | 0.18 (33 işlem) | +1.03% | +6.8% | -3.3% |
+| %8 | **2020-03 → 2024, gerçekçi evren (PIT), masraf %0.20** | 0.13 | **-0.70%** | **-38.8%** | **-60.8%** |
+| %8 | **2025-01 → 2026-03, gerçekçi evren (PIT), masraf %0.20** | 0.34 | +0.35% | +5.6% | -23.6% |
 
 Üç derinliğin hepsi iki dönemde de artı: seçilen %8 tek şanslı nokta değil.
 
@@ -41,3 +43,23 @@ Tersine, düşen coinlerde **çok derin** (%6-10) panik fitilleri geri dönüyor
 ## Durum
 2026-10-17: Bitget demoda Fitil Avcısı botunun içinde çalışıyor (yükselen coin: %5 limit, düşen coin: %8 limit).
 2026-10-17: ayrıca 81 coinde kâğıt üzerinde takip (scripts/paper_fitil.py, forward/paper_fitil/): Fitil + Derin Fitil, gerçek fiyatlarla, emir yok. Amaç: tüm evrende günde kaç işlem verdiğini canlı saymak (2 haftalık plan, karar ~2026-10-31).
+
+## 2026-11-04 silinen coin kontrolü: KIRILGAN
+Her yıl başında o günün en çok işlem gören 36 coini (silinen/çöken coinler dahil, `research/xsec/top36_yearly.json`), kurallar aynı,
+kod `research/scans/wick_catcher_pit.py`. Rapor: [results/2026-11-04_fitil_pit/rapor.md](../results/2026-11-04_fitil_pit/rapor.md)
+- Geliştirme -%39 (DD -%61, en kötü gün -%33): LUNA çöküşü (Mayıs 2022) tek başına 15 işlem, biri -%84. Ölen coinde fitil dönmüyor, stop olmadığı için bot her saat yeniden alıyor.
+- Doğrulama +%5.6 (DD -%24), masraf x2'de -%0.7; zarar UXLINK (hack), ACT, PIPPIN gibi çöken coinlerden. 2026 Q1 -%18.
+- Eski parlak sonuç büyük ölçüde coin seçiminden geliyormuş. Teşhis: "aynı coine 24 saat yeniden girme" LUNA zincirini keser (geliştirme +%74, doğrulama +%23) ama LUNA'yı gördükten sonra seçildi ve en iyi 5 gün çıkarılınca iki dönemde de eksi; kural olarak önerilmez.
+- Demoda sadece Bitget'in 15 büyük coini var; risk daha düşük ama stop olmadığı için sıfır değil. Kurallar 2026-11-30'a kadar donuk; karar yöneticide.
+
+## 2026-11-04 stoplu sürüm (GUO isteği; varyantlar test öncesi sabitlendi)
+Gerçekçi evren, masraf %0.20 + funding. Stop girişin %4/%6/%8 altı + aynı coine 24 saatte en fazla 1 giriş.
+Rapor: [results/2026-11-04_derin_fitil_stop/rapor.md](../results/2026-11-04_derin_fitil_stop/rapor.md)
+| Sürüm | Geliştirme kasa / DD | Doğrulama kasa / DD | Masraf x2 (gel. / doğ.) |
+|---|---|---|---|
+| Canlı kural (stopsuz) | -38.8% / -60.8% | +5.6% / -23.6% | -44.4% / -0.7% |
+| Stop %4 + 24s | +65.5% / -10.0% | +32.7% / -11.8% | +53.2% / +26.3% |
+| Stop %6 + 24s | +54.0% / -14.1% | +29.8% / -13.2% | +42.6% / +23.5% |
+| Stop %8 + 24s | +56.4% / -11.1% | +31.2% / -13.5% | +44.8% / +24.8% |
+Üçü de şartları geçti. Ama en iyi 5 gün çıkarılınca hepsi eksi, kârın çoğu 2022'de, 2024 ve 2026 Q1 eksi; 24 saat kuralı LUNA görüldükten sonra önerildi.
+Demo bot değişmedi; karar yönetici ve GUO'da.
