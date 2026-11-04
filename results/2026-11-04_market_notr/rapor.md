@@ -4,7 +4,7 @@
 - Piyasa düşse de çıksa da kazanma fikriyle 6 "hem al hem sat" stratejisi denedik. Hepsi silinen coinler dahil, masraf ve funding ile.
 - 5'i elendi: coin çiftleri, ETH/BTC oranı, kısa vadeli geri dönüş, funding toplama, sakin/oynak coin.
 - 1 tanesi umut verdi: **"Yeni Coin Short"**: yeni listelenen coini 1 hafta sonra sat, karşılığında aynı tutarda BTC al, en fazla 1 ay tut. 2020-24'te +%109, 2025-26/03'te +%32 (BTC aynı dönemde -%28). Ama kötü dönemde kasa %27'ye kadar geriliyor ve 2026'nın ilk 3 ayı -%15.
-- Sıradaki adım: yönetici karar verirse saklanan son 6 ayda (kasa) bir kez test. Gerçek para yok, canlı botlara dokunulmadı.
+- Sıradaki adım: gerçek emir olmadan kâğıt üzerinde takip (2026-11-30'da değerlendirme). Canlı botlara dokunulmadı.
 
 ## Ortak ayarlar
 - Evren: Binance USDⓈ-M'de bugüne kadar listelenmiş 680 USDT coin (silinenler dahil). Günlük veri `research/xsec/fetch_all_daily.py`, funding `research/neutral/fetch_funding_daily.py`, yeni coinlerin saatlik verisi `research/neutral/fetch_newlist_1h.py` (hepsi data.binance.vision).
@@ -56,4 +56,4 @@ En az 365 gün geçmişli coinlerle doğrulama -%6..+%17. Kâr funding'in kendis
 
 ## Karar
 - (a), (b), (c), (d), (f): elendi, `cards/market_notr.md`.
-- (e) Yeni Coin Short: zayıf aday, `cards/yeni_coin_short_btc_hedge.md`. Kasa testi için yönetici/GUO kararı bekleniyor. Kural değiştirilmeden bir kez çalıştırılmalı.
+- (e) Yeni Coin Short: zayıf aday, `cards/yeni_coin_short_btc_hedge.md`. Kasa testi yapılmadı (korumasız Yeni Coin Short ailesi kasayı zaten gördü); yönetici kararıyla 2026-11-04'ten itibaren kâğıt takipte (`scripts/paper_yeni_coin.py`, `forward/paper_yeni_coin_hedge/`), değerlendirme 2026-11-30.

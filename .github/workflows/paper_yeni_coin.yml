@@ -1,4 +1,5 @@
-# Paper tracking of Yeni Coin Short, 14-day version (cards/yeni_coin_short.md). No keys, no orders, no demo account.
+# Paper tracking of Yeni Coin Short, 14-day version (cards/yeni_coin_short.md) and the BTC-hedged 30-day variant
+# (cards/yeni_coin_short_btc_hedge.md). No keys, no orders, no demo account.
 # Reads Binance listings from data.binance.vision and Bitget public prices; writes forward/paper_yeni_coin/.
 # Rules frozen until the 2026-11-30 review.
 name: Yeni Coin Short paper tracking
@@ -51,6 +52,7 @@ jobs:
         if: always() && github.event_name != 'pull_request'
         run: |
           if [ -d forward/paper_yeni_coin ]; then git add forward/paper_yeni_coin; fi
+          if [ -d forward/paper_yeni_coin_hedge ]; then git add forward/paper_yeni_coin_hedge; fi
           if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

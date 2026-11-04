@@ -17,6 +17,19 @@ first daily kline file. Coins not listed on Bitget by the entry day are logged a
 
     python scripts/paper_yeni_coin.py           # update state and trades
     python scripts/paper_yeni_coin.py --check   # print what would happen, save nothing
+
+Second variant, tracked separately (forward/paper_yeni_coin_hedge/, cards/yeni_coin_short_btc_hedge.md,
+supervisor decision 2026-11-04, no holdout run because this family already saw the holdout):
+BTC-hedged new-coin short from research/neutral/newlist_portfolio.py (card rule N7 M30 S30):
+- entry at the open of day D+8 (= close of day D+7, a week after listing): short the coin with 5% of equity
+  (isolated 1x, the coin leg can lose at most its margin) and long BTC with another 5% of equity
+- only if the coin is among the 100 most traded: research used Binance 30-day volume rank on day D+7; live we
+  use Bitget instead (coin's average daily quote volume over its closed days D+1..D+7 vs the 100th largest
+  24h quote volume of Bitget USDT perps), because the full Binance volume table is not available on the runner
+- stop: coin trades 30% above the entry (first 1h candle whose high reaches it; fill max(hour open, stop) +0.2%)
+- otherwise exit at the close of the 30th day (D+8 .. D+37); a coin that stops trading exits at its last close
+- both legs leave on the same day; BTC leg exits at that day's close; at most 20 open; 0.20% round trip per leg;
+  Bitget funding on both legs
 """
 
 import argparse
@@ -213,22 +226,164 @@ def run_once(pub, state: dict, now: datetime, archive: set[str], first_day=binan
     return msgs
 
 
-def save(state: dict) -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / "state.json").write_text(json.dumps(state, indent=1), encoding="utf-8")
-    with (OUT_DIR / "trades.csv").open("w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=FIELDS, extrasaction="ignore")
+# ---------- BTC-hedged variant (N7 M30 S30) ----------
+
+H_OUT_DIR = REPO / "forward" / "paper_yeni_coin_hedge"
+H_WAIT = 8          # entry day = listing day + 8 (open) = close of listing day + 7
+H_HOLD = 30
+H_STOP = 0.30
+H_SLOT = 0.05
+H_MAX_OPEN = 20
+H_SLIP = 0.002
+H_TOP = 100
+BTC = "BTC/USDT:USDT"
+H_FIELDS = ["symbol", "pair", "listed", "entry_day", "entry", "stop", "btc_entry", "notional", "exit_day", "exit",
+            "btc_exit", "why", "coin_ret_pct", "btc_ret_pct", "ret_pct", "pnl_usdt", "note"]
+
+
+def _day(ts: int) -> date:
+    return datetime.fromtimestamp(ts / 1000, tz=timezone.utc).date()
+
+
+def _ms(d: date) -> int:
+    return int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp() * 1000)
+
+
+def top_volume_cut(pub) -> float:
+    """24h quote volume of the H_TOP-th most traded Bitget USDT perpetual (0 if unknown -> no filter)."""
+    try:
+        tk = pub.fetch_tickers()
+    except Exception as e:  # noqa: BLE001
+        print(f"tickers unavailable ({e}); volume filter skipped")
+        return 0.0
+    vols = sorted((float(t.get("quoteVolume") or 0) for k, t in tk.items() if k.endswith("/USDT:USDT")), reverse=True)
+    return vols[H_TOP - 1] if len(vols) >= H_TOP else 0.0
+
+
+def hedge_manage(pub, t: dict, today: date) -> None:
+    """Stop / 30-day / delisting exit on closed days. Mutates t when closed."""
+    entry_day = date.fromisoformat(t["entry_day"])
+    rows = [r for r in daily(pub, t["pair"], entry_day, H_HOLD) if _day(r[0]) < today]
+    last = None
+    for k, r in enumerate(rows):
+        d = _day(r[0])
+        if d != entry_day + timedelta(days=k):  # a missing day: the coin stopped trading
+            break
+        last = r
+        if r[2] >= t["stop"]:
+            hours = [h for h in pub.fetch_ohlcv(t["pair"], "1h", since=r[0], limit=24) if h[0] < r[0] + DAY_MS]
+            hit = next((h for h in hours if h[2] >= t["stop"]), None)
+            fill = max(hit[1], t["stop"]) if hit else max(r[1], t["stop"])
+            t.update(exit_day=d.isoformat(), exit=fill * (1 + H_SLIP), why="stop")
+            return
+        if k == H_HOLD - 1:
+            t.update(exit_day=d.isoformat(), exit=r[4], why="time")
+            return
+    gone = last is not None and _day(last[0]) < today - timedelta(days=2) and len(rows) < H_HOLD
+    if gone or (last is None and today > entry_day + timedelta(days=2)):
+        d = _day(last[0]) if last else entry_day
+        t.update(exit_day=d.isoformat(), exit=last[4] if last else t["entry"], why="delist")
+
+
+def hedge_close(pub, t: dict, equity: float) -> float:
+    ed = date.fromisoformat(t["exit_day"])
+    btc = daily(pub, BTC, ed, 1)
+    t["btc_exit"] = btc[0][4] if btc and _day(btc[0][0]) == ed else t["btc_entry"]
+    start, end = _ms(date.fromisoformat(t["entry_day"])), _ms(ed) + DAY_MS
+    coin = max(1 - t["exit"] / t["entry"] + funding_sum(pub, t["pair"], start, end), -1.0)  # isolated 1x
+    hedge = t["btc_exit"] / t["btc_entry"] - 1 - funding_sum(pub, BTC, start, end)
+    pnl = t["notional"] * (coin + hedge - 2 * COST)
+    t.update(coin_ret_pct=round(coin * 100, 3), btc_ret_pct=round(hedge * 100, 3),
+             ret_pct=round(pnl / (2 * t["notional"]) * 100, 3), pnl_usdt=round(pnl, 2))
+    return equity + pnl
+
+
+def run_hedge(pub, state: dict, now: datetime, archive: set[str], first_day=binance_first_day,
+              vol_cut=top_volume_cut) -> list[str]:
+    msgs: list[str] = []
+    today = now.date()
+    trades = state.setdefault("trades", [])
+    equity = state.setdefault("equity", START_EQUITY)
+    known = set(state.get("known", []))
+    pending = state.setdefault("pending", [])
+    if not known:
+        state["known"] = sorted(archive)
+        return msgs
+    for s in sorted(archive - known):
+        d = first_day(s)
+        if d is not None:
+            pending.append({"symbol": s, "listed": d.isoformat()})
+        known.add(s)
+    state["known"] = sorted(known)
+
+    still, cut = [], None
+    for p in pending:
+        entry_day = date.fromisoformat(p["listed"]) + timedelta(days=H_WAIT)
+        if entry_day > today:
+            still.append(p)
+            continue
+        if entry_day < today - timedelta(days=3):
+            trades.append({**p, "entry_day": entry_day.isoformat(), "why": "skipped", "note": "found too late"})
+            continue
+        pair = bitget_pair(pub.markets, p["symbol"])
+        base = {**p, "pair": pair, "entry_day": entry_day.isoformat()}
+        if pair is None:
+            trades.append({**base, "why": "skipped", "note": "not on Bitget"})
+            continue
+        rows = daily(pub, pair, date.fromisoformat(p["listed"]) + timedelta(days=1), H_WAIT)
+        if not rows or _day(rows[-1][0]) != entry_day:
+            trades.append({**base, "why": "skipped", "note": "no Bitget candle on entry day"})
+            continue
+        hist = [r[5] * r[4] for r in rows[:-1]]
+        cut = vol_cut(pub) if cut is None else cut
+        if len(hist) < 5 or sum(hist) / len(hist) < cut:
+            trades.append({**base, "why": "skipped", "note": "not in top 100 by volume"})
+            continue
+        if sum(1 for t in trades if t.get("why") == "open") >= H_MAX_OPEN:
+            trades.append({**base, "why": "skipped", "note": "max open"})
+            continue
+        btc = daily(pub, BTC, entry_day, 1)
+        if not btc or _day(btc[0][0]) != entry_day:
+            still.append(p)
+            continue
+        entry = rows[-1][1]
+        t = {**base, "entry": entry, "stop": entry * (1 + H_STOP), "btc_entry": btc[0][1],
+             "notional": round(equity * H_SLOT, 2), "why": "open", "exit_day": None, "exit": None}
+        trades.append(t)
+        msgs.append(f"KÂĞIT short {p['symbol'][:-4]} @ {entry:.6g} + long BTC @ {btc[0][1]:.6g} "
+                    f"({p['listed']} listelendi; stop {t['stop']:.6g}, en geç 30 gün)")
+    state["pending"] = still
+
+    for t in trades:
+        if t.get("why") != "open":
+            continue
+        hedge_manage(pub, t, today)
+        if t.get("exit") is None:
+            continue
+        equity = hedge_close(pub, t, equity)
+        why = {"time": "30 gün doldu", "stop": "stop", "delist": "coin listeden çıktı"}[t["why"]]
+        msgs.append(f"KÂĞIT kapanış: {t['symbol'][:-4]} @ {t['exit']:.6g} ({why}), çift net {t['ret_pct']:+.2f}%")
+    state["equity"] = round(equity, 2)
+    state["last_run"] = now.isoformat()
+    return msgs
+
+
+def save(state: dict, out_dir: Path = OUT_DIR, fields: list[str] = FIELDS) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "state.json").write_text(json.dumps(state, indent=1), encoding="utf-8")
+    with (out_dir / "trades.csv").open("w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")
         w.writeheader()
         w.writerows(state.get("trades", []))
 
 
-def notify(lines: list[str]) -> None:
+def notify(lines: list[str], title: str = "Yeni Coin Short (14 gün) — gerçek emir yok, kâğıt takip") -> None:
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     if not lines or not token:
         return
     from signals.dispatcher.telegram_client import TelegramClient, parse_chat_id
 
-    text = "Yeni Coin Short (14 gün) — gerçek emir yok, kâğıt takip\n" + "\n".join(lines)
+    text = title + "\n" + "\n".join(lines)
     targets = [parse_chat_id(os.environ.get("TELEGRAM_CHAT_ID"))]
     group = os.environ.get("TELEGRAM_GROUP_ID", "").strip()
     if group.lstrip("-").isdigit() and int(group) < 0:  # the one group the owner chose (rule 7)
@@ -259,10 +414,26 @@ def main() -> None:
           f"open {len(opened)}, closed {len(closed)}, equity {state.get('equity')}")
     for m in msgs:
         print(m)
-    if a.check:
-        return
-    save(state)
-    notify(msgs)
+    if not a.check:
+        save(state)
+        notify(msgs)
+
+    # second variant: BTC-hedged, separate state; a failure here must not undo the 14-day log above
+    try:
+        hpath = H_OUT_DIR / "state.json"
+        hstate = json.loads(hpath.read_text(encoding="utf-8")) if hpath.exists() else {"started": now.isoformat()}
+        hmsgs = run_hedge(pub, hstate, now, archive)
+        hop = sum(1 for t in hstate.get("trades", []) if t.get("why") == "open")
+        print(f"paper yeni coin hedge: pending {len(hstate.get('pending', []))}, open {hop}, equity {hstate.get('equity')}")
+        for m in hmsgs:
+            print(m)
+        if not a.check:
+            save(hstate, H_OUT_DIR, H_FIELDS)
+            notify(hmsgs, "Yeni Coin Short + BTC long (30 gün) — gerçek emir yok, kâğıt takip")
+    except Exception as e:  # noqa: BLE001
+        print(f"hedge variant failed: {e}")
+        if a.check:
+            raise
 
 
 if __name__ == "__main__":

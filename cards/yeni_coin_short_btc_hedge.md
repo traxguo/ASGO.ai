@@ -1,6 +1,6 @@
-# Yeni Coin Short (yeni listelenen coini sat, BTC al) — ARAŞTIRMA
+# Yeni Coin Short + BTC long (BTC korumalı sürüm) — KÂĞIT TAKİP
 
-**Durum:** ZAYIF ADAY (2026-11-04). Geliştirme ve doğrulamada artı, ama düşüşler büyük ve 2026'nın ilk çeyreği eksi. Kasa (holdout) kullanılmadı; kasa testine girip girmeyeceğine yönetici oturum ve GUO karar verir. Canlı demo botlarına dokunulmadı.
+**Durum:** KÂĞIT TAKİPTE (2026-11-04'ten itibaren, gerçek emir yok, demo hesap yok). Kurallar 2026-11-30 değerlendirmesine kadar dondurulmuş. Kasa testi YAPILMADI: korumasız Yeni Coin Short ailesi (`cards/yeni_coin_short.md`) kasayı zaten gördüğü için temiz sonuç vermezdi (yönetici kararı 2026-11-04). Canlı demo botlarına dokunulmadı.
 
 Beyin fırtınası listesi: `cards/market_notr.md`. Rapor: `results/2026-11-04_market_notr/rapor.md`.
 
@@ -44,14 +44,20 @@ Kart kuralı (7 gün bekle, 30 gün tut, %30 stop, saatlik stop):
 - Yeni coinlerde gerçek kayma %0.10'dan büyük olabilir; ani sıkışmalarda stop daha kötü dolabilir (saatlik veri tavan fiyatı göremez).
 - Bitget demo sadece ~15 coin listeliyor; yeni coinlerin çoğu orada yok. Canlı denenecekse borsa seçimi ayrıca konuşulmalı.
 
-## Sıradaki adım (önerilen)
-1. Yönetici oturum/GUO isterse kasa (2026-04..09) **bir kez** çalıştırılır, kural değiştirilmeden.
-2. Kasa artıysa: kağıt üzerinde ileriye dönük takip (gerçek para yok).
+## Kâğıt takip (2026-11-04'ten itibaren)
+- Kod: `scripts/paper_yeni_coin.py` (ikinci sürüm, `run_hedge`), aynı GitHub Actions işi günde 2 kez (`paper_yeni_coin.yml`). Kayıt `forward/paper_yeni_coin_hedge/` (state.json, trades.csv). Telegram'a "Yeni Coin Short + BTC long (30 gün)" başlığıyla gider.
+- Bitget'in herkese açık fiyatları kullanılır. Giriş: listeleme gününden 8 gün sonra günün açılışı (= 7. günün kapanışı). Stop: saatlik mumda %30 (+%0.2 kayma). 30. günün kapanışında çıkış. BTC bacağı aynı gün kapanışta kapanır.
+- Araştırmadan tek fark: "en çok işlem gören 100 coin" kontrolü Binance'in 30 günlük hacim sırası yerine Bitget hacmiyle yapılır (coinin ilk 7 günlük ortalama hacmi ≥ Bitget'te 100. sıradaki coinin 24 saatlik hacmi). Bitget'te olmayan coinler atlanır ve kaydedilir.
+- Değerlendirme 2026-11-30.
+
+## Bilinen ilişki
+- Korumasız sürüm (`cards/yeni_coin_short.md`, başka bir iş parçacığında aynı gün test edildi): listelemeden 1 gün sonra short, 7/14 gün, %40 stop. Kasada 7 günlük kural eksi kaldı, 14 günlük kural kâğıt takipte. Bu kartın kuralları o kasa sonucunu görmeden sabitlendi.
 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
 | 2026-11-04 | Silinen coinler dahil, günlük + saatlik stop, 24 komşu ayar | Geliştirme +%109, doğrulama +%32, düşüş %22-27 | `results/2026-11-04_market_notr/rapor.md` |
+| 2026-11-04 | Kâğıt takip başladı (kasa yok, yönetici kararı) | — | `forward/paper_yeni_coin_hedge/` |
 
 ## Kod
 - `research/neutral/fetch_newlist_1h.py` (yeni coinlerin ilk ~75 gününün saatlik verisi)
