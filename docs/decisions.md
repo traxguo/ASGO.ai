@@ -170,3 +170,11 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-10-17 — Fitil short aynası reddedildi, "Derin Fitil" demoya eklendi
 - Karar: düşüş trendindeki coinlerde saat açılışının %8 altına alış limiti (Derin Fitil, cards/derin_fitil.md) Fitil Avcısı demo botuna eklendi. Fitil'in short aynası (düşen coinde %3-5 üstüne satış limiti) reddedildi.
 - Gerekçe: GUO "çukurdan çıkış" planını onayladı (botlar düşen piyasada hiç işlem açmıyordu). Short ayna doğrulamada -%30..-%46. Derin Fitil %6/%8/%10 derinliklerin hepsinde iki dönemde artı; kasa (bir kez) 36 coinde +2.1%/işlem (4 işlem), 45 yeni coinde +1.0%/işlem (33 işlem). Seyrek (ayda ~1 çöküş olayı), bu yüzden günlük işlem hedefini tek başına çözmez.
+
+## 2026-11-04 — Yeni Coin Short kasa testi (tek sefer)
+- Karar: denetleyici (ASGO stratejisi (devam) konuşması) kasa testini onayladı; 2026-04 → 2026-09 bir kez çalıştırıldı. Değerlendirilen 7 günlük kural eksi çıktı (−0.010R, PF 0.93), strateji "active" olmadı. Önceden sabitlenen 14 günlük kural kasada artı (+0.058R, PF 1.35) ama geliştirmede zayıf olduğu için seçilmedi.
+- Gerekçe: geçme şartı (R>0, PF>1.1, DD<%20) testten önce yazıldı; kasa sonucu görüldükten sonra kural değiştirmek kasayı geliştirmede kullanmak olur.
+
+## 2026-11-04 — Yeni Coin Short 14 gün: sadece kâğıt takip
+- Karar (denetleyici): 7 günlük kural reddedildi. 14 günlük kural "active" olmadı; Bitget açık verisiyle ileriye dönük kâğıt takipte (`scripts/paper_yeni_coin.py`). Emir yok, demo hesap yok, kurallar 2026-11-30 değerlendirmesine kadar donuk.
+- Gerekçe: 14 günlük kural kasada artıydı ama geliştirmede zayıftı; karar ancak yeni (ileriye dönük) veriyle verilebilir.

@@ -56,4 +56,4 @@ En az 365 gün geçmişli coinlerle doğrulama -%6..+%17. Kâr funding'in kendis
 
 ## Karar
 - (a), (b), (c), (d), (f): elendi, `cards/market_notr.md`.
-- (e) Yeni Coin Short: zayıf aday, `cards/yeni_coin_short.md`. Kasa testi için yönetici/GUO kararı bekleniyor. Kural değiştirilmeden bir kez çalıştırılmalı.
+- (e) Yeni Coin Short: zayıf aday, `cards/yeni_coin_short_btc_hedge.md`. Kasa testi için yönetici/GUO kararı bekleniyor. Kural değiştirilmeden bir kez çalıştırılmalı.

@@ -1,6 +1,6 @@
 # Market-nötr long+short fikirler (beyin fırtınası) — ARAŞTIRMA
 
-**Durum:** 6 fikir test edildi (2026-11-04). 5'i elendi, 1'i ("Yeni Coin Short") zayıf aday olarak ayrı kartta: `cards/yeni_coin_short.md`. Kasa (holdout, 2026-04..09) kullanılmadı. Canlı demo botlarına dokunulmadı.
+**Durum:** 6 fikir test edildi (2026-11-04). 5'i elendi, 1'i ("Yeni Coin Short") zayıf aday olarak ayrı kartta: `cards/yeni_coin_short_btc_hedge.md`. Kasa (holdout, 2026-04..09) kullanılmadı. Canlı demo botlarına dokunulmadı.
 
 Rapor ve ham çıktılar: `results/2026-11-04_market_notr/`. Kod: `research/neutral/`.
 
@@ -20,7 +20,7 @@ Rapor ve ham çıktılar: `results/2026-11-04_market_notr/`. Kod: `research/neut
 | b2 | **ETH/BTC oranı, trend:** oran yükseliyorsa ETH al BTC sat, düşüyorsa tersi | Evet | ELENDİ (tutarsız) |
 | c | **Piyasadan arındırılmış geri dönüş:** son 1-3 günde BTC'ye göre en çok düşeni al, en çok çıkanı sat | Evet | ELENDİ |
 | d | **Funding carry (kendi fikrim):** funding'i en eksi coinleri al, en artı coinleri sat; funding'i topla | Evet | ELENDİ (kırılgan) |
-| e | **Yeni Coin Short (kendi fikrim):** yeni listelenen coini 1 hafta sonra sat, karşılığında BTC al, 1 ay tut | Evet | **ZAYIF ADAY** → `cards/yeni_coin_short.md` |
+| e | **Yeni Coin Short (kendi fikrim):** yeni listelenen coini 1 hafta sonra sat, karşılığında BTC al, 1 ay tut | Evet | **ZAYIF ADAY** → `cards/yeni_coin_short_btc_hedge.md` |
 | f | **Sakin coin al, oynak coin sat (kendi fikrim):** BTC'ye göre risk eşitlenmiş | Evet | ELENDİ (tutarsız) |
 | g | Dalga/Fitil long'larını BTC short ile korumak (piyasa riskini sil, sadece coin seçme becerisi kalsın) | Hayır | Canlı botlar dondurulmuş; 2026-11-30 sonrası araştırılabilir |
 | h | Spot al + vadeli sat (nakit-carry), sadece funding toplamak | Hayır | Spot hesabı gerekir; BTC funding yıllık brüt ~%17 (2020), %31 (2021), %4-12 (2022-24), %5 (2025). Masraf sonrası mevduata yakın, "işlem stratejisi" değil |
@@ -55,7 +55,7 @@ Son LB günün funding toplamına göre en eksi K coin long, en artı K coin sho
 Her 7 günde 30 günlük oynaklığa göre en sakin K coin long, en oynak K coin short. Beta eşitlenmiş: K5 geliştirme +%64 (düşüş %56), doğrulama +%14 (düşüş %56); K10 geliştirme +%9, doğrulama +%54. Dolar eşit versiyon geliştirmede eksi. Düşüşler çok büyük, ayarlar arası tutarsız.
 
 ### (e) Yeni Coin Short — ZAYIF ADAY
-Ayrıntı: `cards/yeni_coin_short.md`.
+Ayrıntı: `cards/yeni_coin_short_btc_hedge.md`.
 
 ## Öğrenilenler
 - Market-nötr fikirlerde "kâr" kolayca **hayatta kalan coin hatasından** ya da **günlük yeniden dengeleme yanılgısından** gelebiliyor. Yeni Coin Short ilk hesapta (her gün eşit ağırlığa döndürme) doğrulamada +%87 görünüyordu; gerçek pozisyonlarla (eşitleme yok, izole marjin) +%23'e düştü. Short pozisyon fiyat çıktıkça büyür; her gün küçültmek gerçek hayatta ek işlem ve masraftır.

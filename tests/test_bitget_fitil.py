@@ -139,3 +139,37 @@ def test_depth_for_mixed_coin_places_nothing():
     # long-run uptrend (score +3) but the last close dipped under EMA20: neither rule applies
     mixed = pd.DataFrame({"close": [float(i) for i in range(1, 126)] + [110.0]})
     assert bf.depth_for(mixed)[0] is None
+
+
+class FakePubDownLow(FakePubDown):
+    """Daily downtrend; every 15m candle dips to `low`."""
+
+    def __init__(self, low):
+        super().__init__()
+        self.low = low
+
+    def fetch_ohlcv(self, pair, tf, since=None, limit=200):
+        if tf == "15m":
+            return [[since + i * 900000, 95, 96, self.low, 95, 1] for i in range(4)]
+        return super().fetch_ohlcv(pair, tf, since, limit)
+
+
+def test_derin_fitil_trade_is_stopped_4_percent_under_the_fill():
+    ex, state = FakeEx(), {}
+    run(ex, FakePubDownLow(94), state, H + timedelta(minutes=2))
+    ex.fill, ex.status = ex.orders[0][2], "filled"
+    run(ex, FakePubDownLow(94), state, H + timedelta(minutes=32), pairs=())
+    t = list(state["trades"].values())[0]
+    assert t["status"] == "open"  # fill 95, low 94: above the 91.2 stop
+    run(ex, FakePubDownLow(91), state, H + timedelta(minutes=47), pairs=())
+    assert t["status"] == "closed" and t["exit_reason"] == "stop"
+
+
+def test_derin_fitil_coin_waits_24_hours_after_a_fill():
+    ex, state = FakeEx(), {}
+    run(ex, FakePubDownLow(94), state, H + timedelta(minutes=2))
+    ex.fill, ex.status = ex.orders[0][2], "filled"
+    run(ex, FakePubDownLow(94), state, H + timedelta(hours=3, minutes=25))  # time exit, then a new hour
+    assert len(ex.orders) == 1
+    run(ex, FakePubDownLow(94), state, H + timedelta(hours=25, minutes=2))  # fill 10:20 -> free from the 11:00 hour next day
+    assert len(ex.orders) == 2
