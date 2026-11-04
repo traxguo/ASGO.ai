@@ -39,7 +39,33 @@ Toplam 15 ayar × 3 piyasa × 2 yön = 90 deneme.
 6. Komşu ayarlar da (aynı kuraldan bir üst/alt N) artı olmalı; tek başına parlayan ayar sayılmaz.
 7. Long sonucu al-tut ile kıyaslanır: altın ve Nasdaq 2020-2026'da çok yükseldi; long kuralı al-tuttan çok daha az kazanıyorsa sadece yükselişi yakalamış demektir.
 
-## Durum: test ediliyor (2026-11-04)
+## Durum: reddedildi (2026-11-04)
+Short tarafında hiçbir kural geçmedi. Long tarafında altında 5, Nasdaq'ta 1 ayar geçti ama bu, rastgele karıştırılmış veride de aynı sıklıkla oluyor: kazanç "trend yakalama becerisi" değil, 2020-2026'daki büyük yükselişin (altın +72% ve +76%, Nasdaq +137%) bir kısmını almak. Al-tuttan daha az kazandırıyor.
 
-## Sonuçlar
-(ilk çalıştırmadan sonra eklenecek)
+## Sonuçlar (2026-11-04, ilk çalıştırma, PR #45 "Forex trend" iş kaydı)
+R = işlem başı risk (stop mesafesi). Masraf + tahmini swap dahil. İşlem başı %1 riskle "toplam R" yaklaşık % getiriye eşittir.
+
+**Şans kontrolü (en önemli satır):** gerçek veride 90 ayardan **6** geçti; günleri karıştırılmış veride (trend yok, ama genel yükseliş aynı) ortalama **6.6** geçti (20 deneme, en çok 10). 2 kat masrafta gerçek 4, karıştırılmış ortalama 4.8. Yani gerçek veri, rastgeleden iyi değil.
+
+Geçen 6 ayar (hepsi long):
+| Piyasa | Ayar | Geliştirme | Doğrulama | Karıştırılmış veride de geçti | 2x masraf |
+|---|---|---|---|---|---|
+| Altın | T1 Donchian 4s 50 | +0.29R, 70 işlem, PF 1.43, DD 14.6R | +2.43R, 17 işlem | 15/20 | geçer |
+| Altın | T1 Donchian 4s 100 | +0.81R, 39 işlem, PF 2.11, DD 7.7R | +3.10R, 11 işlem | 12/20 | geçer |
+| Altın | T2 EMA 4s 10/50 | +0.11R, 106 işlem, PF 1.35 | +0.42R, 21 işlem | 12/20 | geçer |
+| Altın | T2 EMA 4s 20/100 | +0.21R, 53 işlem, PF 1.57 | +0.86R, 10 işlem | 10/20 | geçer |
+| Altın | T3 geri çekilme 3R | +0.15R, 107 işlem, PF 1.26 | +0.61R, 40 işlem | 8/20 | kalmaz |
+| Nasdaq | T1 Donchian 4s 100 | +0.70R, 46 işlem, PF 2.13 | +0.06R, 10 işlem | 4/20 | kalmaz |
+
+Al-tut kıyası (long): altın Donchian 4s 100 geliştirmede toplam +31.7R (≈ +%32, %1 riskle) ↔ al-tut +%72; doğrulamada +34R ↔ al-tut +%76. Nasdaq Donchian 4s 100 geliştirme +32R ↔ al-tut +%137; doğrulama +0.6R ↔ +%13.
+
+Short tarafı (piyasa piyasa):
+- **EUR/USD:** 15 short ayarın hiçbiri iki dönemde birden artı değil. En iyisi EMA 4s 10/50 short: geliştirme +0.13R (102 işlem), doğrulama −0.05R. Long tarafında da her şey geliştirmede eksi ya da sıfır.
+- **Altın:** short her yerde eksi (Donchian 4s 100 short: −0.61R geliştirme). Doğrulamada (2025-26) altın sadece yükseldi; T3 short hiç işlem açmadı.
+- **Nasdaq:** short her yerde eksi (Donchian 4s 20: −0.21R / −0.46R). Tek istisna T3 geri çekilme short 3R: +0.18R (31 işlem) / +0.21R (5 işlem); doğrulamada işlem çok az, 1.5R ve 2R komşuları zayıf; geçme şartını sağlamıyor.
+- Günlük (1d) ayarların çoğu dönemde 1-25 işlem veriyor; karar vermek için çok az.
+
+## Notlar / öğrenilenler
+- Altın ve Nasdaq'ta "long trend takibi artı" görünmesi beceri değil, piyasanın yükselişi. Aynı yükselişi taşıyan ama günleri karışık veride de aynı kurallar aynı sıklıkla kazanıyor. Bu kontrol yapılmasaydı 6 "geçen" ayar umut verici görünürdü.
+- Short tarafı 3 piyasada da tutmadı; düşüşten kazanmayı fiyat-trend kurallarıyla bu piyasalarda bulamadık.
+- Swap kötümser tahmin; gerçek bir hesapta short swap'ı bazen artıdır, ama short brüt sonuçları da (masrafsız) eksi, yani swap sonucu değiştirmez.
