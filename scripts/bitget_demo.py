@@ -97,10 +97,15 @@ def assert_demo_request(request: dict) -> None:
         raise SystemExit("STOP: a signed Bitget request without the demo header (PAPTRADING: 1). No order was sent.")
 
 
+# Only USDT perpetuals are loaded: since 2026-11-04 ccxt crashes while parsing Bitget's spot instrument list
+# (an instrument without baseCoin), and the bots never use spot markets.
+SWAP_ONLY = {"defaultType": "swap", "fetchMarkets": {"types": ["swap"]}}
+
+
 def demo_exchange(key: str, secret: str, passphrase: str):
     import ccxt
 
-    ex = ccxt.bitget({"options": {"defaultType": "swap"}, "enableRateLimit": True})
+    ex = ccxt.bitget({"options": SWAP_ONLY, "enableRateLimit": True})
     ex.apiKey, ex.secret, ex.password = key, secret, passphrase
     ex.set_sandbox_mode(True)
     # the demo account answers the unified-account check, but its play money sits in the classic
@@ -125,7 +130,7 @@ def public_exchange():
     """No keys: live market candles, the same market the backtests used."""
     import ccxt
 
-    return ccxt.bitget({"options": {"defaultType": "swap"}, "enableRateLimit": True})
+    return ccxt.bitget({"options": SWAP_ONLY, "enableRateLimit": True})
 
 
 def last_closed_open(now: datetime, hours: int) -> datetime:
