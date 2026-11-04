@@ -66,3 +66,15 @@ Bugüne kadar 30'a yakın kısa işlem fikrinin batma sebepleri ve bu stratejini
 
 **Asıl bulgu: coin sayısı.** Aynı kural 81 coinde (`config/pairs_wide81.json`): portföy 1.23 işlem/gün, +301% (DD 19%) / doğrulama 0.88 işlem/gün, +106% (DD 10.5%).
 Derin Fitil 81 coinde: 0.20-0.25 işlem/gün, +90% / +54%. Bitget demo sadece 15 coin listelediği için demoda bu sıklık görülmüyor (15 coinde 2025: ~0.1 işlem/gün).
+
+## 2026-11-04 silinen coin kontrolü (kurallar değişmedi)
+Dalga'daki gibi: her yıl başında o günün en çok işlem gören 36 coini (silinen/çöken coinler dahil, `research/xsec/top36_yearly.json`),
+kod `research/scans/wick_catcher_pit.py`, masraf %0.20 + funding. Rapor: [results/2026-11-04_fitil_pit/rapor.md](../results/2026-11-04_fitil_pit/rapor.md)
+| Evren | Dönem | İşlem/gün | Ort. % | Kasa | En büyük düşüş | Masraf x2 ort. |
+|---|---|---|---|---|---|---|
+| eski 36 | 2020-03 → 2024 | 1.21 | +1.11 | çok yüksek | -13.1% | +0.91 |
+| gerçekçi (PIT) | 2020-03 → 2024 | 1.26 | +1.01 | çok yüksek | -11.2% | +0.81 |
+| eski 36 | 2025-01 → 2026-03 | 0.55 | +1.32 | +88.6% | -6.5% | +1.12 |
+| gerçekçi (PIT) | 2025-01 → 2026-03 | 0.76 | +0.51 | +38.2% | -10.1% | +0.31 |
+Sonuç: sağlam. Geliştirmede neredeyse aynı; doğrulamada beklenti yarıdan fazla düşüyor ama artı kalıyor (masraf x2'de de).
+Demo beklentisi: işlem başı ≈ +%0.5 (eskiden +%1.3 sanılıyordu). 2026 Q1 başa baş (-0.3%).
