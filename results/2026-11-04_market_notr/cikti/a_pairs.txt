@@ -1,0 +1,72 @@
+ENTRY 1.5 W20 P10
+   cost 0.0%: dev -26% avg -0.25% | val -12% avg -0.46%
+   cost 0.2%: dev tot   -39.3% cagr   -9.5% dd  43.1% sh -0.64 n966 avg -0.55% win 65% stop 0% time 21% | val tot   -17.0% cagr  -13.9% dd  23.4% sh -1.03 n279 avg -0.76% win 63% stop 0% time 22%
+   cost 0.4%: dev -50% avg -0.85% | val -22% avg -1.06%
+ENTRY 1.5 W20 P20
+   cost 0.0%: dev -17% avg -0.14% | val -8% avg -0.32%
+   cost 0.2%: dev tot   -31.6% cagr   -7.3% dd  38.2% sh -0.51 n1945 avg -0.44% win 64% stop 0% time 22% | val tot   -13.3% cagr  -10.8% dd  16.8% sh -1.09 n549 avg -0.62% win 63% stop 0% time 25%
+   cost 0.4%: dev -44% avg -0.74% | val -18% avg -0.92%
+ENTRY 1.5 W30 P10
+   cost 0.0%: dev -18% avg -0.19% | val -7% avg -0.26%
+   cost 0.2%: dev tot   -30.1% cagr   -6.9% dd  37.8% sh -0.45 n812 avg -0.49% win 63% stop 2% time 37% | val tot   -11.4% cagr   -9.3% dd  16.5% sh -0.83 n230 avg -0.56% win 58% stop 3% time 43%
+   cost 0.4%: dev -41% avg -0.79% | val -15% avg -0.86%
+ENTRY 1.5 W30 P20
+   cost 0.0%: dev -22% avg -0.25% | val -9% avg -0.42%
+   cost 0.2%: dev tot   -33.4% cagr   -7.8% dd  41.2% sh -0.57 n1619 avg -0.55% win 62% stop 2% time 39% | val tot   -13.2% cagr  -10.7% dd  16.5% sh -1.15 n443 avg -0.72% win 58% stop 4% time 43%
+   cost 0.4%: dev -43% avg -0.85% | val -17% avg -1.02%
+ENTRY 1.5 W60 P10
+   cost 0.0%: dev -20% avg -0.25% | val -9% avg -0.49%
+   cost 0.2%: dev tot   -30.5% cagr   -7.0% dd  38.3% sh -0.48 n707 avg -0.55% win 55% stop 7% time 55% | val tot   -12.6% cagr  -10.2% dd  16.4% sh -0.91 n182 avg -0.79% win 47% stop 9% time 65%
+   cost 0.4%: dev -40% avg -0.85% | val -16% avg -1.09%
+ENTRY 1.5 W60 P20
+   cost 0.0%: dev -32% avg -0.53% | val -12% avg -0.68%
+   cost 0.2%: dev tot   -40.7% cagr   -9.9% dd  45.9% sh -0.80 n1367 avg -0.83% win 54% stop 7% time 56% | val tot   -15.0% cagr  -12.2% dd  17.6% sh -1.25 n341 avg -0.98% win 47% stop 7% time 66%
+   cost 0.4%: dev -48% avg -1.13% | val -18% avg -1.28%
+ENTRY 2.0 W20 P10
+   cost 0.0%: dev +0% avg +0.08% | val -9% avg -0.55%
+   cost 0.2%: dev tot   -12.5% cagr   -2.6% dd  19.1% sh -0.15 n691 avg -0.22% win 66% stop 0% time 23% | val tot   -12.9% cagr  -10.5% dd  19.8% sh -0.79 n186 avg -0.85% win 58% stop 0% time 25%
+   cost 0.4%: dev -24% avg -0.52% | val -16% avg -1.15%
+ENTRY 2.0 W20 P20
+   cost 0.0%: dev +14% avg +0.26% | val -7% avg -0.45%
+   cost 0.2%: dev tot    -0.4% cagr   -0.1% dd  22.7% sh +0.05 n1372 avg -0.04% win 65% stop 0% time 23% | val tot   -10.6% cagr   -8.6% dd  14.4% sh -0.95 n362 avg -0.75% win 59% stop 0% time 28%
+   cost 0.4%: dev -13% avg -0.34% | val -14% avg -1.05%
+ENTRY 2.0 W30 P10
+   cost 0.0%: dev +8% avg +0.20% | val -12% avg -0.79%
+   cost 0.2%: dev tot    -3.6% cagr   -0.7% dd  18.1% sh +0.00 n577 avg -0.10% win 63% stop 3% time 39% | val tot   -15.1% cagr  -12.3% dd  17.5% sh -1.21 n160 avg -1.09% win 50% stop 5% time 52%
+   cost 0.4%: dev -14% avg -0.40% | val -18% avg -1.39%
+ENTRY 2.0 W30 P20
+   cost 0.0%: dev +2% avg +0.07% | val -15% avg -1.01%
+   cost 0.2%: dev tot    -9.0% cagr   -1.9% dd  24.8% sh -0.12 n1135 avg -0.23% win 61% stop 2% time 42% | val tot   -17.2% cagr  -14.1% dd  18.8% sh -1.76 n296 avg -1.31% win 50% stop 5% time 51%
+   cost 0.4%: dev -19% avg -0.53% | val -20% avg -1.61%
+ENTRY 2.0 W60 P10
+   cost 0.0%: dev -19% avg -0.38% | val -7% avg -0.54%
+   cost 0.2%: dev tot   -26.9% cagr   -6.1% dd  33.3% sh -0.48 n484 avg -0.68% win 54% stop 10% time 59% | val tot    -9.7% cagr   -7.8% dd  13.6% sh -0.82 n126 avg -0.84% win 41% stop 11% time 67%
+   cost 0.4%: dev -34% avg -0.98% | val -12% avg -1.14%
+ENTRY 2.0 W60 P20
+   cost 0.0%: dev -24% avg -0.55% | val -9% avg -0.76%
+   cost 0.2%: dev tot   -30.7% cagr   -7.1% dd  36.1% sh -0.67 n920 avg -0.85% win 52% stop 10% time 58% | val tot   -10.7% cagr   -8.7% dd  12.2% sh -1.11 n228 avg -1.06% win 44% stop 9% time 69%
+   cost 0.4%: dev -37% avg -1.15% | val -13% avg -1.36%
+ENTRY 2.5 W20 P10
+   cost 0.0%: dev -2% avg +0.03% | val -11% avg -1.04%
+   cost 0.2%: dev tot    -9.0% cagr   -1.9% dd  15.6% sh -0.13 n385 avg -0.27% win 65% stop 0% time 24% | val tot   -13.1% cagr  -10.6% dd  16.6% sh -0.92 n107 avg -1.34% win 51% stop 0% time 30%
+   cost 0.4%: dev -16% avg -0.57% | val -15% avg -1.64%
+ENTRY 2.5 W20 P20
+   cost 0.0%: dev +11% avg +0.31% | val -6% avg -0.51%
+   cost 0.2%: dev tot    +2.6% cagr   +0.5% dd  12.1% sh +0.10 n756 avg +0.01% win 65% stop 0% time 24% | val tot    -7.7% cagr   -6.3% dd   9.5% sh -0.82 n211 avg -0.81% win 56% stop 0% time 30%
+   cost 0.4%: dev -5% avg -0.29% | val -10% avg -1.11%
+ENTRY 2.5 W30 P10
+   cost 0.0%: dev +28% avg +0.74% | val -7% avg -0.58%
+   cost 0.2%: dev tot   +18.8% cagr   +3.5% dd  12.4% sh +0.38 n370 avg +0.44% win 63% stop 4% time 39% | val tot    -8.5% cagr   -6.9% dd  12.2% sh -0.77 n104 avg -0.88% win 51% stop 5% time 60%
+   cost 0.4%: dev +10% avg +0.14% | val -10% avg -1.18%
+ENTRY 2.5 W30 P20
+   cost 0.0%: dev +12% avg +0.34% | val -9% avg -0.81%
+   cost 0.2%: dev tot    +4.4% cagr   +0.9% dd  17.0% sh +0.14 n693 avg +0.04% win 61% stop 3% time 44% | val tot   -10.6% cagr   -8.6% dd  11.6% sh -1.26 n187 avg -1.11% win 52% stop 5% time 55%
+   cost 0.4%: dev -3% avg -0.26% | val -12% avg -1.41%
+ENTRY 2.5 W60 P10
+   cost 0.0%: dev +2% avg +0.12% | val -10% avg -1.25%
+   cost 0.2%: dev tot    -4.8% cagr   -1.0% dd  16.0% sh -0.05 n329 avg -0.18% win 54% stop 11% time 60% | val tot   -11.6% cagr   -9.4% dd  12.9% sh -1.19 n81 avg -1.55% win 41% stop 17% time 70%
+   cost 0.4%: dev -11% avg -0.48% | val -13% avg -1.85%
+ENTRY 2.5 W60 P20
+   cost 0.0%: dev -12% avg -0.39% | val -6% avg -0.72%
+   cost 0.2%: dev tot   -17.2% cagr   -3.7% dd  27.0% sh -0.40 n606 avg -0.69% win 51% stop 13% time 61% | val tot    -7.2% cagr   -5.8% dd   7.9% sh -1.02 n140 avg -1.02% win 48% stop 13% time 71%
+   cost 0.4%: dev -22% avg -0.99% | val -8% avg -1.32%

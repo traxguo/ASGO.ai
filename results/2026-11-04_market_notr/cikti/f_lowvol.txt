@@ -1,0 +1,17 @@
+== (f) low-vol minus high-vol, beta-neutral ==
+LOWVOL K5 R7
+   cost 0.0%: dev +88% | val +18%
+   cost 0.2%: dev tot   +64.5% cagr  +10.5% dd  56.0% sh +0.46 [L +424% S -99%] | val tot   +14.0% cagr  +11.1% dd  56.4% sh +0.47 [L -17% S -26%]
+   cost 0.4%: dev +44% | val +10%
+LOWVOL dollar-neutral K5 R7
+   cost 0.0%: dev -45% | val +65%
+   cost 0.2%: dev tot   -51.3% cagr  -13.4% dd  79.3% sh -0.11 [L +204% S -100%] | val tot   +59.5% cagr  +45.4% dd  52.3% sh +0.99 [L -17% S +48%]
+   cost 0.4%: dev -57% | val +54%
+LOWVOL K10 R7
+   cost 0.0%: dev +20% | val +59%
+   cost 0.2%: dev tot    +8.6% cagr   +1.7% dd  37.5% sh +0.19 [L -14% S -91%] | val tot   +54.4% cagr  +41.7% dd  24.0% sh +1.28 [L -43% S +118%]
+   cost 0.4%: dev -2% | val +50%
+LOWVOL dollar-neutral K10 R7
+   cost 0.0%: dev -26% | val +85%
+   cost 0.2%: dev tot   -32.6% cagr   -7.6% dd  53.4% sh -0.17 [L -19% S -97%] | val tot   +79.8% cagr  +60.1% dd  21.3% sh +1.55 [L -37% S +157%]
+   cost 0.4%: dev -39% | val +75%
