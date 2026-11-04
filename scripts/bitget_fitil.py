@@ -5,10 +5,13 @@ signed request, same guard as scripts/bitget_demo.py). Started every 15 minutes 
 Each run:
 1. pending buy limits: filled -> open trade (closed at once if BTC fell >= 3% in that hour, the tested guard);
    not filled after one hour, or BTC already down >= 3% -> cancelled
-2. open trades: market close 3 hours after the fill (no stop, as tested)
+2. open trades: market close 3 hours after the fill; Derin Fitil trades also close at once when a 15m low
+   since the fill reached 4% under the fill price (stop added 2026-11-04, GUO's choice after
+   results/2026-11-04_derin_fitil_stop/rapor.md; Fitil itself has no stop, as tested)
 3. first run of a new hour: for coins in a daily uptrend (score >= +1 and close > EMA20, last closed day),
    a buy limit at 95% of the hour's open price; for coins in a daily DOWNtrend (score <= -1 and close < EMA20)
-   a deeper buy limit at 92% ("Derin Fitil", cards/derin_fitil.md); one per coin, each sized equity / 5
+   a deeper buy limit at 92% ("Derin Fitil", cards/derin_fitil.md); one per coin, each sized equity / 5;
+   a Derin Fitil coin gets no new limit for 24 hours after its last Derin fill (added 2026-11-04)
 
     python scripts/bitget_fitil.py          # trade (needs BITGET_DEMO_API_* secrets)
     python scripts/bitget_fitil.py --check  # no keys: print today's eligible coins and the limit prices
@@ -36,6 +39,8 @@ OTHER_STATE_FILES = [REPO / "forward" / "bitget_demo" / "state.json",
 DEPTH = 0.05          # limit this far under the hour's open (uptrend coins)
 DEEP_DEPTH = 0.08     # Derin Fitil: limit this far under the hour's open (downtrend coins), added 2026-10-17
 HOLD_HOURS = 3
+DEEP_STOP = 0.04      # Derin Fitil: exit when price falls this far under the fill (2026-11-04)
+DEEP_COOLDOWN_HOURS = 24  # Derin Fitil: hours a coin waits after a Derin fill before a new Derin limit
 BTC_GUARD = 0.03      # skip when BTC is down this much from the hour's open
 MAX_OPEN = 5          # each trade gets equity / MAX_OPEN
 LEVERAGE = 3          # margin only; total exposure stays about 1x equity
@@ -90,6 +95,24 @@ def btc_drop(pub, hour: datetime, now: datetime) -> float:
     return 1 - min(float(r[3]) for r in rows) / float(rows[0][1])
 
 
+def stop_hit(pub, t: dict) -> bool:
+    """True when a 15m low since the fill candle reached the Derin Fitil stop."""
+    fill = datetime.fromisoformat(t["fill_time"])
+    start = fill.replace(minute=fill.minute - fill.minute % 15, second=0, microsecond=0)
+    rows = pub.fetch_ohlcv(t["pair"], "15m", since=int(start.timestamp() * 1000), limit=20)
+    lows = [r[3] for r in rows if r[0] >= start.timestamp() * 1000]
+    return bool(lows) and min(lows) <= t["fill_price"] * (1 - DEEP_STOP)
+
+
+def deep_cooldown(trades: dict, pair: str, hour: datetime) -> bool:
+    """True when this coin had a Derin Fitil fill within the last DEEP_COOLDOWN_HOURS."""
+    for t in trades.values():
+        if t["pair"] == pair and t.get("mode") == "derin" and t.get("fill_time"):
+            if hour - datetime.fromisoformat(t["fill_time"]) < timedelta(hours=DEEP_COOLDOWN_HOURS):
+                return True
+    return False
+
+
 def busy_elsewhere() -> set[str]:
     out = set()
     for path in OTHER_STATE_FILES:
@@ -126,7 +149,8 @@ def close_trade(ex, log: Log, now: datetime, t: dict, reason: str) -> None:
              pnl_usdt=round(pnl, 4), fees_usdt=round(fees, 4), ret_pct=round(ret, 3))
     bd.append_csv(OUT_DIR / "trades.csv", TRADE_FIELDS, t)
     tr = {"time_exit": "3 saat doldu, satıldı", "btc_guard": "BTC de çakıldı, hemen satıldı",
-          "over_limit": "5 işlem sınırı doluydu, hemen satıldı"}[reason]
+          "over_limit": "5 işlem sınırı doluydu, hemen satıldı",
+          "stop": f"fiyat %{DEEP_STOP * 100:.0f} düştü, stop ile satıldı"}[reason]
     log.event(now, pair, "closed", f"{tr}, sonuç %{ret:+.2f}", tell=True)
 
 
@@ -170,6 +194,8 @@ def run_once(ex, pub, state: dict, now: datetime, log: Log, pairs: list[str]) ->
     for t in opened[:MAX_OPEN]:
         if now >= datetime.fromisoformat(t["fill_time"]) + timedelta(hours=HOLD_HOURS):
             close_trade(ex, log, now, t, "time_exit")
+        elif t.get("mode") == "derin" and stop_hit(pub, t):
+            close_trade(ex, log, now, t, "stop")
 
     # 3. new limits, once per hour
     if state.get("last_hour") == hour.isoformat():
@@ -188,6 +214,9 @@ def run_once(ex, pub, state: dict, now: datetime, log: Log, pairs: list[str]) ->
             continue
         depth, score, mode = depth_for(bd.fetch_candles(pub, pair, "1d", 120, now))
         if depth is None:
+            continue
+        if mode == "derin" and deep_cooldown(trades, pair, hour):
+            log.event(now, pair, "limit skipped", "derin: 24h after the last fill")
             continue
         ref = hour_open_price(pub, pair, hour)
         if ref is None:

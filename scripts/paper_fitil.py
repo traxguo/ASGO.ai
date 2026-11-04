@@ -9,6 +9,9 @@ Same rules and the same fill test as the research scans (research/scans/wick_cat
 - filled only if a 15m low in that hour trades 0.1% under the limit; entry = min(limit, that 15m open)
 - skipped if BTC fell 3% from its hour open up to the fill candle (guard)
 - at most 5 open, each equity / 5; exit at the close of the 12th 15m candle after the fill candle (3h)
+- Derin Fitil only (2026-11-04, as scripts/bitget_fitil.py): stop 4% under the entry, checked on the 15m candles
+  after the fill (fill candle closing under it exits at that close; a gap exits at the open), and no new Derin
+  trade on a coin within 24 hours of its last Derin fill
 - costs: 0.02% maker in, 0.06% taker out + 0.05% slippage
 Hours are judged only after they closed, so nothing is decided with data the live bot could not have had.
 
@@ -74,6 +77,22 @@ def judge_hour(pub, pairs: list[str], hour: datetime, daily_cache: dict) -> list
     return sorted(fills, key=lambda f: f["fill_time"])
 
 
+def deep_stop(pub, t: dict, now: datetime) -> tuple[str, float] | None:
+    """(exit time, exit price) when the Derin Fitil stop was hit on a closed 15m candle before the time exit."""
+    stop = t["entry"] * (1 - bf.DEEP_STOP)
+    fill = datetime.fromisoformat(t["fill_time"])
+    rows = [r for r in candles_15m(pub, t["pair"], fill, 13)
+            if datetime.fromtimestamp(r[0] / 1000, tz=timezone.utc) + Q <= min(now, exit_time(t))]
+    for j, r in enumerate(rows):
+        end = (datetime.fromtimestamp(r[0] / 1000, tz=timezone.utc) + Q).isoformat()
+        if j == 0:
+            if r[4] <= stop:
+                return end, r[4]
+        elif r[3] <= stop:
+            return end, min(stop, r[1])
+    return None
+
+
 def exit_time(t: dict) -> datetime:
     return datetime.fromisoformat(t["fill_time"]) + 13 * Q  # close of the 12th 15m candle after the fill candle
 
@@ -92,6 +111,11 @@ def run_once(pub, state: dict, now: datetime, pairs: list[str]) -> list[str]:
             open_now = [t for t in trades if t.get("exit_time") is None or datetime.fromisoformat(t["exit_time"]) > ft]
             if len(open_now) >= bf.MAX_OPEN or any(t["pair"] == f["pair"] and t.get("exit") is None for t in trades):
                 continue
+            if f["mode"] == "derin" and any(
+                    t["pair"] == f["pair"] and t.get("mode") == "derin"
+                    and ft - datetime.fromisoformat(t["fill_time"]) < timedelta(hours=bf.DEEP_COOLDOWN_HOURS)
+                    for t in trades):
+                continue
             f.update({"exit_time": None, "exit": None, "ret_pct": None, "pnl_usdt": None, "size": equity / bf.MAX_OPEN})
             trades.append(f)
             msgs.append(f"KÂĞIT alış: {f['pair'].split('/')[0]} @ {f['entry']:.6g} "
@@ -99,13 +123,19 @@ def run_once(pub, state: dict, now: datetime, pairs: list[str]) -> list[str]:
         hour += timedelta(hours=1)
         state["done_until"] = hour.isoformat()
     for t in trades:
-        if t.get("exit") is not None or exit_time(t) > now:
+        if t.get("exit") is not None:
             continue
-        rows = candles_15m(pub, t["pair"], exit_time(t) - Q, 1)
-        if not rows:
-            continue
-        t["exit"] = rows[0][4]
-        t["exit_time"] = exit_time(t).isoformat()
+        hit = deep_stop(pub, t, now) if t.get("mode") == "derin" else None
+        if hit:
+            t["exit_time"], t["exit"] = hit
+        else:
+            if exit_time(t) > now:
+                continue
+            rows = candles_15m(pub, t["pair"], exit_time(t) - Q, 1)
+            if not rows:
+                continue
+            t["exit"] = rows[0][4]
+            t["exit_time"] = exit_time(t).isoformat()
         ret = t["exit"] / t["entry"] - 1 - COST
         t["ret_pct"] = round(ret * 100, 3)
         t["pnl_usdt"] = round(t["size"] * ret, 2)
