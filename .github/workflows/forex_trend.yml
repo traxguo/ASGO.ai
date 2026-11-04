@@ -1,0 +1,26 @@
+name: Forex trend (research)
+# Research only: daily/4h trend rules on EURUSD, gold, Nasdaq (cards/forex_trend.md).
+# Uses the same cached HistData bars as forex_scan.yml (never committed).
+on:
+  pull_request:
+    paths: ["research/forex_trend/**", ".github/workflows/forex_trend.yml"]
+  workflow_dispatch:
+jobs:
+  trend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy pyarrow histdata
+      - uses: actions/cache@v4
+        with:
+          path: user_data/forex
+          key: forex-5m-${{ hashFiles('research/forex/fetch_histdata.py') }}
+      - run: python -u research/forex/fetch_histdata.py
+      - name: Trend rules, normal cost
+        run: python -u research/forex_trend/trend.py
+      - name: Trend rules, double cost and swap
+        run: COST_MULT=2 python -u research/forex_trend/trend.py
