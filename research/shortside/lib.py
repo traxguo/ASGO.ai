@@ -4,10 +4,13 @@
 import numpy as np
 import pandas as pd
 
-D_PATH = "user_data/data/allc_1d.feather"
-F_PATH = "user_data/data/allc_funding.feather"
+import os
+SUF = os.environ.get("SUFFIX", "")  # "_full" = data incl. holdout (only for the one approved holdout run)
+D_PATH = f"user_data/data/allc_1d{SUF}.feather"
+F_PATH = f"user_data/data/allc_funding{SUF}.feather"
 DEV = ("2020-01-01", "2025-01-01")
 VAL = ("2025-01-01", "2026-04-01")
+HOLD = ("2026-04-01", "2026-10-01")
 
 
 def load():

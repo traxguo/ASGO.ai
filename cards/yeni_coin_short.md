@@ -1,6 +1,6 @@
 # Yeni Coin Short (yeni listelenen coinleri kısa süre satmak) — ARAŞTIRMA
 
-**Durum:** candidate (geliştirme + doğrulama geçti, 2026-11-04). Kasa (holdout) KULLANILMADI; ne zaman kullanılacağına denetleyici karar verir. Demo botlara eklenmedi.
+**Durum:** KASADA KALDI (2026-11-04). Geliştirme + doğrulama geçti, ama denetleyicinin onayıyla bir kez yapılan kasa testinde (2026-04 → 2026-09) değerlendirilen 7 günlük kural eksi çıktı. Demo botlara eklenmedi. Kasa artık kullanıldı; bu kural ailesi için tekrar kasa testi yapılmaz.
 
 ## Hipotez
 Binance'te yeni listelenen bir vadeli coin ilk günlerde genelde değer kaybeder: airdrop ve erken yatırımcılar satar, ilk heyecan söner. Coin listelendikten sonraki gün açığa satıp (short) bir hafta tutarsak bu düşüşten pay alırız. Bu fikir coin "seçmez", listelenen HER coine uygulanır; bu yüzden "bugün hâlâ yaşayan coinler" yanılgısı (survivorship) yoktur.
@@ -51,6 +51,26 @@ short
 - Günlük mumla test: gün içi sıkışmalarda (short squeeze) stop çok daha kötü dolabilir. %5 kaymaya kadar test edildi.
 - Bitget demo yeni coinleri listelemeyebilir veya geç listeleyebilir; pozisyon limitleri düşük olabilir. Canlıda uygulanabilirlik ayrıca kontrol edilmeli.
 
-## Sıradaki adım (önerilen)
+## Kasa testi (tek sefer, 2026-11-04)
+Geçme şartı önceden belirlendi: ortalama R > 0, PF > 1.1, DD < %20. Değerlendirilen kural: K1 H7 S40. Aynı çalıştırmada önceden sabitlenen H14 de raporlandı. Kod: `research/shortside/a_holdout.py`.
+
+| Kural | İşlem | Ort. R | PF | İşlem başı net | Kasa getirisi | Max DD | 2x masraf | %5 stop kayması |
+|---|---|---|---|---|---|---|---|---|
+| **K1 H7 S40 (değerlendirilen)** | 163 | **−0.010** | **0.93** | −0.4% | −1.8% | 4.6% | −0.015R, PF 0.90 | −0.020R, PF 0.87 |
+| K1 H14 S40 (önceden sabitlenen) | 103 | +0.058 | 1.35 | +2.3% | +6.0% | 4.6% | +0.053R, PF 1.31 | +0.039R, PF 1.21 |
+
+- BTC al-tut aynı dönemde +24.6% (DD 28.7%).
+- 7 günlük kural 6 ayın 4'ünde eksi. **Sonuç: değerlendirilen kural kasada geçemedi.**
+- 14 günlük ana kural kasada geçti, ama geliştirmede çok zayıftı (PF 1.04). Sonradan "14 gün daha iyiymiş" diyerek ona geçmek, kasayı seçim için kullanmak olur; bu yüzden kabul edilmedi. Üç dönemin üçünde de artı olan tek sürüm H14, ancak geliştirmedeki zayıflık yüzünden bunu güçlü kanıt saymıyoruz.
+
+## Sıradaki adım (önceki öneri, kasa öncesi)
 1. Denetleyici onayıyla kasa (2026-04 → 2026-09) bir kez: K1 H7 S40, değiştirmeden.
 2. Geçerse kâğıt takip: Binance yeni listeleme duyurularına göre, demo botlara dokunmadan.
+
+## Bitget'te uygulanabilir mi? (2026-11-04, GitHub runner)
+Kod: `research/shortside/bitget_listings.py` (workflow `bitget_listings.yml`), karşılaştırma `research/shortside/out_bitget_vs_binance_2026.csv`.
+- Bitget API'si `launchTime` vermedi; listeleme günü olarak Bitget'teki ilk günlük mum alındı. Sadece bugün listede olan Bitget coinleri görülebiliyor (Bitget'ten silinenler yok). Bu canlı Bitget; demo listesi daha dar olabilir (daha önce demo 36 coinin sadece 15'ini listeliyordu).
+- Bitget 2026'da ayda yeni USDT vadeli coin: Oca 16, Şub 9, Mar 23, Nis 28, May 49, Haz 91, Tem 55, Ağu 47, Eyl 49, Eki 59.
+- Binance'in 2026'da listelediği 281 coinin 256'sı bugün Bitget'te var (25'i yok).
+- Bitget, Binance'e göre ortanca **2 gün önce** listeliyor. 213 coin aynı gün ya da daha önce, 5'i 1 gün sonra, 20'si 2-7 gün sonra, 16'sı 7 günden fazla sonra listelendi.
+- Kuralın giriş günü (Binance listelemesinden 1 gün sonra) itibarıyla Bitget'te işlem görebilen: 218 / 281 (~%78).
