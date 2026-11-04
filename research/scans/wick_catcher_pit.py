@@ -9,7 +9,10 @@
 #                   traded USDT perpetuals as of each January, delisted coins included, same list as DalgaPIT).
 #   UNIVERSE=<file>: a fixed Freqtrade pair list (e.g. config/pairs_all36.json) = the old, survivorship-biased test.
 #   COST          : total round-trip cost in % (default 0.13 = maker 0.02 in + taker 0.06 out + 0.05 slippage).
-#   COOLDOWN      : diagnostic only (not a live rule): hours a coin is blocked after a fill (default 0).
+#   COOLDOWN      : hours a coin is blocked after a fill (default 0 = live rule). 24 = at most one entry per coin per day.
+#   SL            : price stop in % below the entry (default 0 = no stop, live rule). Checked on 15m lows after the
+#                   fill; if the fill candle already closes under it, exit at that close. A gap through the stop exits
+#                   at the candle open. Stop exit costs the same as the time exit (taker + slippage).
 #   FUND          : % charged per funding time (00/08/16 UTC) inside the hold (default 0.01, longs usually pay).
 # Daily candles are resampled from the 15m data (UTC days). Data: research/xsec/fetch_klines_15m.py.
 # Usage: python research/scans/wick_catcher_pit.py up|down START END
@@ -19,7 +22,8 @@ import numpy as np, pandas as pd
 MODE, a, b = sys.argv[1], sys.argv[2], sys.argv[3]
 X = {"up": 0.05, "down": 0.08}[MODE]
 H, SC, FILLPAD, GUARD, MAXO = 3, 1, 0.001, 0.03, 5
-COOL = int(os.environ.get("COOLDOWN", "0"))  # diagnostic only: no new trade on the same coin for N hours after a fill
+COOL = int(os.environ.get("COOLDOWN", "0"))  # no new trade on the same coin for N hours after a fill
+SL = float(os.environ.get("SL", "0")) / 100
 COST = float(os.environ.get("COST", "0.13")) / 100
 FUND = float(os.environ.get("FUND", "0.01")) / 100
 UNI = os.environ.get("UNIVERSE", "pit")
@@ -76,13 +80,22 @@ for c in coins:
         if bo is not None and bk.low.loc[t0:idx[f]].min() <= bo * (1 - GUARD):
             continue
         e = min(lim, o[f])
-        x = cl[f + h]
-        tin, tout = idx[f], idx[f + h] + pd.Timedelta(minutes=15)
+        x, jx, stop = cl[f + h], f + h, False
+        if SL > 0:
+            st = e * (1 - SL)
+            if cl[f] <= st:
+                x, jx, stop = cl[f], f, True
+            else:
+                for j in range(f + 1, f + 1 + h):
+                    if lo[j] <= st:
+                        x, jx, stop = min(st, o[j]), j, True
+                        break
+        tin, tout = idx[f], idx[jx] + pd.Timedelta(minutes=15)
         nfund = sum(1 for t in pd.date_range(tin.ceil("8h"), tout, freq="8h") if tin < t < tout)
-        R.append((tin, c, x / e - 1, nfund, tout))
-        busy = max(f + h, f + COOL * 4)
+        R.append((tin, c, x / e - 1, nfund, tout, stop))
+        busy = max(jx, f + COOL * 4)
 
-D = pd.DataFrame(R, columns=["t", "c", "gross", "nfund", "t_out"]).sort_values("t").reset_index(drop=True)
+D = pd.DataFrame(R, columns=["t", "c", "gross", "nfund", "t_out", "stop"]).sort_values("t").reset_index(drop=True)
 D["ret"] = D.gross - COST - D.nfund * FUND
 days = (pd.Timestamp(b) - pd.Timestamp(a)).days
 top = D.groupby(D.t.dt.floor("D")).ret.sum().nlargest(5).index
@@ -98,7 +111,8 @@ daily = T.groupby(T.t_out.dt.floor("D")).ret.sum() / MAXO
 eq = (1 + daily).cumprod()
 btc = bk.close.loc[a:b]
 btc_dd = ((btc / btc.cummax()) - 1).min()
-out = dict(mode=MODE, universe=UNI, start=a, end=b, cost_pct=COST * 100, fund_pct=FUND * 100,
+out = dict(mode=MODE, universe=UNI, sl_pct=SL * 100, cooldown_h=COOL,
+           stops=int(T.stop.sum()) if len(T) else 0, start=a, end=b, cost_pct=COST * 100, fund_pct=FUND * 100,
            missing=missing, coins_traded=int(T.c.nunique()) if len(T) else 0,
            trades=len(T), per_day=round(len(T) / days, 3),
            mean_pct=round(T.ret.mean() * 100, 3), median_pct=round(T.ret.median() * 100, 3),

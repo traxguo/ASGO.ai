@@ -51,3 +51,15 @@ kod `research/scans/wick_catcher_pit.py`. Rapor: [results/2026-11-04_fitil_pit/r
 - Doğrulama +%5.6 (DD -%24), masraf x2'de -%0.7; zarar UXLINK (hack), ACT, PIPPIN gibi çöken coinlerden. 2026 Q1 -%18.
 - Eski parlak sonuç büyük ölçüde coin seçiminden geliyormuş. Teşhis: "aynı coine 24 saat yeniden girme" LUNA zincirini keser (geliştirme +%74, doğrulama +%23) ama LUNA'yı gördükten sonra seçildi ve en iyi 5 gün çıkarılınca iki dönemde de eksi; kural olarak önerilmez.
 - Demoda sadece Bitget'in 15 büyük coini var; risk daha düşük ama stop olmadığı için sıfır değil. Kurallar 2026-11-30'a kadar donuk; karar yöneticide.
+
+## 2026-11-04 stoplu sürüm (GUO isteği; varyantlar test öncesi sabitlendi)
+Gerçekçi evren, masraf %0.20 + funding. Stop girişin %4/%6/%8 altı + aynı coine 24 saatte en fazla 1 giriş.
+Rapor: [results/2026-11-04_derin_fitil_stop/rapor.md](../results/2026-11-04_derin_fitil_stop/rapor.md)
+| Sürüm | Geliştirme kasa / DD | Doğrulama kasa / DD | Masraf x2 (gel. / doğ.) |
+|---|---|---|---|
+| Canlı kural (stopsuz) | -38.8% / -60.8% | +5.6% / -23.6% | -44.4% / -0.7% |
+| Stop %4 + 24s | +65.5% / -10.0% | +32.7% / -11.8% | +53.2% / +26.3% |
+| Stop %6 + 24s | +54.0% / -14.1% | +29.8% / -13.2% | +42.6% / +23.5% |
+| Stop %8 + 24s | +56.4% / -11.1% | +31.2% / -13.5% | +44.8% / +24.8% |
+Üçü de şartları geçti. Ama en iyi 5 gün çıkarılınca hepsi eksi, kârın çoğu 2022'de, 2024 ve 2026 Q1 eksi; 24 saat kuralı LUNA görüldükten sonra önerildi.
+Demo bot değişmedi; karar yönetici ve GUO'da.
