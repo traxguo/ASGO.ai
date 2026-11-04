@@ -10862,12 +10862,16 @@
       "status": "cancelled"
     },
     "fitltc2026110412": {
+      "amount": 39.5,
+      "entry_fees": 0.397923,
+      "fill_price": 50.37,
+      "fill_time": "2026-11-04T12:12:31.460000+00:00",
       "hour": "2026-11-04T12:00:00+00:00",
       "limit_price": 50.37,
       "mode": "derin",
       "order_id": "1501845675053613057",
       "pair": "LTC/USDT:USDT",
-      "status": "pending"
+      "status": "open"
     },
     "fitnear2026101213": {
       "hour": "2026-10-12T13:00:00+00:00",
