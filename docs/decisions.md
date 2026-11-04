@@ -174,3 +174,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-11-04 — Yeni Coin Short kasa testi (tek sefer)
 - Karar: denetleyici (ASGO stratejisi (devam) konuşması) kasa testini onayladı; 2026-04 → 2026-09 bir kez çalıştırıldı. Değerlendirilen 7 günlük kural eksi çıktı (−0.010R, PF 0.93), strateji "active" olmadı. Önceden sabitlenen 14 günlük kural kasada artı (+0.058R, PF 1.35) ama geliştirmede zayıf olduğu için seçilmedi.
 - Gerekçe: geçme şartı (R>0, PF>1.1, DD<%20) testten önce yazıldı; kasa sonucu görüldükten sonra kural değiştirmek kasayı geliştirmede kullanmak olur.
+
+## 2026-11-04 — Yeni Coin Short 14 gün: sadece kâğıt takip
+- Karar (denetleyici): 7 günlük kural reddedildi. 14 günlük kural "active" olmadı; Bitget açık verisiyle ileriye dönük kâğıt takipte (`scripts/paper_yeni_coin.py`). Emir yok, demo hesap yok, kurallar 2026-11-30 değerlendirmesine kadar donuk.
+- Gerekçe: 14 günlük kural kasada artıydı ama geliştirmede zayıftı; karar ancak yeni (ileriye dönük) veriyle verilebilir.
