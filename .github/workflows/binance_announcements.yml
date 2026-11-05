@@ -1,16 +1,27 @@
 name: Binance announcements (research)
-# Research only: reads public Binance announcement titles (no keys) and prints them to the log.
+# Research only: reads public Binance announcement titles (no keys) and commits them as a CSV to the PR branch.
 on:
   pull_request:
     paths: ["research/events/binance_announcements.py", ".github/workflows/binance_announcements.yml"]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   announcements:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: python -u research/events/binance_announcements.py
+      - name: Commit CSV
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/events/binance_announcements.csv
+          git diff --cached --quiet || git commit -m "Data: Binance announcement titles (research)"
+          git push
