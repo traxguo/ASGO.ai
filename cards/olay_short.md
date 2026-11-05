@@ -1,6 +1,6 @@
-# Olay Short (Binance duyurularına göre coin short) — ÖN KAYIT
+# Olay Short (Binance duyurularına göre coin short) — GEÇMEDİ (doğrulamada güçlü ipucu)
 
-**Durum:** ÖN KAYIT (2026-11-05). Kurallar, duyuru listesi ve fiyat getirileri görülmeden ÖNCE yazıldı ve commit edildi. Denetleyici onayı: fiyat dışı olay verisi turu (Ayı Short ailesi kapandıktan sonra, bkz. `cards/ayi_short.md`). Kasa (2026-04 → 2026-09) sadece denetleyici onayıyla bir kez.
+**Durum:** GEÇMEDİ (2026-11-06): geliştirmede rastgele kontrolü geçemedi (p 0.17). Doğrulamada güçlü (+0.32R, p<0.001). Kasa kullanılmadı; karar denetleyicide. Ön kayıt 2026-11-05. Kurallar, duyuru listesi ve fiyat getirileri görülmeden ÖNCE yazıldı ve commit edildi. Denetleyici onayı: fiyat dışı olay verisi turu (Ayı Short ailesi kapandıktan sonra, bkz. `cards/ayi_short.md`). Kasa (2026-04 → 2026-09) sadece denetleyici onayıyla bir kez.
 
 ## Fikir (sade Türkçe)
 Binance bir coini listeden çıkaracağını ya da "izleme etiketi" (Monitoring Tag: "bu coin riskli, silinebilir") koyacağını duyurduğunda, o coin genelde günlerce değer kaybeder: borsalar ve yatırımcılar çıkar, likidite azalır. Duyurudan sonra o coinin vadeli kontratını short'larsak bu düşüşten pay alabiliriz. Fiyat grafiğine değil, gerçek bir olaya dayanır.
@@ -39,3 +39,10 @@ Binance bir coini listeden çıkaracağını ya da "izleme etiketi" (Monitoring 
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+| 2026-11-06 | Ana kural (gecikme 2s, 7 gün, stop %30), 237 olay (E1 79, E2 64, E3 94) | Dev +0.029R (61 işlem), val +0.318R (89). 2x masraf: +0.022 / +0.312. Rastgele kontrol: dev p 0.17 (GEÇMEDİ), val p 0.000. En iyi 3 çıkınca: dev −0.064R, val +0.233R. Komşular 36'dan 15'i iki dönemde artı. | `results/2026-11-06_olay_short/rapor.md` |
+
+## Notlar
+- Geliştirme döneminde olay az (61 işlem, çoğu 2022-2024; izleme etiketi 2023-08'de başladı, dev'de sadece 3 E2 işlemi). Dev kârı büyük ölçüde LUNA (2022-05) işleminden.
+- Kazanç 2025-2026'da belirgin: 2025 +0.22R (63 işlem), 2026 Q1 +0.56R (26 işlem). En güçlü tür E3 (vadeli kontrat silme).
+- Gecikme 24 saat olunca kazanç büyük ölçüde kayboluyor: hareketin çoğu ilk gün.
+- Gerçek hayat notu: vadeli kontrat silinirken Binance son saatlerde yeni pozisyonu kısıtlar ve settlement fiyatıyla kapatır; test son 1s kapanışı kullanıyor.
