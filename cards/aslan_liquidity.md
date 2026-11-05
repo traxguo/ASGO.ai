@@ -170,3 +170,18 @@ Denetçi kararı (2026-11-05): kasa testini geçen kural gerçek para olmadan, k
 - **Geçmiş:** Yahoo en fazla ~2 yıl 1 saatlik veri veriyor (backtest 2020'den beri). Çok eski, hiç alınmamış uzak seviyeler eksik olabilir; yakın seviyeler aynı.
 - **Gecikme:** iş her saatten birkaç dakika sonra çalışır; GitHub bazen gecikir. Emirler zaten bir sonraki mumdan itibaren geçerli olduğu için kurallar değişmez, ama mesaj birkaç dakika geç gelebilir.
 - Maliyet backtest'teki gibi %0.010 gidiş-dönüş varsayılır. Funding/swap yok.
+
+## Diğer endeksler (2026-11-05) — aynı kurallar, ayar yok
+Denetçinin isteği: daha çok işlem için Nasdaq'ta geçen kural (v2 1h yön filtreli) aynen S&P 500, DAX, FTSE 100 ve Nikkei 225'te denendi (HistData; Dow verisi HistData'da yok). Masraf: S&P ve DAX %0.010, FTSE %0.015, Nikkei %0.025 (tipik CFD makası). Bu endeksler için kasa dönemi (2026-04 → 09) ilk kez kullanıldı. Ayrıntı: [results/2026-11-05_aslan_endeksler](../results/2026-11-05_aslan_endeksler/README.md), PR #57.
+
+| Endeks | Geliştirme (net R, işlem) | Doğrulama | Kasa | Rastgeleden iyi mi? | Sonuç |
+|---|---|---|---|---|---|
+| Nasdaq (referans) | +0.07 (368) | +0.15 (107) | +0.15 (46) | üçünde de evet | GEÇTİ |
+| S&P 500 | -0.04 (365) | -0.07 (108) | +0.07 (41) | sadece kasada | KALDI |
+| DAX | +0.06 (339) | -0.08 (104) | +0.39 (19) | doğrulamada hayır | KALDI |
+| FTSE 100 | -0.09 (409) | +0.01 (94) | -0.29 (44) | hiçbirinde | KALDI |
+| Nikkei 225 | -0.08 (393) | +0.08 (83) | +0.03 (54) | geliştirmede hayır | KALDI |
+
+- Dört endeksin hiçbiri geçmedi; hepsinde ayda ~6-7 işlem olurdu ama kenar yok.
+- **Önemli uyarı:** S&P 500, Nasdaq'a en çok benzeyen piyasa (işlem günlerinin %56'sı ortak, günlük sonuç korelasyonu +0.48), ama orada kural geliştirme ve doğrulamada eksi. Gerçek bir kenar olsaydı S&P'de de görünmesi beklenirdi. Bu, Nasdaq sonucunun şans olma ihtimalini artırıyor. Nasdaq kağıt takibi sürüyor; karar 2026-11-30 ve sonrasındaki kağıt sonuçlarına göre.
+- Kağıt takibine yeni endeks eklenmedi.
