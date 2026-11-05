@@ -1,0 +1,10 @@
+dev: BTC buy&hold +1200%
+val: BTC buy&hold -28%
+dev: tot +109% dd 22% trades 307 (5.1/month) avg/trade +2.71% median +3.55% win 54% stops 44%
+   short leg avg +1.71% of margin, BTC hedge leg avg +4.12%, worst trade -20.8%, best +46.5%, avg open trades at entry 6.4
+   worst months: 2020-08 -8%, 2023-02 -8%, 2021-02 -6%
+   years: 2020:+68% 2021:-16% 2022:+6% 2023:+16% 2024:+22%
+val: tot +32% dd 27% trades 216 (14.4/month) avg/trade +1.77% median +1.66% win 51% stops 47%
+   short leg avg +5.70% of margin, BTC hedge leg avg -1.77%, worst trade -28.7%, best +44.6%, avg open trades at entry 11.6
+   worst months: 2026-02 -12%, 2025-08 -9%, 2026-01 -5%
+   years: 2025:+55% 2026:-15%

@@ -1,0 +1,64 @@
+dev: BTC b&h +1200%  ETH b&h +2454%  ETH/BTC ratio +97%
+val: BTC b&h -28%  ETH b&h -37%  ETH/BTC ratio -13%
+== mean reversion ==
+MR E1.5 W20
+   cost 0.0%: dev -53% | val -28%
+   cost 0.2%: dev tot   -60.4% cagr  -16.9% dd  69.1% sh -0.78 trades~171 | val tot   -30.8% cagr  -25.5% dd  38.9% sh -1.56 trades~43
+   cost 0.4%: dev -67% | val -34%
+MR E1.5 W30
+   cost 0.0%: dev -38% | val -28%
+   cost 0.2%: dev tot   -45.5% cagr  -11.4% dd  61.4% sh -0.50 trades~129 | val tot   -30.6% cagr  -25.4% dd  33.2% sh -1.61 trades~29
+   cost 0.4%: dev -52% | val -33%
+MR E1.5 W60
+   cost 0.0%: dev -25% | val -31%
+   cost 0.2%: dev tot   -30.4% cagr   -7.0% dd  47.6% sh -0.31 trades~80 | val tot   -33.0% cagr  -27.5% dd  35.6% sh -1.81 trades~23
+   cost 0.4%: dev -36% | val -34%
+MR E2.0 W20
+   cost 0.0%: dev -45% | val -25%
+   cost 0.2%: dev tot   -51.4% cagr  -13.4% dd  61.5% sh -0.71 trades~118 | val tot   -27.9% cagr  -23.1% dd  33.7% sh -1.44 trades~35
+   cost 0.4%: dev -57% | val -30%
+MR E2.0 W30
+   cost 0.0%: dev -31% | val -20%
+   cost 0.2%: dev tot   -37.2% cagr   -8.9% dd  53.7% sh -0.44 trades~100 | val tot   -22.3% cagr  -18.3% dd  25.3% sh -1.19 trades~27
+   cost 0.4%: dev -43% | val -24%
+MR E2.0 W60
+   cost 0.0%: dev -4% | val -28%
+   cost 0.2%: dev tot    -9.6% cagr   -2.0% dd  35.0% sh -0.04 trades~64 | val tot   -29.0% cagr  -24.1% dd  30.0% sh -1.76 trades~20
+   cost 0.4%: dev -15% | val -30%
+MR E2.5 W20
+   cost 0.0%: dev -59% | val -20%
+   cost 0.2%: dev tot   -62.3% cagr  -17.7% dd  66.4% sh -1.15 trades~79 | val tot   -22.3% cagr  -18.3% dd  32.2% sh -1.25 trades~25
+   cost 0.4%: dev -65% | val -24%
+MR E2.5 W30
+   cost 0.0%: dev -20% | val -14%
+   cost 0.2%: dev tot   -25.0% cagr   -5.6% dd  40.2% sh -0.35 trades~66 | val tot   -15.7% cagr  -12.8% dd  21.3% sh -0.93 trades~21
+   cost 0.4%: dev -30% | val -17%
+MR E2.5 W60
+   cost 0.0%: dev -17% | val -11%
+   cost 0.2%: dev tot   -20.2% cagr   -4.4% dd  38.3% sh -0.23 trades~44 | val tot   -11.9% cagr   -9.7% dd  12.4% sh -1.10 trades~10
+   cost 0.4%: dev -24% | val -13%
+== trend ==
+TREND L20
+   cost 0.0%: dev +87% | val -2%
+   cost 0.2%: dev tot   +29.8% cagr   +5.3% dd  42.9% sh +0.34 trades~182 | val tot   -13.5% cagr  -11.0% dd  25.5% sh -0.41 trades~65
+   cost 0.4%: dev -10% | val -24%
+TREND+flat L20
+   cost 0.0%: dev +51% | val +21%
+   cost 0.2%: dev tot    +7.8% cagr   +1.5% dd  49.5% sh +0.18 trades~326 | val tot   +10.8% cagr   +8.6% dd  23.1% sh +0.53 trades~87
+   cost 0.4%: dev -23% | val +2%
+TREND L50
+   cost 0.0%: dev +14% | val +56%
+   cost 0.2%: dev tot   -12.0% cagr   -2.5% dd  47.7% sh +0.01 trades~128 | val tot   +50.4% cagr  +38.7% dd  14.0% sh +1.58 trades~19
+   cost 0.4%: dev -32% | val +45%
+TREND+flat L50
+   cost 0.0%: dev +1% | val +46%
+   cost 0.2%: dev tot   -19.6% cagr   -4.3% dd  42.8% sh -0.08 trades~214 | val tot   +40.0% cagr  +31.0% dd  12.4% sh +1.36 trades~40
+   cost 0.4%: dev -36% | val +34%
+TREND L100
+   cost 0.0%: dev -13% | val +21%
+   cost 0.2%: dev tot   -25.7% cagr   -5.8% dd  52.3% sh -0.14 trades~80 | val tot   +17.6% cagr  +13.9% dd  24.3% sh +0.69 trades~14
+   cost 0.4%: dev -37% | val +14%
+TREND+flat L100
+   cost 0.0%: dev -19% | val +28%
+   cost 0.2%: dev tot   -31.2% cagr   -7.2% dd  50.1% sh -0.23 trades~153 | val tot   +24.1% cagr  +18.9% dd  19.2% sh +0.92 trades~31
+   cost 0.4%: dev -41% | val +20%

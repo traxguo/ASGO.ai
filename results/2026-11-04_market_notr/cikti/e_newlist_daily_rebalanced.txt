@@ -1,0 +1,33 @@
+== (e) new-listing short ==
+NEWLIST N7 M30 stop30% (in market 85% of days, avg 6.4 shorts)
+   cost 0.0%: dev +174% | val +93%
+   cost 0.2%: dev tot  +140.2% cagr  +19.1% dd  68.1% sh +0.61 [L +103% S -93%] | val tot   +86.5% cagr  +64.9% dd  36.4% sh +1.27 [L -31% S +180%]
+   cost 0.4%: dev +111% | val +81%
+NEWLIST N7 M30 stop60% (in market 87% of days, avg 7.0 shorts)
+   cost 0.0%: dev +482% | val +67%
+   cost 0.2%: dev tot  +416.0% cagr  +38.8% dd  57.1% sh +0.93 [L +130% S -64%] | val tot   +62.5% cagr  +47.6% dd  41.9% sh +1.06 [L -31% S +115%]
+   cost 0.4%: dev +357% | val +58%
+NEWLIST N7 M90 stop30% (in market 97% of days, avg 13.6 shorts)
+   cost 0.0%: dev -6% | val +1%
+   cost 0.2%: dev tot   -13.0% cagr   -2.7% dd  79.1% sh +0.14 [L +422% S -100%] | val tot    -0.1% cagr   -0.1% dd  50.1% sh +0.19 [L -31% S -13%]
+   cost 0.4%: dev -19% | val -1%
+NEWLIST N7 M90 stop60% (in market 97% of days, avg 16.4 shorts)
+   cost 0.0%: dev +21% | val -7%
+   cost 0.2%: dev tot   +14.0% cagr   +2.6% dd  72.2% sh +0.27 [L +463% S -99%] | val tot    -7.8% cagr   -6.3% dd  52.0% sh +0.01 [L -31% S -24%]
+   cost 0.4%: dev +7% | val -9%
+NEWLIST N30 M30 stop30% (in market 87% of days, avg 5.4 shorts)
+   cost 0.0%: dev -16% | val +63%
+   cost 0.2%: dev tot   -26.1% cagr   -5.9% dd  72.9% sh +0.10 [L +173% S -99%] | val tot   +57.8% cagr  +44.2% dd  31.8% sh +1.09 [L -31% S +116%]
+   cost 0.4%: dev -35% | val +53%
+NEWLIST N30 M30 stop60% (in market 88% of days, avg 6.1 shorts)
+   cost 0.0%: dev -66% | val +30%
+   cost 0.2%: dev tot   -69.3% cagr  -21.0% dd  88.4% sh -0.18 [L +233% S -100%] | val tot   +26.5% cagr  +20.7% dd  48.1% sh +0.65 [L -31% S +34%]
+   cost 0.4%: dev -73% | val +23%
+NEWLIST N30 M90 stop30% (in market 95% of days, avg 11.7 shorts)
+   cost 0.0%: dev +28% | val -0%
+   cost 0.2%: dev tot   +18.7% cagr   +3.5% dd  69.4% sh +0.28 [L +424% S -99%] | val tot    -1.3% cagr   -1.1% dd  42.3% sh +0.16 [L -31% S -17%]
+   cost 0.4%: dev +10% | val -3%
+NEWLIST N30 M90 stop60% (in market 96% of days, avg 14.0 shorts)
+   cost 0.0%: dev +13% | val +3%
+   cost 0.2%: dev tot    +6.1% cagr   +1.2% dd  68.7% sh +0.22 [L +428% S -99%] | val tot    +2.2% cagr   +1.8% dd  42.5% sh +0.23 [L -31% S -10%]
+   cost 0.4%: dev -0% | val +1%

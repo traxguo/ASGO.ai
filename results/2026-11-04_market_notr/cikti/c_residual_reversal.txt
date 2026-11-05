@@ -1,0 +1,74 @@
+BTC buy&hold dev: +1200% (dd 77%)
+BTC buy&hold val: -28% (dd 50%)
+L1 H1 K 5
+   cost 0.0%: dev -32% | val +16%
+   cost 0.2%: dev tot   -95.2% cagr  -45.5% dd  96.2% sh -1.17 [L -100% S -99%] | val tot   -43.9% cagr  -37.1% dd  75.2% sh -0.25 [L -61% S -81%]
+   cost 0.4%: dev -100% | val -73%
+L1 H1 K10
+   cost 0.0%: dev -3% | val +46%
+   cost 0.2%: dev tot   -88.7% cagr  -35.3% dd  90.4% sh -1.51 [L -98% S -98%] | val tot   -26.1% cagr  -21.5% dd  57.1% sh -0.35 [L -76% S -14%]
+   cost 0.4%: dev -99% | val -63%
+L1 H2 K 5
+   cost 0.0%: dev -29% | val +19%
+   cost 0.2%: dev tot   -81.4% cagr  -28.5% dd  82.4% sh -0.88 [L -89% S -98%] | val tot   -18.1% cagr  -14.8% dd  42.9% sh -0.14 [L -42% S -44%]
+   cost 0.4%: dev -95% | val -44%
+L1 H2 K10
+   cost 0.0%: dev +7% | val +43%
+   cost 0.2%: dev tot   -63.8% cagr  -18.4% dd  65.2% sh -1.00 [L -80% S -90%] | val tot    +1.5% cagr   +1.2% dd  24.4% sh +0.18 [L -31% S -9%]
+   cost 0.4%: dev -88% | val -28%
+L1 H3 K 5
+   cost 0.0%: dev -11% | val +32%
+   cost 0.2%: dev tot   -63.8% cagr  -18.4% dd  67.8% sh -0.63 [L -54% S -97%] | val tot    +3.1% cagr   +2.5% dd  30.8% sh +0.25 [L -38% S +1%]
+   cost 0.4%: dev -85% | val -19%
+L1 H3 K10
+   cost 0.0%: dev +30% | val +37%
+   cost 0.2%: dev tot   -37.4% cagr   -8.9% dd  46.2% sh -0.53 [L -38% S -84%] | val tot    +9.2% cagr   +7.3% dd  22.4% sh +0.43 [L -42% S +44%]
+   cost 0.4%: dev -70% | val -13%
+L2 H1 K 5
+   cost 0.0%: dev -84% | val -45%
+   cost 0.2%: dev tot   -97.7% cagr  -53.0% dd  97.9% sh -1.48 [L -99% S -100%] | val tot   -68.3% cagr  -60.3% dd  80.0% sh -0.64 [L -52% S -103%]
+   cost 0.4%: dev -100% | val -82%
+L2 H1 K10
+   cost 0.0%: dev -23% | val +15%
+   cost 0.2%: dev tot   -83.4% cagr  -30.2% dd  84.9% sh -1.26 [L -96% S -98%] | val tot   -30.0% cagr  -24.9% dd  44.9% sh -0.41 [L -68% S -51%]
+   cost 0.4%: dev -96% | val -57%
+L2 H2 K 5
+   cost 0.0%: dev -59% | val +36%
+   cost 0.2%: dev tot   -89.3% cagr  -36.0% dd  90.0% sh -0.98 [L -88% S -100%] | val tot    -6.1% cagr   -5.0% dd  39.2% sh +0.17 [L -57% S -24%]
+   cost 0.4%: dev -97% | val -35%
+L2 H2 K10
+   cost 0.0%: dev +25% | val +49%
+   cost 0.2%: dev tot   -57.7% cagr  -15.8% dd  62.4% sh -0.69 [L -70% S -96%] | val tot    +5.7% cagr   +4.6% dd  24.1% sh +0.30 [L -60% S +36%]
+   cost 0.4%: dev -86% | val -25%
+L2 H3 K 5
+   cost 0.0%: dev -63% | val -3%
+   cost 0.2%: dev tot   -84.8% cagr  -31.4% dd  84.9% sh -1.03 [L -82% S -99%] | val tot   -23.8% cagr  -19.6% dd  48.4% sh -0.28 [L -61% S -31%]
+   cost 0.4%: dev -94% | val -40%
+L2 H3 K10
+   cost 0.0%: dev +11% | val +19%
+   cost 0.2%: dev tot   -46.3% cagr  -11.7% dd  53.2% sh -0.58 [L -60% S -91%] | val tot    -5.1% cagr   -4.1% dd  22.9% sh -0.02 [L -57% S +21%]
+   cost 0.4%: dev -74% | val -25%
+L3 H1 K 5
+   cost 0.0%: dev -67% | val +81%
+   cost 0.2%: dev tot   -93.6% cagr  -42.3% dd  94.4% sh -0.97 [L -94% S -100%] | val tot   +14.8% cagr  +11.7% dd  57.9% sh +0.50 [L -41% S -44%]
+   cost 0.4%: dev -99% | val -27%
+L3 H1 K10
+   cost 0.0%: dev +7% | val +59%
+   cost 0.2%: dev tot   -69.9% cagr  -21.3% dd  77.8% sh -0.77 [L -89% S -97%] | val tot    +5.7% cagr   +4.5% dd  31.1% sh +0.31 [L -63% S +11%]
+   cost 0.4%: dev -92% | val -30%
+L3 H2 K 5
+   cost 0.0%: dev -78% | val +27%
+   cost 0.2%: dev tot   -92.9% cagr  -41.1% dd  92.9% sh -1.16 [L -89% S -100%] | val tot    -7.5% cagr   -6.0% dd  42.4% sh +0.17 [L -53% S -36%]
+   cost 0.4%: dev -98% | val -32%
+L3 H2 K10
+   cost 0.0%: dev -11% | val +44%
+   cost 0.2%: dev tot   -64.0% cagr  -18.5% dd  68.3% sh -0.79 [L -81% S -97%] | val tot    +8.5% cagr   +6.8% dd  21.1% sh +0.36 [L -64% S +51%]
+   cost 0.4%: dev -85% | val -18%
+L3 H3 K 5
+   cost 0.0%: dev -81% | val -23%
+   cost 0.2%: dev tot   -92.3% cagr  -40.1% dd  92.3% sh -1.33 [L -89% S -100%] | val tot   -39.5% cagr  -33.2% dd  53.0% sh -0.60 [L -60% S -64%]
+   cost 0.4%: dev -97% | val -53%
+L3 H3 K10
+   cost 0.0%: dev -19% | val -2%
+   cost 0.2%: dev tot   -61.0% cagr  -17.2% dd  65.1% sh -0.83 [L -77% S -95%] | val tot   -22.3% cagr  -18.3% dd  37.5% sh -0.53 [L -67% S -7%]
+   cost 0.4%: dev -81% | val -38%
