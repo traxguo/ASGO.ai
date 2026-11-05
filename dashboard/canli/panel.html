@@ -107,7 +107,7 @@ footer p { margin: 0; max-width: 100ch; }
 
   <div class="note" id="honesty">
     <p><b>Nasıl okunur:</b> <span class="pill demo">Demo</span> Bitget demo hesabında bot gerçekten emir veriyor ama oyun parasıyla. <span class="pill paper">Kâğıt</span> aynı kurallar gerçek piyasa fiyatlarıyla kâğıt üstünde izleniyor, emir yok. Her strateji 10.000 USDT kasa üstünden sayılır.</p>
-    <p><b>Demo uyarısı:</b> Bitget demo piyasası bazen gerçek piyasada hiç olmayan derin iğneler yapıyor. Her demo işlemini Binance'in gerçek fiyatlarıyla kontrol ettik. "Gerçekte dolmazdı" yazan işlemler gerçek parayla hiç açılmazdı. Bu yüzden asıl ölçü <b>gerçek fiyatla</b> sonuçtur.</p>
+    <p><b>Demo uyarısı:</b> Bitget demo piyasası bazen gerçek piyasada hiç olmayan derin iğneler yapıyor. Her demo işlemini Binance'in gerçek fiyatlarıyla kontrol ettik. "Demo fiyatı, gerçek piyasada oluşmadı" yazan işlemler gerçek parayla hiç açılmazdı. Bu yüzden asıl ölçü <b>gerçek fiyatla</b> sonuçtur.</p>
     <p><b>Kesinti:</b> 20 Ekim 13:17 ile 28 Ekim akşamı arasında GitHub'ın ücretsiz dakikaları bittiği için botlar çalışmadı (grafikte kırmızı bant). Bu sürede işlem kaydı yok.</p>
   </div>
 
@@ -168,7 +168,7 @@ footer p { margin: 0; max-width: 100ch; }
   function realPill(t) {
     if (!t.real) return "";
     if (t.real.state === "yes") return `<span class="pill ok" title="Gerçek piyasa bu fiyatı gördü">Gerçekte de dolardı</span>`;
-    if (t.real.state === "no") return `<span class="pill no" title="Gerçek piyasanın en düşüğü ${fmtPrice(t.real.low)}">Gerçekte dolmazdı</span>`;
+    if (t.real.state === "no") return `<span class="pill no" title="Gerçek piyasanın en düşüğü ${fmtPrice(t.real.low)}">Demo fiyatı, gerçek piyasada oluşmadı</span>`;
     return `<span class="pill wait">Kontrol yarın</span>`;
   }
 
@@ -192,15 +192,15 @@ footer p { margin: 0; max-width: 100ch; }
     const waiting = demoT.filter((t) => t.status === "closed" && t.real && t.real.state === "pending").length;
     $("tiles").innerHTML =
       tile("Kâğıt takip · gerçek fiyat", sPaper, "Fitil + Derin Fitil, 81 coin, emir yok. Kriptonun en dürüst ölçüsü.") +
-      tile("Demo · gerçek fiyatla", sReal, `Demo işlemleri gerçek fiyatla yeniden hesaplandı. ${notFilled} işlem gerçekte dolmazdı, ${waiting} işlem kontrol bekliyor.`) +
+      tile("Demo · gerçek fiyatla", sReal, `Demo işlemleri gerçek fiyatla yeniden hesaplandı. ${notFilled} işlemin fiyatı gerçek piyasada hiç oluşmadı, ${waiting} işlem kontrol bekliyor.`) +
       tile("Demo · Bitget'in gösterdiği", sDemo, "Bitget demo hesabının kendi rakamı. Demo iğneleri yüzünden şişkin, tek başına ölçü değil.", true);
 
     // open trades + waiting orders
     const open = T.filter((t) => t.status === "open");
     let html = "";
     if (open.length) {
-      html += `<div class="scroll"><table><tr><th>Strateji</th><th></th><th>Yön</th><th>Coin</th><th>Giriş</th><th class="n">Giriş fiyatı</th><th>Not</th></tr>` +
-        open.map((t) => `<tr><td>${esc(names[t.strategy].name)}</td><td>${trackPill(t.track)}</td><td class="side">${SIDE[t.side] || esc(t.side)}</td><td>${esc(t.symbol)}</td><td class="t">${fmtTime(t.entry_time)}</td><td class="n">${fmtPrice(t.entry_price)}</td><td class="small">${esc(t.note)}</td></tr>`).join("") + "</table></div>";
+      html += `<div class="scroll"><table><tr><th>Strateji</th><th></th><th>Yön</th><th>Coin</th><th>Giriş</th><th class="n">Giriş fiyatı</th><th class="n">Şimdiki fiyat</th><th class="n">Şu an</th><th>Not</th></tr>` +
+        open.map((t) => `<tr data-sym="${esc(t.symbol)}" data-entry="${t.entry_price}" data-side="${esc(t.side)}"><td>${esc(names[t.strategy].name)}</td><td>${trackPill(t.track)}</td><td class="side">${SIDE[t.side] || esc(t.side)}</td><td>${esc(t.symbol)}</td><td class="t">${fmtTime(t.entry_time)}</td><td class="n">${fmtPrice(t.entry_price)}</td><td class="n now">—</td><td class="n pl">—</td><td class="small">${esc(t.note)}</td></tr>`).join("") + "</table></div>";
     } else html += `<div class="empty">Şu an açık pozisyon yok.</div>`;
     if (data.pending.length) {
       const by = {};
@@ -209,13 +209,14 @@ footer p { margin: 0; max-width: 100ch; }
         Object.entries(by).map(([sid, list]) => `<b>${esc(names[sid].name)}</b> ${list.map((p) => `${esc(p.symbol)} ${fmtPrice(p.price)}`).join(", ")}`).join(" · ") + "</p>";
     }
     $("open").innerHTML = html;
+    if (!window.PANEL_RAW) livePrices();
 
     // charts
     const start = "2026-10-01T00:00:00Z", end = new Date().toISOString();
     chart($("chartPaper"), "Kâğıt takip (gerçek fiyat)", [
       { name: "Fitil Avcısı", color: "var(--s1)", curve: names.fitil_paper && data.strategies.find((s) => s.id === "fitil_paper").stats.curve },
       { name: "Derin Fitil", color: "var(--s2)", curve: data.strategies.find((s) => s.id === "derin_paper").stats.curve },
-      { name: "Pusula (ilk sürüm)", color: "var(--s3)", curve: data.strategies.find((s) => s.id === "pusula_paper").stats.curve },
+      { name: "Pusula v2", color: "var(--s3)", curve: data.strategies.find((s) => s.id === "pusula_v2_paper").stats.curve },
       { name: "Fitil + Derin birlikte", color: "var(--ink)", curve: sPaper.curve, dash: "5 4" },
     ], start, end);
     chart($("chartDemo"), "Bitget demo hesap", [
@@ -227,7 +228,7 @@ footer p { margin: 0; max-width: 100ch; }
     // strategy register
     $("strategies").innerHTML = data.strategies.map((s) => {
       const st = s.stats;
-      const unit = s.id === "aslan_nas" || s.id === "pusula_paper" ? " (R)" : "";
+      const unit = ["aslan_nas", "pusula_paper", "pusula_v2_paper"].includes(s.id) ? " (R)" : "";
       const line = st.closed
         ? `${st.closed} işlem · kazanan %${fmtNum(st.winRate * 100, 0)} · <span class="${cls(st.pnl)}">${signed(st.pnlPct)}</span> · düşüş %${fmtNum(st.maxDd, 1)}${st.open ? ` · ${st.open} açık` : ""}`
         : st.open ? `${st.open} açık işlem` : `henüz işlem yok`;
@@ -293,6 +294,25 @@ footer p { margin: 0; max-width: 100ch; }
         series.map((s) => { const p = pts(s).filter((q) => q.t <= t); return `${s.name}: ${Math.round(p[p.length - 1].eq).toLocaleString("tr-TR")}`; }).join(" · ");
     });
     svg.addEventListener("pointerleave", () => { cross.setAttribute("visibility", "hidden"); });
+  }
+
+  // current price of open crypto trades (Binance public prices; fill-in only, never changes a trade)
+  async function livePrices() {
+    const rows = [...document.querySelectorAll("#open tr[data-sym]")].filter((r) => r.dataset.sym !== "NASDAQ");
+    if (!rows.length) return;
+    const syms = [...new Set(rows.map((r) => r.dataset.sym + "USDT"))];
+    try {
+      const res = await fetch("https://data-api.binance.vision/api/v3/ticker/price?symbols=" + encodeURIComponent(JSON.stringify(syms)));
+      if (!res.ok) return;
+      const px = Object.fromEntries((await res.json()).map((x) => [x.symbol, Number(x.price)]));
+      for (const r of rows) {
+        const p = px[r.dataset.sym + "USDT"], e = Number(r.dataset.entry);
+        if (!p || !e) continue;
+        const pl = ((p / e) - 1) * 100 * (r.dataset.side === "short" ? -1 : 1);
+        r.querySelector(".now").textContent = fmtPrice(p);
+        r.querySelector(".pl").innerHTML = `<span class="${cls(pl)}">${signed(pl)}</span>`;
+      }
+    } catch (e) { /* prices are optional */ }
   }
 
   async function load() {

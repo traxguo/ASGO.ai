@@ -16,6 +16,7 @@
     yeniCoin: "forward/paper_yeni_coin/state.json",
     yeniCoinHedge: "forward/paper_yeni_coin_hedge/state.json",
     aslanNas: "forward/paper_aslan_nas/state.json",
+    pusulaPaper: "forward/pusula_kagit.json",
     realCheck: "dashboard/canli/demo_gercek_kontrol.csv",
   };
 
@@ -33,7 +34,9 @@
     { id: "derin_paper", name: "Derin Fitil", track: "paper", side: "long", since: "2026-10-17",
       about: "Demodaki kuralın aynısı, 81 coinde, gerçek piyasa fiyatlarıyla kâğıt üstünde." },
     { id: "pusula_paper", name: "Pusula (ilk sürüm)", track: "paper", side: "long", since: "2026-10-01",
-      about: "Dondurulmuş ilk Pusula kuralı, 16 coin. Kâğıt kaydı 10 Ekim'den sonra güncellenmedi; v2 demoda devam ediyor." },
+      about: "Dondurulmuş ilk Pusula kuralı: 4 saatlik grafikte trend kırılımında long, 16 coin, en fazla 3 işlem. Sonuç R cinsinden; 1R = kasanın %1'i." },
+    { id: "pusula_v2_paper", name: "Pusula v2", track: "paper", side: "long", since: "2026-10-01",
+      about: "Pusula + BTC düşüşe geçince long'ları kapatma kuralı. Demodakiyle aynı kural, burada gerçek fiyatlarla kâğıt üstünde." },
     { id: "yeni_coin", name: "Yeni Coin Short", track: "paper", side: "short", since: "2026-11-04",
       about: "Binance'e yeni listelenen coini ertesi gün short'lar, 14 gün tutar, %40 stop. Kasanın %1'i riske edilir." },
     { id: "yeni_coin_hedge", name: "Yeni Coin + BTC koruma", track: "paper", side: "short", since: "2026-11-05",
@@ -174,7 +177,21 @@
     return out;
   }
 
-  function pusulaPaper() {
+  // forward/pusula_kagit.json (research/forward/pusula_paper.py); falls back to the frozen October log
+  function pusulaPaper(json) {
+    if (json && json.strategies) {
+      const out = [];
+      for (const [name, sid] of [["PusulaTrendLong", "pusula_paper"], ["PusulaV2", "pusula_v2_paper"]]) {
+        (json.strategies[name] || []).forEach((t, i) => out.push({
+          id: sid + i, strategy: sid, track: "paper", side: "long", symbol: t.coin,
+          entry_time: iso(t.entry_time), entry_price: num(t.entry_price),
+          exit_time: t.open ? null : iso(t.exit_time), exit_price: t.open ? null : num(t.exit_price),
+          net_pct: t.open ? null : num(t.r), pnl_usdt: t.open ? null : num(t.r) * BASE / 100, unit: "R",
+          status: t.open ? "open" : "closed", reason: t.reason || "", note: t.open ? `şu an ${num(t.r) >= 0 ? "+" : ""}${num(t.r)}R` : "",
+        }));
+      }
+      return out;
+    }
     return PUSULA_PAPER.map((t, i) => ({
       id: "pp" + i, strategy: "pusula_paper", track: "paper", side: "long", symbol: t.symbol,
       entry_time: t.entry_time, entry_price: t.entry_price, exit_time: t.exit_time, exit_price: null,
@@ -191,7 +208,7 @@
     const aslan = parseJson(raw.aslanNas);
     const trades = [
       ...fd.trades, ...dd.trades, ...pd.trades,
-      ...paperFitil(parseJson(raw.paperFitil)), ...pusulaPaper(),
+      ...paperFitil(parseJson(raw.paperFitil)), ...pusulaPaper(parseJson(raw.pusulaPaper)),
       ...paperYeni(parseJson(raw.yeniCoin), "yeni_coin"), ...paperYeni(parseJson(raw.yeniCoinHedge), "yeni_coin_hedge"),
       ...paperAslan(aslan),
     ].sort((a, b) => String(a.entry_time).localeCompare(String(b.entry_time)));
