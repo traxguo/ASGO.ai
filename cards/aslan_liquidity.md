@@ -141,3 +141,21 @@ Kriptoda (5 coin, geliştirme) maliyet öncesi -0.04 ile +0.03R arasıydı; BTC'
 - Ama kural masrafsız da çoğunlukla ~0R: 6 versiyon × 3 piyasa = 18 denemenin sadece biri (Nasdaq v2 1h) iki dönemde de rastgelenin belirgin üstünde. 18 denemede bir tanesinin şansla böyle çıkması mümkün; örnek küçük (doğrulamada 107-180 işlem, ortalamanın belirsizliği ±0.13R civarı).
 - Long/short tutarsız: geliştirmede kâr long'lardan, short'lar eksi; doğrulamada kâr short'lardan. Sağlam bir kenar her iki tarafta da benzer davranırdı.
 - **Karar önerisi:** "Hiç umut yok" değil ama "kanıtlandı" da değil. Nasdaq v2 1h, kurallar dondurulup kağıt üzerinde takip edilebilir veya kasa döneminde (2026-04 → 09) bir kez denenebilir; para için yeterli değil. Kripto için yeni Aslan versiyonu önerilmez.
+
+## Kasa testi (holdout, 2026-04-01 → 2026-09-30) — bir kez, kurallar PR #53'teki gibi donduruldu
+Denetçi (ana konu) 2026-11-05'te bir kez onayladı. Kod: `sim.py --holdout`, iş akışı `aslan_nasdaq_holdout.yml` (elle, bir kez çalıştırıldı, PR #54). Değerlendirilen: **Nasdaq v2 1h yön filtreli** (kartın orijinali); filtresiz yanında rapor edildi.
+Geçme şartı (testten önce yazıldı): maliyet sonrası R > 0 ve PF > 1.05 (1 kat masraf), 2 kat masrafta R ≥ 0, maliyet öncesi R rastgele girişin üstünde.
+
+| Versiyon | Yön | İşlem | Kazanma | Maliyet öncesi R | Rastgele giriş | Maliyet sonrası R | PF | 2 kat masraf R | DD |
+|---|---|---|---|---|---|---|---|---|---|
+| **v2 1h yön filtreli** | long | 27 | %37.0 | +0.111 | -0.018 | +0.095 | 1.15 | +0.079 | %9 |
+| | short | 19 | %42.1 | +0.263 | +0.003 | +0.238 | 1.40 | +0.214 | %4 |
+| | **hepsi** | **46** | %39.1 | **+0.174** | -0.010 | **+0.154** | **1.25** | **+0.135** | %7 |
+| v2 1h filtresiz | long | 36 | %41.7 | +0.250 | -0.004 | +0.236 | 1.40 | +0.221 | %6 |
+| | short | 41 | %31.7 | -0.049 | -0.043 | -0.080 | 0.89 | -0.111 | %10 |
+| | hepsi | 77 | %36.4 | +0.091 | -0.025 | +0.068 | 1.10 | +0.044 | %8 |
+
+**Sonuç: GEÇTİ** (yön filtreli versiyon dört şartın hepsini sağladı; long ve short ikisi de artı). Üç dönemde de artı: geliştirme +0.07R (368 işlem), doğrulama +0.15R (107), kasa +0.15R (46).
+Dikkat: kasada sadece 46 işlem var (ayda ~8), tek başına ortalamanın belirsizliği ±0.2R civarı. Bu bir "kanıt" değil, "elenmedi" demektir. Kasa artık kullanıldı; bu kurallar için tekrar kullanılamaz.
+
+**Öneri (henüz yapılmadı, GUO onayı bekliyor):** Nasdaq v2 1h yön filtreli için kağıt üzerinde takip (sinyal + sonuç kaydı, emir yok). Gerekenler: canlı Nasdaq 1 dk/1 saat veri kaynağı (HistData sadece geçmiş verir; seçenekler: broker demo API'si, ör. OANDA/Capital.com/IG, veya ücretsiz gecikmeli veri), saatlik çalışan GitHub Actions işi, `forward/paper_aslan_nas/` kaydı ve haftalık rapor. Kurallar dondurulmuş haliyle; ayda ~8 sinyal beklenir, anlamlı bir karar için en az 3-6 ay gerekir.

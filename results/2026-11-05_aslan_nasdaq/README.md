@@ -249,3 +249,26 @@ Sütunlar: Win = kazanma oranı, BE win = maliyet dahil başa baş için gereken
 | v7 1m retest | val | long | 30 | 46.7% | 53.2% | -0.071 | +0.157 | -0.134 | 0.77 | 10% | 0.47% |
 | v7 1m retest | val | short | 12 | 41.7% | 54.2% | -0.167 | -0.105 | -0.250 | 0.61 | 4% | 0.37% |
 | v7 1m retest | val | all | 42 | 45.2% | 53.5% | -0.099 | +0.082 | -0.168 | 0.72 | 10% | 0.42% |
+
+## Kasa testi (2026-04 → 09, NAS100 v2 1h, bir kez)
+
+Sonuç: GEÇTİ (yön filtreli). Ayrıntı ve yorum: kartın "Kasa testi" bölümü. İş akışı çalıştırması: https://github.com/traxguo/ASGO.ai/actions/runs/42097793740
+
+### NAS100 HOLDOUT (round-trip cost 0.010%)
+| Version | Period | Side | Trades | Win | BE win (after cost) | R before cost | Random entry R before cost | R after cost | PF | DD (1% risk) | Median stop |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| v2 1h bias | holdout | long | 27 | 37.0% | 33.9% | +0.111 | -0.018 | +0.095 | 1.15 | 9% | 0.61% |
+| v2 1h bias | holdout | short | 19 | 42.1% | 34.2% | +0.263 | +0.003 | +0.238 | 1.40 | 4% | 0.42% |
+| v2 1h bias | holdout | all | 46 | 39.1% | 34.0% | +0.174 | -0.010 | +0.154 | 1.25 | 7% | 0.51% |
+| v2 1h nobias | holdout | long | 36 | 41.7% | 33.8% | +0.250 | -0.004 | +0.236 | 1.40 | 6% | 0.80% |
+| v2 1h nobias | holdout | short | 41 | 31.7% | 34.4% | -0.049 | -0.043 | -0.080 | 0.89 | 10% | 0.34% |
+| v2 1h nobias | holdout | all | 77 | 36.4% | 34.1% | +0.091 | -0.025 | +0.068 | 1.10 | 8% | 0.49% |
+### NAS100 HOLDOUT x2 cost (round-trip cost 0.020%)
+| Version | Period | Side | Trades | Win | BE win (after cost) | R before cost | Random entry R before cost | R after cost | PF | DD (1% risk) | Median stop |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| v2 1h bias | holdout | long | 27 | 37.0% | 34.4% | +0.111 | -0.018 | +0.079 | 1.12 | 9% | 0.61% |
+| v2 1h bias | holdout | short | 19 | 42.1% | 35.0% | +0.263 | +0.003 | +0.214 | 1.35 | 4% | 0.42% |
+| v2 1h bias | holdout | all | 46 | 39.1% | 34.6% | +0.174 | -0.010 | +0.135 | 1.21 | 7% | 0.51% |
+| v2 1h nobias | holdout | long | 36 | 41.7% | 34.3% | +0.250 | -0.004 | +0.221 | 1.37 | 7% | 0.80% |
+| v2 1h nobias | holdout | short | 41 | 31.7% | 35.4% | -0.049 | -0.043 | -0.111 | 0.85 | 11% | 0.34% |
+| v2 1h nobias | holdout | all | 77 | 36.4% | 34.9% | +0.091 | -0.025 | +0.044 | 1.07 | 8% | 0.49% |
