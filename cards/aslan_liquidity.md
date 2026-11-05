@@ -166,7 +166,7 @@ Denetçi kararı (2026-11-05): kasa testini geçen kural gerçek para olmadan, k
 **Backtest'ten farklar:**
 - **Fiyat:** backtest HistData NAS100 CFD (endeks, sadece bid) idi; canlıda ücretsiz Yahoo **NQ=F** (Nasdaq-100 vadeli, sürekli ön ay) 1 saatlik mumları. Vadeli fiyat endeksten faiz farkı kadar (genelde %0.5-2) yukarıda; seviyeler hep aynı seriden hesaplandığı için kurallar aynı çalışır, ama rakamlar bir CFD ekranındaki rakamlarla bire bir aynı değildir.
 - **Vade geçişi:** NQ=F her çeyrekte (Mart, Haziran, Eylül, Aralık) yeni kontrata geçer; o gün grafikte yapay bir sıçrama olur ve seviyeleri/stopları bozabilir. Vade haftalarındaki sinyaller raporda ayrıca işaretlenecek.
-- **Seans:** günlük ve 4 saatlik mumlar yine New York 17:00 → 17:00 işlem gününe göre, ama 1 dakikalık değil 1 saatlik mumlardan kuruluyor. Vadelinin 17:00-18:00 arası arası ve hafta sonu backtest'teki CFD ile aynı.
+- **Seans:** günlük ve 4 saatlik mumlar yine New York 17:00 → 17:00 işlem gününe göre, ama 1 dakikalık değil 1 saatlik mumlardan kuruluyor. Vadelinin 17:00-18:00 arası ve hafta sonu da backtest'teki CFD ile aynı.
 - **Geçmiş:** Yahoo en fazla ~2 yıl 1 saatlik veri veriyor (backtest 2020'den beri). Çok eski, hiç alınmamış uzak seviyeler eksik olabilir; yakın seviyeler aynı.
 - **Gecikme:** iş her saatten birkaç dakika sonra çalışır; GitHub bazen gecikir. Emirler zaten bir sonraki mumdan itibaren geçerli olduğu için kurallar değişmez, ama mesaj birkaç dakika geç gelebilir.
 - Maliyet backtest'teki gibi %0.010 gidiş-dönüş varsayılır. Funding/swap yok.
