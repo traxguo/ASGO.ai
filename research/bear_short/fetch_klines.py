@@ -12,7 +12,7 @@ tf = os.environ.get("TF", "1h")
 LIST = f"https://s3-ap-northeast-1.amazonaws.com/data.binance.vision?prefix=data/futures/um/monthly/klines/{{s}}/{tf}/"
 FILE = f"https://data.binance.vision/data/futures/um/monthly/klines/{{s}}/{tf}/{{s}}-{tf}-{{m}}.zip"
 LAST = os.environ.get("LAST", "2026-03")
-OUT = f"user_data/data/pit{tf}/"
+OUT = os.environ.get("OUTDIR", f"user_data/data/pit{tf}/")
 syms = open(sys.argv[1]).read().split()
 os.makedirs(OUT, exist_ok=True)
 

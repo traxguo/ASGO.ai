@@ -1,0 +1,3 @@
+per,n,base_avgR,ctrl_meanR,ctrl_p95,p_value,pool
+DEV,4,-0.069,-0.007,0.396,0.607,120
+VAL,58,0.042,-0.03,0.041,0.047,1740

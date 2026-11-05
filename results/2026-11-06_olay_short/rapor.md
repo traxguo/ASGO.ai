@@ -32,3 +32,9 @@ Komşular (gecikme 1/2/24s × tutma 3/7/14/30g × stop %20/30/50): 36'dan 15'i i
 - Ön kayıtlı şart 2 (rastgele kontrolü iki dönemde %95'te geçmek) dev'de sağlanmadı → **GEÇMEDİ**.
 - Doğrulama sonucu güçlü ve geniş tabanlı (üç türde de artı, en iyi 3 çıkınca da artı). Etkinin 2025'ten sonra güçlendiği görülüyor (Binance silme/izleme etiketlerini sıklaştırdı).
 - Bağımsız test olarak kasa (2026-04 → 2026-09) kalıyor; sadece denetleyici onayıyla, bu kuralla, bir kez.
+
+## Kasa testi (2026-04 → 2026-09) — denetleyici onayıyla bir kez — GEÇMEDİ
+- GUO'ya not: son 6 ayın verisiyle yapılan bağımsız testte kural çok az kâr etti (+0.04R) ve bu kâr sadece en iyi 3 işlemden geliyor. Doğrulamadaki güçlü sonuç tekrar etmedi. Bu fikir de elendi.
+- 58 işlem, +0.042R, PF 1.14, 2x masraf +0.035R, rastgele kontrol p 0.047, en iyi 3 çıkınca −0.037R (şart: artı kalmalı).
+- Türler: E1 +0.13R (19), E2 +0.07R (26), E3 −0.14R (13).
+- Reduce-only kontrolü: 2026 E3 girişlerinin hiçbiri yasak pencereye düşmüyor; ama 2026-10'dan beri Binance bazı silmelerde yeni pozisyonu duyuru anında kapatıyor, yani E3 canlıda artık uygulanamaz.

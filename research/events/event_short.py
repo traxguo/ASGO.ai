@@ -9,8 +9,18 @@ rng = np.random.default_rng(5)
 OUT = "research/events/"
 DEV = (pd.Timestamp("2020-01-01", tz="UTC"), pd.Timestamp("2025-01-01", tz="UTC"))
 VAL = (pd.Timestamp("2025-01-01", tz="UTC"), pd.Timestamp("2026-04-01", tz="UTC"))
-PIT = "user_data/data/pit1h/"
-SYMS = {f.split("_USDT")[0] + "USDT" for f in os.listdir(PIT)}
+# HOLDOUT=1: the one supervisor-approved holdout run (2026-11-06) on the frozen base rule only.
+# It replaces the VAL window by the holdout window, uses data incl. holdout, and skips the neighbour grid.
+HOLDOUT = os.environ.get("HOLDOUT") == "1"
+FUND = "user_data/data/full/allc_funding_full.feather" if HOLDOUT else "user_data/data/allc_funding.feather"
+if HOLDOUT:
+    VAL = (pd.Timestamp("2026-04-01", tz="UTC"), pd.Timestamp("2026-10-01", tz="UTC"))
+    OUT_TAG = "holdout_"
+else:
+    OUT_TAG = ""
+PIT = "user_data/data/pit1h_full/" if HOLDOUT else "user_data/data/pit1h/"
+os.makedirs(PIT, exist_ok=True)
+SYMS = set(pd.read_feather(FUND, columns=["symbol"]).symbol.unique()) if HOLDOUT else {f.split("_USDT")[0] + "USDT" for f in os.listdir(PIT)}
 
 A = pd.read_csv(OUT + "binance_announcements.csv").drop_duplicates("code")
 A["t"] = pd.to_datetime(A.release_ms, unit="ms", utc=True)
@@ -62,7 +72,10 @@ for _, a in A.iterrows():
     for c in coins:
         rows.append(dict(code=a.code, t=a.t, typ=typ, sym=c, title=t))
 EV = pd.DataFrame(rows).sort_values("t").reset_index(drop=True)
-EV.to_csv(OUT + "out_events_raw.csv", index=False)
+EV.to_csv(OUT + OUT_TAG + "out_events_raw.csv", index=False)
+if os.environ.get("STAGE") == "events":
+    e = EV[(EV.t >= VAL[0]) & (EV.t < VAL[1])]
+    print(len(e), e.typ.value_counts().to_dict()); open(os.environ["SYMFILE"], "w").write("\n".join(sorted(e.sym.unique()))); raise SystemExit
 
 # 30-day dedupe per coin across types (first event counts)
 keep, last = [], {}
@@ -83,7 +96,7 @@ def hdata(s):
     return HC[s]
 
 
-F = pd.read_feather("user_data/data/allc_funding.feather")
+F = pd.read_feather(FUND)
 FD = {s: g.set_index("time").rate.sort_index() for s, g in F.groupby("symbol")}
 
 
@@ -151,7 +164,8 @@ def st(T, risk=0.01):
 
 
 ROWS = []
-for delay, hold_d, stop in itertools.product([1, 2, 24], [3, 7, 14, 30], [0.2, 0.3, 0.5]):
+GRID = [(2, 7, 0.3)] if HOLDOUT else list(itertools.product([1, 2, 24], [3, 7, 14, 30], [0.2, 0.3, 0.5]))
+for delay, hold_d, stop in GRID:
     base = (delay, hold_d, stop) == (2, 7, 0.3)
     T = run(delay, hold_d, stop); T2 = run(delay, hold_d, stop, cost=0.004)
     for per in ("DEV", "VAL"):
@@ -161,8 +175,8 @@ for delay, hold_d, stop in itertools.product([1, 2, 24], [3, 7, 14, 30], [0.2, 0
             ROWS.append(dict(cfg=f"d{delay} H{hold_d} S{int(stop*100)}", base=base, per=per, typ=typ, **st(t), avgR_2x=st(t2).get("avgR")))
     if base:
         Tb = T
-        T.to_csv(OUT + "out_base_trades.csv", index=False)
-R = pd.DataFrame(ROWS); R.to_csv(OUT + "out_grid.csv", index=False)
+        T.to_csv(OUT + OUT_TAG + "out_base_trades.csv", index=False)
+R = pd.DataFrame(ROWS); R.to_csv(OUT + OUT_TAG + "out_grid.csv", index=False)
 
 # ---------- random-date control: same coins, same period, >=30 days from that coin's events ----------
 ev_times = EV.groupby("sym").t.apply(list).to_dict()
@@ -189,7 +203,7 @@ for per, (a, z) in (("DEV", DEV), ("VAL", VAL)):
     m = np.array([pool[rng.integers(0, len(pool), len(nb))].mean() for _ in range(2000)])
     CT.append(dict(per=per, n=len(nb), base_avgR=round(nb.R.mean(), 3), ctrl_meanR=round(m.mean(), 3),
                    ctrl_p95=round(np.percentile(m, 95), 3), p_value=round((m >= nb.R.mean()).mean(), 3), pool=len(pool)))
-CT = pd.DataFrame(CT); CT.to_csv(OUT + "out_control.csv", index=False)
+CT = pd.DataFrame(CT); CT.to_csv(OUT + OUT_TAG + "out_control.csv", index=False)
 
 pd.set_option("display.width", 250); pd.set_option("display.max_rows", 500); pd.set_option("display.max_columns", 30)
 print("events after dedupe:", len(EV), EV.groupby("typ").size().to_dict())

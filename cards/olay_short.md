@@ -1,6 +1,6 @@
-# Olay Short (Binance duyurularına göre coin short) — GEÇMEDİ (doğrulamada güçlü ipucu)
+# Olay Short (Binance duyurularına göre coin short) — GEÇMEDİ (kasa testi de geçmedi)
 
-**Durum:** GEÇMEDİ (2026-11-06): geliştirmede rastgele kontrolü geçemedi (p 0.17). Doğrulamada güçlü (+0.32R, p<0.001). Kasa kullanılmadı; karar denetleyicide. Ön kayıt 2026-11-05. Kurallar, duyuru listesi ve fiyat getirileri görülmeden ÖNCE yazıldı ve commit edildi. Denetleyici onayı: fiyat dışı olay verisi turu (Ayı Short ailesi kapandıktan sonra, bkz. `cards/ayi_short.md`). Kasa (2026-04 → 2026-09) sadece denetleyici onayıyla bir kez.
+**Durum:** REDDEDİLDİ (2026-11-06). Geliştirmede rastgele kontrolü geçemedi (p 0.17), doğrulamada güçlüydü (+0.32R). Denetleyici onayıyla kasa (2026-04 → 2026-09) bir kez çalıştırıldı: +0.042R ama en iyi 3 işlem çıkınca eksi (−0.037R) → kasa şartı da GEÇMEDİ. Kasa artık kullanıldı; bu kural ailesi için tekrar kasa yapılmaz. Not: kasa geçseydi bile en fazla kâğıt takip olacaktı (dev şartı sağlanmadığı için). Ön kayıt 2026-11-05. Kurallar, duyuru listesi ve fiyat getirileri görülmeden ÖNCE yazıldı ve commit edildi. Denetleyici onayı: fiyat dışı olay verisi turu (Ayı Short ailesi kapandıktan sonra, bkz. `cards/ayi_short.md`). Kasa (2026-04 → 2026-09) sadece denetleyici onayıyla bir kez.
 
 ## Fikir (sade Türkçe)
 Binance bir coini listeden çıkaracağını ya da "izleme etiketi" (Monitoring Tag: "bu coin riskli, silinebilir") koyacağını duyurduğunda, o coin genelde günlerce değer kaybeder: borsalar ve yatırımcılar çıkar, likidite azalır. Duyurudan sonra o coinin vadeli kontratını short'larsak bu düşüşten pay alabiliriz. Fiyat grafiğine değil, gerçek bir olaya dayanır.
@@ -46,3 +46,20 @@ Binance bir coini listeden çıkaracağını ya da "izleme etiketi" (Monitoring 
 - Kazanç 2025-2026'da belirgin: 2025 +0.22R (63 işlem), 2026 Q1 +0.56R (26 işlem). En güçlü tür E3 (vadeli kontrat silme).
 - Gecikme 24 saat olunca kazanç büyük ölçüde kayboluyor: hareketin çoğu ilk gün.
 - Gerçek hayat notu: vadeli kontrat silinirken Binance son saatlerde yeni pozisyonu kısıtlar ve settlement fiyatıyla kapatır; test son 1s kapanışı kullanıyor.
+
+## Kasa testi (2026-11-06, denetleyici onayıyla, bir kez, donmuş ana kural)
+| | Kasa 2026-04 → 2026-09 |
+|---|---|
+| İşlem | 58 (E1 19, E2 26, E3 13) |
+| Ortalama R | +0.042 (medyan +0.188, PF 1.14) |
+| 2x masraf | +0.035 |
+| Rastgele kontrol p | 0.047 (sınırda geçti) |
+| En iyi 3 çıkınca | **−0.037** ✗ |
+| Kasa getirisi / düşüş | +2.3% / 6.2% |
+| Türler | E1 +0.13R, E2 +0.07R, E3 −0.14R |
+Aylar: nisan ~0, mayıs +0.58R, haziran-ağustos eksi, eylül +0.40R (3 işlem). Şart "en iyi 3 işleme bağlı olmamak" sağlanmadı → **GEÇMEDİ**. Doğrulamadaki güçlü sonuç kasada tekrar etmedi.
+
+Pratik kontroller:
+- (b) Vadeli kontrat silme (E3): 2026'daki duyurularda "yeni pozisyon açılamaz" penceresi settlement'tan ~30 dk önce başlıyor; metinden okunabilen 14 işlemin 0'ında giriş bu pencereye düşmüyor. 2022-2025 duyurularının metni farklı, okunamadı. DİKKAT: 2026-10'dan itibaren bazı duyurularda kısıtlama duyuru anında başlıyor (ör. 2026-10-21 PTB/MITO) → E3 artık Binance'te uygulanamaz.
+- (a) Bitget'te short edilebilirlik: kural kasada geçmediği için kontrol edilmedi.
+Kod: `HOLDOUT=1 python research/events/event_short.py`, `research/events/reduce_only_check.py`.
