@@ -355,6 +355,30 @@ def run_market(name: str, m1: pd.DataFrame, session: bool, out_dir: Path | None)
     return res
 
 
+HOLDOUT = ("2026-04-01", "2026-10-01")
+
+
+def run_holdout(out_dir: Path | None) -> None:
+    """Kasa test of the frozen NAS100 v2 1h rules. Judged: bias version; nobias reported alongside."""
+    global PERIODS
+    m1 = pd.concat([load_1m(DATA / "NAS100_1m.feather"), load_1m(DATA / "NAS100_1m_holdout.feather")]).sort_index()
+    m1 = m1[~m1.index.duplicated()]
+    m1 = m1[m1.index < pd.Timestamp(HOLDOUT[1], tz="UTC")]
+    f = frames(m1, session=True)
+    PERIODS = {"holdout": HOLDOUT}
+    res = {}
+    for vname in ("v2 1h bias", "v2 1h nobias"):
+        fn, target_r = VERSIONS[vname]
+        p = fn(f)
+        r = replay(p)
+        r = r[r["t_in"] >= pd.Timestamp(HOLDOUT[0], tz="UTC")]
+        res[vname] = (r, target_r, random_control(p, r, target_r))
+        if out_dir is not None:
+            r.to_csv(out_dir / f"NAS100_holdout_{vname.replace(' ', '_')}.csv", index=False)
+    for mult in (1, 2):
+        print(table(res, f"NAS100 HOLDOUT{' x2 cost' if mult == 2 else ''}", COST["NAS100"] * mult), flush=True)
+
+
 def load_1m(path: Path) -> pd.DataFrame:
     m = pd.read_feather(path)
     m["date"] = pd.to_datetime(m["date"], utc=True)
@@ -365,9 +389,14 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--btc", type=Path, help="BTCUSDT 1m feather: reproduce the crypto dev numbers")
     ap.add_argument("--out", type=Path, help="write the trade lists here")
+    ap.add_argument("--holdout", action="store_true",
+                    help="ONE approved run (2026-11-05): NAS100 v2 1h on the kasa 2026-04..09, rules frozen as in PR #53")
     a = ap.parse_args()
     if a.out:
         a.out.mkdir(parents=True, exist_ok=True)
+    if a.holdout:
+        run_holdout(a.out)
+        return
     if a.btc:
         res = run_market("BTC", load_1m(a.btc), session=False, out_dir=a.out)
         print(table(res, "BTC", COST["BTC"]))

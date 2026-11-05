@@ -1,0 +1,28 @@
+name: Aslan Nasdaq HOLDOUT (one run)
+# Kasa test approved once on 2026-11-05 (supervisor thread): NAS100 v2 1h, 2026-04..09.
+# Manual trigger only, so it cannot run again by accident. Data cached, never committed.
+on:
+  workflow_dispatch:
+jobs:
+  holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy pyarrow histdata
+      - uses: actions/cache/restore@v4
+        with:
+          path: user_data/forex1m
+          key: forex-1m-${{ hashFiles('research/aslan_nasdaq/fetch_1m.py', 'research/forex/fetch_histdata.py') }}
+          restore-keys: forex-1m-
+      - run: python -u research/aslan_nasdaq/fetch_1m.py
+      - run: python -u research/aslan_nasdaq/fetch_1m.py --holdout
+      - run: python -u research/aslan_nasdaq/sim.py --holdout --out holdout_trades
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aslan-nasdaq-holdout-trades
+          path: holdout_trades
+          retention-days: 90
