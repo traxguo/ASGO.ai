@@ -1,0 +1,11 @@
+hyp,control,per,n,base_avgR,ctrl_meanR,ctrl_p95,p_value
+H6,A_all_days,DEV,3568,-0.084,-0.15,-0.107,0.006
+H6,A_all_days,VAL,1534,0.009,-0.086,-0.015,0.008
+H6,B_bear_days,DEV,3568,-0.084,-0.15,-0.107,0.006
+H6,B_bear_days,VAL,1534,0.009,-0.113,-0.048,0.0
+H7,"random window same len, BEAR days",DEV,635,-0.017,-0.196,0.034,0.104
+H7,"random window same len, BEAR days",VAL,247,-0.166,-0.108,0.163,0.634
+H8,A_all_hours,DEV,1010,-0.174,-0.084,-0.045,1.0
+H8,A_all_hours,VAL,353,-0.13,-0.067,-0.004,0.952
+H8,B_bear_hours,DEV,1010,-0.174,-0.058,-0.02,1.0
+H8,B_bear_hours,VAL,353,-0.13,-0.063,0.004,0.962

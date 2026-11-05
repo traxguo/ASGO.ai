@@ -1,6 +1,6 @@
-# Ayı Short ailesi (düşüş piyasasında coin short) — ÖN KAYIT
+# Ayı Short ailesi (düşüş piyasasında coin short) — REDDEDİLDİ
 
-**Durum:** ÖN KAYIT (2026-11-05). Kurallar test ÖNCESİ yazıldı ve bu haliyle commit edildi. Sonuç gördükten sonra ana kural değiştirilmez; komşu ayarlar sadece sağlamlık için raporlanır. Kasa (2026-04 → 2026-09) kullanılmaz; ancak denetleyici onay verirse bir kez.
+**Durum:** REDDEDİLDİ (2026-11-05). 8 ön kayıtlı kural (günlük H1-H5, 1 saatlik H6-H8) test edildi, hiçbiri geçmedi. Kasa kullanılmadı. Kurallar test ÖNCESİ commit edildi (d434d10, 22d7a70).
 
 ## Amaç (sade Türkçe)
 Piyasa düşerken para kazanan, coinleri açığa satan (short) bir kural bulmak. Daha önce denenip elenen fikirler tekrar edilmez: Fitil short aynası, Pompa Söndür, Başarısız Tepki, Göreli Güç, Yeni Coin Short (7g), market-nötr fikirler, 16+ hızlı (scalp) fikir.
@@ -101,3 +101,16 @@ Veri: 1. turdaki U evrenine bir gün bile girmiş 260 coinin (silinenler dahil) 
 - Giriş: sonraki saat açılışı. Stop %3. Çıkış: 4 saat sonra kapanış. Komşular: tutma 1/4/12 saat, stop %2/%3/%5.
 
 Geçme şartı 1. turdakiyle aynı (iki dönem artı, en az 30 işlem/dönem, rastgele kontrol A %95, 2x masraf artı).
+
+## 2. tur sonucu (1 saatlik veri, 2026-11-05) — HİÇBİRİ GEÇMEDİ
+| Ana kural | Geliştirme | Doğrulama | 2x masraf | Rastgele kontrolü |
+|---|---|---|---|---|
+| H6 Gün Dibi Kırılımı (gün sonu çıkış) | −0.084R (3568 işlem, işlem başı net −%0.25) | +0.009R (1534) | eksi | GEÇTİ (p 0.006 / 0.008) ama masraf sonrası eksi |
+| H7 Saat Penceresi (dev'de seçilen 01:00 + 12 saat) | işlem başı net −%0.02 (en iyi pencere bile eksi) | −%0.17 | eksi | hayır |
+| H8 BTC Şoku Gecikmesi (4s, stop %3) | −0.174R | −0.130R | eksi | hayır (rastgeleden kötü) |
+
+- Ayrıntı: `research/bear_short/out_1h_grid.csv`, `out_1h_controls.csv`, `out_H7_windows.csv`.
+- H6'nın tetiği rastgele short'tan gerçekten iyi (~+0.07..0.10R fark), ama brüt kazanç işlem başı ~%0.05; %0.20 masrafı karşılamıyor. Hiçbir komşusu iki dönemde artı değil.
+- H7: düşüş günlerinde bile hiçbir saat penceresinde coin sepeti short'u masrafı geçmiyor (96 pencerenin en iyisi geliştirmede −%0.02).
+
+**Aile sonucu:** 8 ön kayıtlı kuralın hiçbiri geçmedi. Kasa kullanılmadı.
