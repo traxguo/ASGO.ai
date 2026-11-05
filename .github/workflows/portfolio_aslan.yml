@@ -2,7 +2,8 @@ name: Portfolio - Aslan NAS trade list (research)
 # Research only: writes the frozen Aslan NAS100 v2 1h trade list + NAS100 daily closes for the portfolio
 # backtest and commits them to the PR branch (HistData is not reachable from the research container).
 on:
-  workflow_dispatch:
+  pull_request:
+    paths: ["research/portfolio/aslan_nas_trades.py", ".github/workflows/portfolio_aslan.yml"]
 permissions:
   contents: write
 jobs:
@@ -11,6 +12,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
