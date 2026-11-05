@@ -932,3 +932,75 @@ def test_v2_no_be_every_breakout_signals_on_every_close_above_the_channel():
     # Shorts stay off.
     s = cls.__new__(cls)
     assert cls.signal_conditions(s, df)["short"] == {}
+
+
+def test_v2_no_be_daily_breakout_signals_on_the_4h_candle_closing_with_the_first_daily_breakout():
+    """PusulaV2NoBeDailyBreakout: first daily close above the previous 20 daily highs, signal on the 20:00 4h candle."""
+    tf = pusula.REGIME_TF
+    cls = pusula.PusulaV2NoBeDailyBreakout
+    assert issubclass(cls, pusula.PusulaV2NoBe)
+    for name in ("custom_stoploss", "populate_exit_trend", "populate_entry_trend", "add_plan_columns",
+                 "custom_stake_amount", "leverage", "custom_entry_price", "check_entry_timeout"):
+        assert getattr(cls, name) is getattr(pusula.PusulaV2NoBe, name)
+    assert "confirm_trade_entry" not in cls.__dict__
+
+    # 4h candles: 150 days of slow rise (score +3), 25 flat days, then two days closing higher
+    # (day A = first daily close above the 20-day high, day B = second one), then flat again.
+    days = 150 + 25 + 2 + 5
+    day_close = np.concatenate([np.linspace(100, 200, 150), np.full(25, 200.0), [210.0, 215.0], np.full(5, 214.0)])
+    rows = []
+    for d, c in enumerate(day_close):
+        prev = day_close[d - 1] if d else c
+        for k in range(6):  # the 4h closes walk from the previous daily close to this one
+            cl = prev + (c - prev) * (k + 1) / 6
+            rows.append({"open": cl, "high": cl + 0.5, "low": cl - 0.5, "close": cl, "volume": 1.0})
+    h4 = pd.DataFrame(rows)
+    h4.insert(0, "date", pd.date_range("2021-01-01", periods=len(h4), freq="4h", tz="UTC"))
+    d1 = h4.resample("1D", on="date").agg({"open": "first", "high": "max", "low": "min", "close": "last",
+                                            "volume": "sum"}).reset_index()
+    day_a = d1["date"].iloc[175]
+
+    class DP:
+        def __init__(self, daily):
+            self.daily = daily
+
+        def get_pair_dataframe(self, pair, timeframe):
+            return self.daily
+
+        def current_whitelist(self):
+            return ["X/USDT:USDT"]
+
+    def run(h4_frame, d1_frame, c=cls):
+        s = c.__new__(c)
+        s.dp, s.mgmt = DP(d1_frame), c.mgmt
+        out = s.populate_indicators(h4_frame.copy(), {"pair": "X/USDT:USDT"})
+        out = s.populate_entry_trend(out, {"pair": "X/USDT:USDT"})
+        out["enter_long"] = out.get("enter_long", pd.Series(np.nan, index=out.index)).fillna(0).astype(int)
+        return out.set_index("date")
+
+    out = run(h4, d1)
+    flagged = list(out.index[out[f"daily_breakout_{tf}"]])
+    signal_candle = day_a + pd.Timedelta(hours=20)  # closes at 00:00 UTC together with day A
+    # The rise's own first close (day 20, no score yet) and day A; day B is not a first close and the
+    # other 4h rows that still see day A as the last closed daily candle are not flagged.
+    assert flagged == [d1["date"].iloc[20] + pd.Timedelta(hours=20), signal_candle]
+    assert out.loc[signal_candle, f"date_{tf}"] == day_a and out.loc[signal_candle, f"score_{tf}"] >= 1
+    assert list(out.index[out["enter_long"] == 1]) == [signal_candle]
+    # Nothing on day A's earlier 4h candles: the daily candle was still open there.
+    assert out.loc[day_a:day_a + pd.Timedelta(hours=16), "enter_long"].sum() == 0
+
+    # No lookahead: data cut at the signal candle's close (day A closed) gives the same signal; cut one
+    # 4h candle earlier (day A still open, so its daily candle is not in the file) gives none.
+    t = signal_candle + pd.Timedelta(hours=4)
+    cut = run(h4[h4["date"] + pd.Timedelta(hours=4) <= t], d1[d1["date"] + pd.Timedelta(days=1) <= t])
+    assert cut["enter_long"].iloc[-1] == 1 and cut.index[-1] == signal_candle
+    t2 = t - pd.Timedelta(hours=4)
+    cut2 = run(h4[h4["date"] + pd.Timedelta(hours=4) <= t2], d1[d1["date"] + pd.Timedelta(days=1) <= t2])
+    assert cut2["enter_long"].sum() == 0
+
+    # ms timestamps in the daily file (ns in the 4h frame) give the same result.
+    d1_ms = d1.assign(date=d1["date"].dt.as_unit("ms"))
+    assert list(run(h4, d1_ms).index[run(h4, d1_ms)["enter_long"] == 1]) == [signal_candle]
+    # Shorts stay off.
+    s = cls.__new__(cls)
+    assert cls.signal_conditions(s, out.reset_index())["short"] == {}

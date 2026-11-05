@@ -1744,3 +1744,86 @@ class PusulaV2NoBeEveryBreakout(PusulaV2NoBe):
         conds = super().signal_conditions(df)
         conds["long"]["breakout_up"] = df["close"] > df["dc_upper"]
         return conds
+
+
+DAILY_CHANNEL = 20
+
+
+def daily_breakout_first(daily: DataFrame, channel: int = DAILY_CHANNEL) -> Series:
+    """
+    Per daily candle: True when its close is above the highest high of the
+    previous `channel` daily candles (the candle itself not included) and the
+    candle before it did not close above its own previous-`channel` high
+    (first close of a run). Uses only that daily candle and older ones.
+    """
+    upper = daily["high"].rolling(channel).max().shift(1)
+    return first_true((daily["close"] > upper).fillna(False))
+
+
+def add_daily_breakout(df: DataFrame, daily: DataFrame, timeframe: str, timeframe_inf: str = REGIME_TF,
+                       channel: int = DAILY_CHANNEL) -> DataFrame:
+    """
+    Add f"daily_breakout_{tf}" to a frame already merged with merge_informative_pair:
+    True only on the 4h row that CLOSES at the same moment as a daily candle
+    whose close is the first above the previous `channel` daily highs.
+
+    - f"date_{tf}" is the open of the last daily candle that had closed at or
+      before the 4h row's close (merge_informative_pair), so the flag never uses
+      a daily candle that is still open.
+    - The flag is kept only on the row whose close equals that daily candle's
+      close (4h: the 20:00 UTC candle). On the next rows of the day the same daily
+      candle is still the last closed one (forward fill); they get False, so the
+      signal is not repeated.
+    - Timestamps are compared in one unit (ns) so a ms / ns mix between the
+      daily file and the 4h frame cannot break the lookup.
+    """
+    flag = daily_breakout_first(daily, channel).to_numpy(dtype=bool)
+    keys = pd.to_datetime(daily["date"], utc=True).dt.as_unit("ns")
+    lookup = pd.Series(flag, index=pd.DatetimeIndex(keys))
+    seen = pd.to_datetime(df[f"date_{timeframe_inf}"], utc=True).dt.as_unit("ns")
+    hit = seen.map(lookup).fillna(False).astype(bool)
+    candle_close = pd.to_datetime(df["date"], utc=True).dt.as_unit("ns") + pd.Timedelta(
+        minutes=timeframe_to_minutes(timeframe))
+    day_close = seen + pd.Timedelta(minutes=timeframe_to_minutes(timeframe_inf))
+    df[f"daily_breakout_{timeframe_inf}"] = (hit & (candle_close == day_close)).to_numpy()
+    return df
+
+
+class PusulaV2NoBeDailyBreakout(PusulaV2NoBe):
+    """
+    Queue item 28 (2026-11-05, research/queue/pusula_kuyruk.md), trigger timing,
+    fixed before testing.
+
+    PusulaV2NoBe with the long breakout on the DAILY close instead of the 4h
+    close:
+    - "breakout_up" = the last closed daily candle's close is above the highest
+      high of the previous 20 daily candles, and the daily candle before it did
+      not close above its own previous-20-day high (first daily close);
+    - the signal is given on the 4h candle that closes together with that daily
+      candle (20:00 UTC candle, closes 00:00 UTC); the limit order is placed in
+      the next candle (00:00 UTC), as for every signal;
+    - the other long conditions are unchanged and read from the same closed
+      daily candle on that row: coin daily score >= +1 and daily close above the
+      daily EMA20 (merge_informative_pair already shows that daily candle on the
+      20:00 row, because both close at the same moment).
+    Entry zone, stop (wider of 1.5 ATR / 10-candle low, 4h), the 8% stop limit,
+    1% risk, max 3 trades, the exits (daily EMA20, BTC-turn, fixed stop) and the
+    3-candle order validity are unchanged. Thresholds (20 days, first close)
+    fixed, no sweep. Shorts stay off.
+
+    All new data comes from the daily file (dp.get_pair_dataframe), never from
+    the analyzed 4h frame (which keeps only the last 1000 candles in
+    backtesting callbacks).
+    """
+
+    daily_channel = DAILY_CHANNEL
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        daily = self.dp.get_pair_dataframe(pair=metadata["pair"], timeframe=REGIME_TF)
+        return add_daily_breakout(df, daily, self.timeframe, REGIME_TF, self.daily_channel)
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["breakout_up"] = df[f"daily_breakout_{REGIME_TF}"]
+        return conds
