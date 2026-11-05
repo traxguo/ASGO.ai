@@ -63,11 +63,12 @@ def utc_bars(m1: pd.DataFrame, minutes: int) -> pd.DataFrame:
     return b.dropna().reset_index(names="date")
 
 
-def session_bars(m1: pd.DataFrame, hours: int) -> pd.DataFrame:
+def session_bars(m1: pd.DataFrame, hours: int, bar_minutes: int = 1) -> pd.DataFrame:
     """
     Daily / 4h candles of the real trading day: 17:00 -> 17:00 New York time (daylight saving
     handled), as on a broker's NAS100 / EURUSD / XAUUSD chart. Weekend and holiday gaps simply
     have no candle. A daily candle with under 30 minutes of trading (holiday stub) is dropped.
+    bar_minutes: size of the input bars (1 for the research data, 60 for the live paper tracker).
     """
     local = m1.index.tz_convert(NY).tz_localize(None) + pd.Timedelta(hours=7)
     key = local.floor(f"{hours}h")
@@ -75,7 +76,7 @@ def session_bars(m1: pd.DataFrame, hours: int) -> pd.DataFrame:
     b = g.agg({"open": "first", "high": "max", "low": "min", "close": "last"})
     first = pd.Series(m1.index, index=m1.index).groupby(key).min()
     if hours == 24:
-        b = b[g.size() >= 30]
+        b = b[g.size() * bar_minutes >= 30]
         start = (b.index - pd.Timedelta(hours=7)).tz_localize(NY).tz_convert("UTC")
     else:
         start = first.loc[b.index].dt.floor("h").to_numpy()
@@ -206,6 +207,7 @@ def replay(p: pd.DataFrame) -> pd.DataFrame:
                     price = min(ent[side][k], h[j]) if side == "long" else max(ent[side][k], lo[j])
                     order = {"side": side, "t0": t[j], "price": price, "stop": stp[side][k],
                              "tp": tgt[side][k], "sig_t": t[k], "stop_seen": False}
+                    break
         # 3. entry fill
         filled_now = False
         if order is not None:
@@ -233,10 +235,15 @@ def replay(p: pd.DataFrame) -> pd.DataFrame:
                 sign = 1 if s == "long" else -1
                 risk = abs(pos["entry"] - stop)
                 rows.append((pd.Timestamp(pos["t_in"] * 60_000_000_000, tz="UTC"), s, pos["entry"], stop, exit_px,
-                             sign * (exit_px - pos["entry"]) / risk, risk / pos["entry"]))
+                             sign * (exit_px - pos["entry"]) / risk, risk / pos["entry"],
+                             pd.Timestamp(pos["sig_t"] * 60_000_000_000, tz="UTC"),
+                             pd.Timestamp(t[j] * 60_000_000_000, tz="UTC")))
                 pos = None
-    r = pd.DataFrame(rows, columns=["t_in", "side", "entry", "stop", "exit", "gross_r", "stop_pct"])
+    r = pd.DataFrame(rows, columns=["t_in", "side", "entry", "stop", "exit", "gross_r", "stop_pct", "sig_t", "t_out"])
     r.attrs["skipped_tiny_stop"] = skipped
+    # what is still open after the last candle (used by the live paper tracker)
+    r.attrs["open_order"] = order
+    r.attrs["open_pos"] = pos
     return r
 
 
