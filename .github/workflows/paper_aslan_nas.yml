@@ -1,0 +1,58 @@
+# Paper tracking of Aslan's strategy on Nasdaq (AslanLiq2_1h with bias, cards/aslan_liquidity.md).
+# No keys, no orders. Free Yahoo 1h data (NQ=F); writes forward/paper_aslan_nas/ and sends Telegram notes.
+# Rules frozen as in PR #53/#54. Review with the other bots on 2026-11-30, then monthly.
+name: Aslan Nasdaq paper tracking
+
+on:
+  schedule:
+    - cron: "6 * * * *"  # a few minutes after each hour closes
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/paper_aslan_nas.py
+      - research/aslan_nasdaq/sim.py
+      - tests/test_paper_aslan_nas.py
+      - .github/workflows/paper_aslan_nas.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: paper-aslan-nas
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy yfinance pytest
+
+      - name: Check (no keys, nothing saved)
+        if: github.event_name == 'pull_request'
+        run: |
+          python -m pytest -q -p no:cacheprovider tests/test_paper_aslan_nas.py
+          python scripts/paper_aslan_nas.py --check
+
+      - name: Paper tracking (no orders, free data)
+        if: github.event_name != 'pull_request'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
+        run: python scripts/paper_aslan_nas.py
+
+      - name: Save the paper log
+        if: always() && github.event_name != 'pull_request'
+        run: |
+          if [ -d forward/paper_aslan_nas ]; then git add forward/paper_aslan_nas; fi
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Aslan Nasdaq paper log: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0; sleep 5; done
+          exit 1

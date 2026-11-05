@@ -159,3 +159,14 @@ Geçme şartı (testten önce yazıldı): maliyet sonrası R > 0 ve PF > 1.05 (1
 Dikkat: kasada sadece 46 işlem var (ayda ~8), tek başına ortalamanın belirsizliği ±0.2R civarı. Bu bir "kanıt" değil, "elenmedi" demektir. Kasa artık kullanıldı; bu kurallar için tekrar kullanılamaz.
 
 **Öneri (henüz yapılmadı, GUO onayı bekliyor):** Nasdaq v2 1h yön filtreli için kağıt üzerinde takip (sinyal + sonuç kaydı, emir yok). Gerekenler: canlı Nasdaq 1 dk/1 saat veri kaynağı (HistData sadece geçmiş verir; seçenekler: broker demo API'si, ör. OANDA/Capital.com/IG, veya ücretsiz gecikmeli veri), saatlik çalışan GitHub Actions işi, `forward/paper_aslan_nas/` kaydı ve haftalık rapor. Kurallar dondurulmuş haliyle; ayda ~8 sinyal beklenir, anlamlı bir karar için en az 3-6 ay gerekir.
+
+## Kağıt takip (2026-11-05'ten itibaren) — Nasdaq v2 1h yön filtreli
+Denetçi kararı (2026-11-05): kasa testini geçen kural gerçek para olmadan, kağıt üzerinde takip edilir. Kod: [`scripts/paper_aslan_nas.py`](../scripts/paper_aslan_nas.py), iş akışı `paper_aslan_nas.yml` (her saat başından birkaç dakika sonra), kayıt `forward/paper_aslan_nas/` (`state.json`, `trades.csv`). Telegram'a "KÂĞIT Aslan Nasdaq" başlığıyla yeni sinyal, giriş, kapanış ve iptal mesajı gider (özel sohbet + seçili grup). Kurallar dondurulmuş: backtest'teki kodun aynısı (`sim.signals_v2` + `sim.replay`). Değerlendirme diğer botlarla 2026-11-30'da, sonra ayda bir.
+
+**Backtest'ten farklar:**
+- **Fiyat:** backtest HistData NAS100 CFD (endeks, sadece bid) idi; canlıda ücretsiz Yahoo **NQ=F** (Nasdaq-100 vadeli, sürekli ön ay) 1 saatlik mumları. Vadeli fiyat endeksten faiz farkı kadar (genelde %0.5-2) yukarıda; seviyeler hep aynı seriden hesaplandığı için kurallar aynı çalışır, ama rakamlar bir CFD ekranındaki rakamlarla bire bir aynı değildir.
+- **Vade geçişi:** NQ=F her çeyrekte (Mart, Haziran, Eylül, Aralık) yeni kontrata geçer; o gün grafikte yapay bir sıçrama olur ve seviyeleri/stopları bozabilir. Vade haftalarındaki sinyaller raporda ayrıca işaretlenecek.
+- **Seans:** günlük ve 4 saatlik mumlar yine New York 17:00 → 17:00 işlem gününe göre, ama 1 dakikalık değil 1 saatlik mumlardan kuruluyor. Vadelinin 17:00-18:00 arası ve hafta sonu da backtest'teki CFD ile aynı.
+- **Geçmiş:** Yahoo en fazla ~2 yıl 1 saatlik veri veriyor (backtest 2020'den beri). Çok eski, hiç alınmamış uzak seviyeler eksik olabilir; yakın seviyeler aynı.
+- **Gecikme:** iş her saatten birkaç dakika sonra çalışır; GitHub bazen gecikir. Emirler zaten bir sonraki mumdan itibaren geçerli olduğu için kurallar değişmez, ama mesaj birkaç dakika geç gelebilir.
+- Maliyet backtest'teki gibi %0.010 gidiş-dönüş varsayılır. Funding/swap yok.
