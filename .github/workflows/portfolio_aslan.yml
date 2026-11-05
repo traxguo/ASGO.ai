@@ -1,9 +1,10 @@
 name: Portfolio - Aslan NAS trade list (research)
-# Research only: prints the frozen Aslan NAS100 v2 1h trade list for the portfolio backtest.
+# Research only: writes the frozen Aslan NAS100 v2 1h trade list + NAS100 daily closes for the portfolio
+# backtest and commits them to the PR branch (HistData is not reachable from the research container).
 on:
-  pull_request:
-    paths: ["research/portfolio/aslan_nas_trades.py", ".github/workflows/portfolio_aslan.yml"]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   trades:
     runs-on: ubuntu-latest
@@ -22,3 +23,10 @@ jobs:
       - run: python -u research/aslan_nasdaq/fetch_1m.py
       - run: python -u research/aslan_nasdaq/fetch_1m.py --holdout
       - run: python -u research/portfolio/aslan_nas_trades.py
+      - name: Commit the CSVs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/portfolio/data/aslan_nas_raw.csv research/portfolio/data/nas100_daily.csv
+          git diff --cached --quiet || git commit -m "Portfolio: Aslan NAS trade list + NAS100 daily closes"
+          git push
