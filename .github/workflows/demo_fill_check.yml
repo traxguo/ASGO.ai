@@ -1,0 +1,46 @@
+# Once a day, after Binance publishes yesterday's 1m candles, checks every closed Bitget DEMO trade against
+# real market prices (scripts/check_demo_fills.py) and refreshes the clean trade table used by the live panel
+# (dashboard/canli/). Read-only: no keys, no orders.
+name: Demo fill check (real prices)
+
+on:
+  schedule:
+    - cron: "40 2 * * *"  # UTC
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/check_demo_fills.py
+      - dashboard/canli/**
+      - .github/workflows/demo_fill_check.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: demo-fill-check
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: python scripts/check_demo_fills.py
+      - run: node dashboard/canli/build_snapshot.mjs
+      - name: Save
+        if: github.event_name != 'pull_request'
+        run: |
+          git add dashboard/canli/demo_gercek_kontrol.csv dashboard/canli/islemler.csv
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Demo fill check: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0; sleep 5; done
+          exit 1
