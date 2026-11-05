@@ -240,6 +240,47 @@ def replay(p: pd.DataFrame) -> pd.DataFrame:
     return r
 
 
+def random_control(p: pd.DataFrame, r: pd.DataFrame, target_r: float, reps: int = 20, seed: int = 1) -> pd.DataFrame:
+    """
+    Drift control: every real trade is repeated `reps` times at a random candle of the same
+    period, same side, same stop distance (%) and same target. Entry at that candle's close,
+    stop first when a candle hits both. The mean gross R of these random trades is what the
+    market's own up / down drift gives without any Aslan setup.
+    """
+    rng = np.random.default_rng(seed)
+    t = pd.to_datetime(p["date"], utc=True)
+    c, h, lo = (p[k].to_numpy(float) for k in ("close", "high", "low"))
+    o = p["open"].to_numpy(float)
+    rows = []
+    for per, (a, b) in PERIODS.items():
+        idx = np.flatnonzero((t >= pd.Timestamp(a, tz="UTC")) & (t < pd.Timestamp(b, tz="UTC")))
+        tr = r[(r["t_in"] >= pd.Timestamp(a, tz="UTC")) & (r["t_in"] < pd.Timestamp(b, tz="UTC"))]
+        if len(idx) < 2 or tr.empty:
+            continue
+        for side, sp in zip(tr["side"].to_numpy().repeat(reps), tr["stop_pct"].to_numpy().repeat(reps)):
+            j = int(rng.choice(idx[:-1]))
+            s = 1 if side == "long" else -1
+            entry = c[j]
+            stop, tp = entry * (1 - s * sp), entry * (1 + s * target_r * sp)
+            k, res = j + 1, None
+            while res is None and k < len(c):
+                e = min(k + 5000, len(c))
+                hit_stop = (lo[k:e] <= stop) if s == 1 else (h[k:e] >= stop)
+                hit_tp = (h[k:e] >= tp) if s == 1 else (lo[k:e] <= tp)
+                any_hit = hit_stop | hit_tp
+                if any_hit.any():
+                    m = k + int(np.argmax(any_hit))
+                    if hit_stop[m - k]:
+                        px = stop if (o[m] - stop) * s > 0 else o[m]
+                    else:
+                        px = tp
+                    res = s * (px - entry) / (entry * sp)
+                k = e
+            if res is not None:
+                rows.append((per, side, res))
+    return pd.DataFrame(rows, columns=["period", "side", "gross_r"])
+
+
 # ---------------------------------------------------------------- report
 
 
@@ -266,20 +307,24 @@ def stats(r: pd.DataFrame, cost: float, target_r: float) -> dict:
 def table(results: dict, market: str, cost: float) -> str:
     lines = [
         f"\n### {market} (round-trip cost {cost * 100:.3f}%)",
-        "| Version | Period | Side | Trades | Win | BE win (after cost) | R before cost | R after cost | PF | DD (1% risk) | Median stop |",
-        "|---|---|---|---|---|---|---|---|---|---|---|",
+        "| Version | Period | Side | Trades | Win | BE win (after cost) | R before cost | Random entry R before cost | "
+        "R after cost | PF | DD (1% risk) | Median stop |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
-    for name, (r, target_r) in results.items():
+    for name, (r, target_r, ctrl) in results.items():
         for per, (a, b) in PERIODS.items():
             rp = r[(r["t_in"] >= pd.Timestamp(a, tz="UTC")) & (r["t_in"] < pd.Timestamp(b, tz="UTC"))]
             for side in ("long", "short", "all"):
                 rs = rp if side == "all" else rp[rp["side"] == side]
                 s = stats(rs, cost, target_r)
                 if s["n"] == 0:
-                    lines.append(f"| {name} | {per} | {side} | 0 | | | | | | | |")
+                    lines.append(f"| {name} | {per} | {side} | 0 | | | | | | | | |")
                     continue
+                cc = ctrl[ctrl["period"] == per]
+                cc = cc if side == "all" else cc[cc["side"] == side]
+                rnd = f"{cc['gross_r'].mean():+.3f}" if len(cc) else ""
                 lines.append(
-                    f"| {name} | {per} | {side} | {s['n']} | {s['win']:.1%} | {s['be']:.1%} | {s['gross']:+.3f} | "
+                    f"| {name} | {per} | {side} | {s['n']} | {s['win']:.1%} | {s['be']:.1%} | {s['gross']:+.3f} | {rnd} | "
                     f"{s['net']:+.3f} | {s['pf']:.2f} | {s['dd']:.0%} | {s['stop']:.2%} |"
                 )
     return "\n".join(lines)
@@ -300,8 +345,9 @@ def run_market(name: str, m1: pd.DataFrame, session: bool, out_dir: Path | None)
     f = frames(m1, session)
     res = {}
     for vname, (fn, target_r) in VERSIONS.items():
-        r = replay(fn(f))
-        res[vname] = (r, target_r)
+        p = fn(f)
+        r = replay(p)
+        res[vname] = (r, target_r, random_control(p, r, target_r))
         print(f"  {name} {vname}: {len(r)} trades, skipped (stop too small for 20x) {r.attrs['skipped_tiny_stop']}",
               flush=True)
         if out_dir is not None:
