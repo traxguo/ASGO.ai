@@ -1,0 +1,16 @@
+name: Binance announcements (research)
+# Research only: reads public Binance announcement titles (no keys) and prints them to the log.
+on:
+  pull_request:
+    paths: ["research/events/binance_announcements.py", ".github/workflows/binance_announcements.yml"]
+  workflow_dispatch:
+jobs:
+  announcements:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -u research/events/binance_announcements.py
