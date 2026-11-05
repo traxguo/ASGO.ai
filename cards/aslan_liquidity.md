@@ -111,3 +111,33 @@ Kod: [`aslan_liquidity_v7.py`](../strategies/candidates/aslan_liquidity_v7.py)
 ## 4 saatlik test (2026-10-16, Gemini önerisi)
 Kod: `AslanLiq4h`, `AslanLiq4h_NoBias` (`strategies/candidates/aslan_liquidity.py`). v2 kuralları (iğne %175, 2R, %1 risk), giriş 4h, likidite günlük + haftalık tepe/dipler ve önceki gün/hafta, bekleme 24 saat.
 Geliştirme (2020-2024, 5 coin): yön filtresi açık 868 işlem **-0.15R**, kapalı 1279 işlem **-0.08R**, düşüş %79. Kazanma %30-32 (2R'de başa baş %33.3), yani maliyetsiz bile eksi. Komisyonu küçültmek sonucu kurtarmadı. Rapor: `results/2026-10-16_aslan_liquidity_4h/rapor.md`.
+
+## Nasdaq testi (2026-11-05) — kriptodan mı tutmuyor, yoksa hiç mi kenarı yok?
+GUO'nun sorusu: kriptoda 30 versiyonun hepsi eksiydi. Sebep kriptonun oynaklığı/masrafı mı, yoksa stratejinin kendisi mi? Aynı kod (v2 ve v7, hiçbir ayar değişmeden) Nasdaq'ta (NAS100), ikinci olarak EURUSD ve altında, long ve short ayrı ayrı denendi. Ayrıntı ve tüm tablolar: [results/2026-11-05_aslan_nasdaq](../results/2026-11-05_aslan_nasdaq/README.md). Kod: `research/aslan_nasdaq/` (PR #53).
+
+Nasıl: GitHub sunucusunda HistData 1 dakikalık veri; günlük ve 4 saatlik mumlar gerçek işlem gününe göre (New York 17:00 → 17:00), hafta sonu boşlukları dahil. Masraf Nasdaq %0.010 (kriptoda %0.2'ydi), ayrıca 2 kat masrafla. Simülatör önce BTC'de eski Freqtrade sonuçlarını tekrar üretti (v7: 435 işlemin 435'i, aynı sonuç). Ek kontrol: her işlem rastgele bir zamanda aynı stop ve hedefle açılsaydı ne olurdu ("rastgele giriş"), çünkü Nasdaq 2020-2024'te çok yükseldi ve long'lar sadece bu yüzden kârlı görünebilir.
+
+### Nasdaq, işlem başı ortalama R (maliyet öncesi / rastgele giriş / maliyet sonrası)
+| Versiyon | Geliştirme 2020-24 | Doğrulama 2025-26/03 | Long / short (geliştirme, maliyet öncesi) |
+|---|---|---|---|
+| v2 1h yön filtreli | 368 işlem, **+0.09** / -0.01 / **+0.07**, PF 1.10 | 107 işlem, **+0.17** / -0.04 / **+0.15**, PF 1.24 | +0.22 / -0.11 |
+| v2 1h filtresiz | 645 işlem, **+0.07** / -0.04 / **+0.04**, PF 1.06 | 180 işlem, **+0.20** / -0.06 / **+0.17**, PF 1.28 | +0.21 / -0.05 |
+| v2 15m filtreli | 666, 0.00 / +0.01 / -0.04 | 178, +0.07 / -0.03 / +0.03 | +0.06 / -0.10 |
+| v2 15m filtresiz | 1384, -0.02 / -0.01 / -0.05 | 345, +0.04 / -0.03 / -0.01 | +0.03 / -0.05 |
+| v7 1 dk | 229, +0.05 / 0.00 / +0.03 | 54, -0.15 / +0.01 / -0.18 | +0.12 / -0.04 |
+| v7 geri dönüş | 149, +0.11 / +0.02 / +0.09 | 34, -0.18 / 0.00 / -0.20 | +0.36 / -0.20 |
+
+2 kat masrafla v2 1h hâlâ artı (geliştirme +0.05 / +0.02, doğrulama +0.13 / +0.15). Düşüş (DD, %1 risk): geliştirmede %21-30, doğrulamada %8-10.
+
+### EURUSD ve altın (aynı kod)
+- **EURUSD:** her versiyon maliyet öncesi -0.02 ile +0.08R arası, rastgele girişten farksız; maliyetle neredeyse hepsi eksi. Kenar yok.
+- **Altın:** long'lar artı ama rastgele giriş de aynı kadar artı (2025 altın yükselişi): v2 1h filtresiz doğrulama long +0.39R, rastgele +0.32R. Short'lar her yerde eksi. Kenar yok, sadece piyasanın yönü.
+
+### Kripto ile kıyas
+Kriptoda (5 coin, geliştirme) maliyet öncesi -0.04 ile +0.03R arasıydı; BTC'de v2 1h +0.03R, rastgele giriş -0.00R. Nasdaq'ta sadece **v2 1 saatlik** versiyon iki dönemde de hem artı hem rastgele girişin üstünde (geliştirmede ~+0.1R, doğrulamada ~+0.2R fazla). 15 dk ve 1 dk versiyonlar Nasdaq'ta da ~0R.
+
+### Sonuç
+- Kriptoda kaybettiren şeyin büyük kısmı **masraftı**: dar stopta %0.2 masraf işlem başına 0.1-0.4R yiyordu. Nasdaq'ta masraf 0.02-0.05R'ye düşüyor.
+- Ama kural masrafsız da çoğunlukla ~0R: 6 versiyon × 3 piyasa = 18 denemenin sadece biri (Nasdaq v2 1h) iki dönemde de rastgelenin belirgin üstünde. 18 denemede bir tanesinin şansla böyle çıkması mümkün; örnek küçük (doğrulamada 107-180 işlem, ortalamanın belirsizliği ±0.13R civarı).
+- Long/short tutarsız: geliştirmede kâr long'lardan, short'lar eksi; doğrulamada kâr short'lardan. Sağlam bir kenar her iki tarafta da benzer davranırdı.
+- **Karar önerisi:** "Hiç umut yok" değil ama "kanıtlandı" da değil. Nasdaq v2 1h, kurallar dondurulup kağıt üzerinde takip edilebilir veya kasa döneminde (2026-04 → 09) bir kez denenebilir; para için yeterli değil. Kripto için yeni Aslan versiyonu önerilmez.
