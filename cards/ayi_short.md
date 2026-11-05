@@ -66,3 +66,38 @@ Geçen olursa kasa testi için denetleyiciye (ASGO stratejisi (devam)) onay soru
 ## Test geçmişi
 | Tarih | Test | Sonuç özeti | Rapor linki |
 |---|---|---|---|
+
+## 1. tur sonucu (günlük veri, 2026-11-05) — HİÇBİRİ GEÇMEDİ
+| Ana kural | Geliştirme | Doğrulama | 2x masraf | Rastgele kontrolü geçti mi |
+|---|---|---|---|---|
+| H1 Kırılım N20 X10 | −0.037R (353 işlem) | +0.007R (127) | eksi | hayır (p 0.79 / 0.69) |
+| H2 BTC Kırılım Sepeti K10 S15 | −0.193R | −0.194R | eksi | hayır |
+| H3 Zombi R−60 H30 | −0.157R | +0.021R | eksi/artı | hayır |
+| H4 Funding Tuzağı F0.05 H7 | −0.015R (53) | +0.418R (3 işlem) | — | hayır, çok az işlem |
+| H5 Hacimli Çöküş X−8 H5 | −0.119R (35) | +0.118R (11) | — | hayır |
+
+- Ayrıntı: `research/bear_short/out_grid.csv`, `out_controls.csv`, `out_yearly.csv`.
+- Not (sonradan görülen, KABUL EDİLMEDİ): H4'ün komşusu F0.03 iki dönemde artı (dev +0.12R 267 işlem, val +0.27R ama sadece 25 işlem). Sonuç gördükten sonra seçmek olur; doğrulamada işlem çok az.
+- Genel ders: günlük kırılım/trend short'u, silinen coinler dahil evrende rastgele short'tan iyi değil. Düşüşte short kazancı çoğunlukla rejimin kendisinden geliyor, tetikten değil.
+
+## 2. tur ön kaydı (1 saatlik veri, 2026-11-05) — test ÖNCESİ yazıldı
+Veri: 1. turdaki U evrenine bir gün bile girmiş 260 coinin (silinenler dahil) 1 saatlik mumları (data.binance.vision). U ve BEAR bir önceki günün kapanışıyla hesaplanır (ileriye bakma yok). Masraf %0.20 gidiş-dönüş + stop kayması %0.10 + funding (gün içi: geçilen her funding saati için günlük funding'in 1/3'ü). 2x masraf: %0.40. Risk %1, en fazla 10 açık işlem.
+
+### H6 — Gün Dibi Kırılımı
+- [bear] dünkü kapanışta BEAR; coin dün U içinde ve dünkü kapanış < günlük EMA20.
+- [day_low_break] 00:00-19:00 UTC arasında, 1 saatlik kapanış ilk kez dünkü günlük en düşüğün altına iniyor | "{symbol} dünün dibini ({prev_low}) kırdı."
+- Giriş: sonraki saat açılışı. Stop: son 3 saatin en yükseği +%0.2 (girişten %1-%6 uzak değilse işlem yok). Çıkış: günün son saatinin kapanışı (23:00 mumu).
+- Komşular: çıkış = gün sonu / 6 saat / 24 saat; stop tampon = %0.2 / %0.5.
+
+### H7 — Saat Penceresi (iki aşamalı)
+- [bear] dünkü kapanışta BEAR. U içindeki coinler (BTC hariç) eşit ağırlık sepet short.
+- Aday pencereler: her başlangıç saati (0-23) × uzunluk 4/6/8/12 saat = 96 pencere. Sadece GELİŞTİRME verisinde masraf sonrası en iyi pencere seçilir; doğrulamada sadece o tek pencere test edilir. Stop yok (sepet).
+- Geçme: seçilen pencere doğrulamada masraf sonrası artı, 2x masrafta artı, ve rastgele pencere kontrolünü (aynı uzunlukta, BEAR günlerinde rastgele başlangıç) %95'te geçmeli.
+
+### H8 — BTC Şoku Gecikmesi
+- [bear] dünkü kapanışta BEAR.
+- [btc_shock] BTC 1 saatlik getirisi ≤ −%1.5.
+- [laggard] U içindeki coinin aynı saatteki getirisi ≥ BTC getirisi + %1 (henüz düşmemiş) | "BTC sert düştü, {symbol} henüz düşmedi."
+- Giriş: sonraki saat açılışı. Stop %3. Çıkış: 4 saat sonra kapanış. Komşular: tutma 1/4/12 saat, stop %2/%3/%5.
+
+Geçme şartı 1. turdakiyle aynı (iki dönem artı, en az 30 işlem/dönem, rastgele kontrol A %95, 2x masraf artı).
