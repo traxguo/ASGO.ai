@@ -13,6 +13,7 @@ export const HELP = [
   "/yorum ETH: canlı veriyle piyasa yorumu (sinyal değildir)",
   "/kapat NEAR: o coindeki demo işlemini hemen kapat",
   "/sor ...: yapay zekâya serbest soru (sohbet; sinyal veya seviye vermez)",
+  "/panel: canlı sonuç paneli (tüm işlemler, kazanma oranı, açık işlemler)",
   "/yardim: bu mesaj",
   "",
   "Not: Bot kendi kafasına göre alım/stop seviyesi söylemez; işlemleri sadece Pusula açar.",
@@ -62,6 +63,7 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
     return chatType === "private" ? `Bu bot özel. Senin numaran: ${chatId}` : null;
   }
   if (cmd === "/start" || cmd === "/yardim" || cmd === "/help") return HELP;
+  if (cmd === "/panel") return env.PANEL_URL ? `Canlı sonuç paneli: ${env.PANEL_URL}` : "Panel adresi henüz yok.";
   if (cmd === "/kapat" && !ownerSpeaking) return "İşlem kapatmayı sadece hesap sahibi yapabilir.";
   if (cmd === "/fiyat" && !arg) return "Hangi coin? Örnek: /fiyat BTC";
   if (cmd === "/yorum" && !arg) return "Hangi coin? Örnek: /yorum ETH";
@@ -113,12 +115,34 @@ export async function startBots(env, when, fetchFn = fetch) {
   return started;
 }
 
+// ------------------------------------------------------------------ live results page
+// GET /panel serves dashboard/canli/panel.html from the repo's main branch; the page then reads the bots'
+// log files from GitHub in the browser. Read-only: nothing here can place or close a trade.
+
+const RAW = "https://raw.githubusercontent.com/traxguo/asgo.ai/main/dashboard/canli/";
+const PANEL_FILES = { "": ["panel.html", "text/html; charset=utf-8"], "normalize.js": ["normalize.js", "text/javascript; charset=utf-8"] };
+
+export async function servePanel(path, fetchFn = fetch) {
+  const sub = path.replace(/^\/panel\/?/, "");
+  const file = PANEL_FILES[sub];
+  if (!file) return new Response("not found", { status: 404 });
+  const res = await fetchFn(RAW + file[0], { cf: { cacheTtl: 60 } });
+  if (!res.ok) return new Response(`panel not available (${res.status})`, { status: 502 });
+  let body = await res.text();
+  if (sub === "") body = "<!doctype html>\n" + body.replace('<script src="normalize.js">', '<script src="/panel/normalize.js">');
+  return new Response(body, { headers: { "Content-Type": file[1], "Cache-Control": "max-age=60" } });
+}
+
 export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(startBots(env, new Date(event.scheduledTime)));
   },
 
   async fetch(request, env) {
+    const url = new URL(request.url);
+    if (request.method === "GET" && (url.pathname === "/panel" || url.pathname.startsWith("/panel/"))) {
+      return servePanel(url.pathname);
+    }
     if (request.method !== "POST") return new Response("ok");
     if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.WEBHOOK_SECRET) {
       return new Response("forbidden", { status: 403 });
@@ -126,7 +150,7 @@ export default {
     const update = await request.json();
     const msg = update.message;
     if (!msg?.text) return new Response("ok");
-    const reply = await answer(env, msg.chat.id, msg.text, fetch, msg.from?.id, msg.chat.type);
+    const reply = await answer({ ...env, PANEL_URL: `${url.origin}/panel` }, msg.chat.id, msg.text, fetch, msg.from?.id, msg.chat.type);
     if (!reply) return new Response("ok");
     // answering inside the webhook response saves a separate call to Telegram
     return new Response(JSON.stringify({ method: "sendMessage", chat_id: msg.chat.id, text: reply }),
