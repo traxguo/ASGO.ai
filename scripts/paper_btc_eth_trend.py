@@ -80,10 +80,26 @@ def _bitget(path: str, params: dict) -> list:
     return out.get("data") or []
 
 
-def bitget_daily(asset: str, limit: int = HISTORY_DAYS) -> pd.Series:
-    rows = _bitget("/api/v2/mix/market/candles", {"symbol": f"{asset}USDT", "granularity": "1Dutc", "limit": limit})
+def bitget_daily(asset: str, days: int = HISTORY_DAYS) -> pd.Series:
+    """Bitget's `candles` endpoint only returns ~90 daily candles, so older ones are paged back in 90-day windows
+    from `history-candles` until `days` are collected (or nothing older comes back)."""
+    sym = f"{asset}USDT"
+    rows = list(_bitget("/api/v2/mix/market/candles", {"symbol": sym, "granularity": "1Dutc", "limit": 100}))
+    day_ms, span = 86_400_000, 90
+    for _ in range(12):
+        if len({int(r[0]) for r in rows}) >= days or not rows:
+            break
+        oldest = min(int(r[0]) for r in rows)
+        got = _bitget("/api/v2/mix/market/history-candles",
+                      {"symbol": sym, "granularity": "1Dutc", "limit": span,
+                       "startTime": oldest - span * day_ms, "endTime": oldest - 1})
+        got = [r for r in got if int(r[0]) < oldest]
+        if not got:
+            break
+        rows += got
     idx = pd.to_datetime([int(r[0]) for r in rows], unit="ms", utc=True)
-    return pd.Series([float(r[4]) for r in rows], index=idx, name=asset).sort_index()
+    s = pd.Series([float(r[4]) for r in rows], index=idx, name=asset)
+    return s[~s.index.duplicated(keep="last")].sort_index()
 
 
 def bitget_funding(asset: str, pages: int = 3) -> pd.Series:
@@ -146,7 +162,7 @@ def evaluate(px: pd.DataFrame, fund: pd.DataFrame) -> tuple[dict, pd.Series]:
     fund_x = pd.concat([fund, pd.DataFrame(0.0, index=[nxt], columns=fund.columns)])
     res = T.run(px_x, fund_x, LOOKBACK, KIND, VOL_TARGET)
     if not bool(res["valid"].iloc[-1]):
-        raise RuntimeError("not enough closed days for SMA(120) + 30-day vol")
+        raise RuntimeError(f"not enough closed days for SMA(120) + 30-day vol ({len(px)} days)")
     target = res["w"].iloc[-1]
     real = {k: (v.iloc[:-1] if hasattr(v, "iloc") else v) for k, v in res.items()}
     return real, target

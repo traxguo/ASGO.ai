@@ -131,3 +131,23 @@ def test_save_appends_daily_rows(tmp_path):
     d = pd.read_csv(tmp_path / "daily.csv")
     assert len(d) == 5 and list(d.columns) == pt.FIELDS
     assert d["equity"].iloc[-1] == pytest.approx(state["equity"])
+
+
+def test_bitget_daily_pages_back_past_the_90_candle_limit(monkeypatch):
+    day = 86_400_000
+    end = int(pd.Timestamp("2026-11-06", tz="UTC").value // 1_000_000)
+    allrows = [[str(end - i * day), "1", "1", "1", str(100 + i), "0", "0"] for i in range(600)]
+    calls = []
+
+    def fake_bitget(path, params):
+        calls.append(path)
+        if path.endswith("/candles"):
+            return allrows[:90]
+        lo, hi = params["startTime"], params["endTime"]
+        return [r for r in allrows if lo <= int(r[0]) <= hi][: params["limit"]]
+
+    monkeypatch.setattr(pt, "_bitget", fake_bitget)
+    s = pt.bitget_daily("BTC", days=400)
+    assert len(s) >= 400 and s.index.is_monotonic_increasing and not s.index.duplicated().any()
+    assert s.iloc[-1] == 100 and calls[0].endswith("/candles")
+    assert (s.index.to_series().diff().dropna() == pd.Timedelta(days=1)).all()
