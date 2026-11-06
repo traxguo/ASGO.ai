@@ -1004,3 +1004,56 @@ def test_v2_no_be_daily_breakout_signals_on_the_4h_candle_closing_with_the_first
     # Shorts stay off.
     s = cls.__new__(cls)
     assert cls.signal_conditions(s, out.reset_index())["short"] == {}
+
+
+def test_v2_no_be_channel55_breaks_out_above_55_candle_high_with_same_stop_inputs():
+    """PusulaV2NoBeChannel55: first 4h close above the previous 55 highs; stop swing (10) and ATR unchanged."""
+    tf = pusula.REGIME_TF
+    cls = pusula.PusulaV2NoBeChannel55
+    base = pusula.PusulaV2NoBe
+    assert issubclass(cls, base) and cls.channel == 55 and base.channel == 20
+    assert cls.swing_lookback == base.swing_lookback == 10
+    assert cls.startup_candle_count == base.startup_candle_count >= 55
+    for name in ("custom_stoploss", "populate_exit_trend", "populate_indicators", "populate_entry_trend",
+                 "signal_conditions", "add_plan_columns", "custom_stake_amount", "leverage",
+                 "custom_entry_price", "check_entry_timeout", "swing_levels"):
+        assert getattr(cls, name) is getattr(base, name)
+
+    # 4h: a 300-candle uptrend with a 140 peak at candle 230, a dip, then a recovery that first passes
+    # the 20-candle high (candle ~260) and only later the 55-candle high (the 140 peak).
+    n = 300
+    close = np.concatenate([np.linspace(100, 140, 231), np.linspace(139, 125, 20), np.linspace(126, 150, 49)])
+    h4 = pd.DataFrame({"date": pd.date_range("2021-06-01", periods=n, freq="4h", tz="UTC"),
+                       "open": close, "high": close + 0.2, "low": close - 0.2, "close": close, "volume": 1.0})
+    d1 = daily(np.linspace(50, 140, 200), start="2020-12-01")  # score +3, close above EMA20 the whole time
+
+    class DP:
+        def get_pair_dataframe(self, pair, timeframe):
+            return d1
+
+        def current_whitelist(self):
+            return ["X/USDT:USDT"]
+
+    def run(c, frame):
+        s = c.__new__(c)
+        s.dp, s.mgmt = DP(), c.mgmt
+        out = s.populate_indicators(frame.copy(), {"pair": "X/USDT:USDT"})
+        out = s.populate_entry_trend(out, {"pair": "X/USDT:USDT"})
+        out["enter_long"] = out.get("enter_long", pd.Series(np.nan, index=out.index)).fillna(0).astype(int)
+        return out
+
+    a, b = run(base, h4), run(cls, h4)
+    assert (b["dc_upper"].iloc[60:] == h4["high"].rolling(55).max().shift(1).iloc[60:]).all()
+    # Stop, entry zone and swing level are identical on every candle: only the trigger moved.
+    for col in ("swing_low", "atr", "long_entry", "long_zone_low", "long_stop", "long_plan_ok"):
+        pd.testing.assert_series_equal(a[col], b[col])
+    late = slice(251, n)
+    first20 = a.index[late][a["enter_long"].iloc[late] == 1]
+    first55 = b.index[late][b["enter_long"].iloc[late] == 1]
+    assert len(first20) == 1 and len(first55) == 1 and first55[0] > first20[0]
+    assert h4["close"].iloc[first55[0]] > 140.2 >= h4["close"].iloc[first55[0] - 1]
+    # No lookahead: data cut at the 55 signal candle gives the same signal.
+    cut = run(cls, h4.iloc[: first55[0] + 1])
+    assert cut["enter_long"].iloc[-1] == 1
+    s = cls.__new__(cls)
+    assert cls.signal_conditions(s, b)["short"] == {}

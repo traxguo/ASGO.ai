@@ -1827,3 +1827,36 @@ class PusulaV2NoBeDailyBreakout(PusulaV2NoBe):
         conds = super().signal_conditions(df)
         conds["long"]["breakout_up"] = df[f"daily_breakout_{REGIME_TF}"]
         return conds
+
+
+CHANNEL_55 = 55
+
+
+class PusulaV2NoBeChannel55(PusulaV2NoBe):
+    """
+    Queue item 29 (2026-11-06, research/queue/pusula_kuyruk.md), channel length,
+    fixed before testing.
+
+    PusulaV2NoBe with a 55-candle 4h breakout channel instead of 20 (~9 days,
+    Turtle "System 2" length): "breakout_up" = first 4h close above the highest
+    high of the previous 55 candles (the candle itself not included).
+
+    Only the channel changes. Coupling checked:
+    - the 20 (CHANNEL) feeds only "dc_upper" / "dc_lower" (PusulaBase
+      populate_indicators); setting `channel` moves both. "dc_lower" is only
+      used by the short breakout, and shorts stay off.
+    - the stop is NOT tied to it: wider of 1.5 ATR(14) and the 10-candle swing
+      low (`swing_lookback = 10`), unchanged. The entry zone comes from the
+      signal close and ATR, unchanged. The daily EMA20 exit is the daily EMA
+      length (EMA_FAST), not the channel, unchanged.
+    - commentary() reads the strategy's own "dc_upper", so its trigger level
+      would follow 55 for this class; research/forward/pusula_paper.py builds
+      its own 20-candle channel for the frozen PusulaTrendLong and is not used
+      here.
+    - warm-up: startup_candle_count stays 400 (>= 55 4h candles; the daily
+      regime needs the 400 anyway).
+    Score >= +1, daily EMA20 condition, 8% stop limit, 1% risk, max 3 trades,
+    exits and order validity are unchanged. No sweep. Shorts stay off.
+    """
+
+    channel = CHANNEL_55
