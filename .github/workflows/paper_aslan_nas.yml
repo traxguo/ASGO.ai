@@ -1,6 +1,6 @@
 # Paper tracking of Aslan's strategy on Nasdaq (AslanLiq2_1h with bias, cards/aslan_liquidity.md).
 # No keys, no orders. Free Yahoo 1h data (NQ=F); writes forward/paper_aslan_nas/ and sends Telegram notes.
-# Rules frozen as in PR #53/#54. Review with the other bots on 2026-11-30, then monthly.
+# Rules frozen as in PR #53/#54; two loosened versions (PR #63) tracked beside it as separate lines. Review with the other bots on 2026-11-30, then monthly.
 name: Aslan Nasdaq paper tracking
 
 on:
@@ -11,6 +11,7 @@ on:
     paths:
       - scripts/paper_aslan_nas.py
       - research/aslan_nasdaq/sim.py
+      - research/aslan_nasdaq/ablation.py
       - tests/test_paper_aslan_nas.py
       - .github/workflows/paper_aslan_nas.yml
 
@@ -49,7 +50,9 @@ jobs:
       - name: Save the paper log
         if: always() && github.event_name != 'pull_request'
         run: |
-          if [ -d forward/paper_aslan_nas ]; then git add forward/paper_aslan_nas; fi
+          for d in forward/paper_aslan_nas forward/paper_aslan_nas_nobias forward/paper_aslan_nas_maxopen2; do
+            if [ -d "$d" ]; then git add "$d"; fi
+          done
           if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
