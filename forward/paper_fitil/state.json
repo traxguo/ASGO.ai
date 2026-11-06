@@ -169,8 +169,21 @@
    "ret_pct": 1.954,
    "pnl_usdt": 38.19,
    "size": 1954.828
+  },
+  {
+   "pair": "ONE/USDT:USDT",
+   "mode": "derin",
+   "hour": "2026-11-06T13:00:00+00:00",
+   "limit_price": 0.001336944,
+   "fill_time": "2026-11-06T13:45:00+00:00",
+   "entry": 0.001336944,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 1962.466
   }
  ],
  "equity": 9812.33,
- "done_until": "2026-11-06T13:00:00+00:00"
+ "done_until": "2026-11-06T14:00:00+00:00"
 }
