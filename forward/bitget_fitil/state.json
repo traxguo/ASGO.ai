@@ -1,5 +1,5 @@
 {
-  "last_hour": "2026-11-06T11:00:00+00:00",
+  "last_hour": "2026-11-06T12:00:00+00:00",
   "trades": {
     "fitada2026101213": {
       "hour": "2026-10-12T13:00:00+00:00",
@@ -1708,6 +1708,14 @@
       "mode": "derin",
       "order_id": "1502555355425996801",
       "pair": "ADA/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitada2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 0.1717,
+      "mode": "derin",
+      "order_id": "1502570490345488385",
+      "pair": "ADA/USDT:USDT",
       "status": "pending"
     },
     "fitavax2026101213": {
@@ -3008,6 +3016,14 @@
       "limit_price": 7.681,
       "mode": "derin",
       "order_id": "1502555369577578497",
+      "pair": "AVAX/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitavax2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 7.715,
+      "mode": "derin",
+      "order_id": "1502570507928010753",
       "pair": "AVAX/USDT:USDT",
       "status": "pending"
     },
@@ -4877,6 +4893,14 @@
       "mode": "derin",
       "order_id": "1502555347855278081",
       "pair": "BNB/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitbnb2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 640.37,
+      "mode": "derin",
+      "order_id": "1502570481373872129",
+      "pair": "BNB/USDT:USDT",
       "status": "pending"
     },
     "fitbtc2026101213": {
@@ -5769,6 +5793,14 @@
       "limit_price": 69944.5,
       "mode": "derin",
       "order_id": "1502555333082939393",
+      "pair": "BTC/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitbtc2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 70022.1,
+      "mode": "derin",
+      "order_id": "1502570463879430145",
       "pair": "BTC/USDT:USDT",
       "status": "pending"
     },
@@ -7898,6 +7930,14 @@
       "mode": "derin",
       "order_id": "1502555351886004225",
       "pair": "DOGE/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitdoge2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 0.06679,
+      "mode": "derin",
+      "order_id": "1502570486037938177",
+      "pair": "DOGE/USDT:USDT",
       "status": "pending"
     },
     "fitdot2026101213": {
@@ -9561,6 +9601,14 @@
       "mode": "derin",
       "order_id": "1502555366096306177",
       "pair": "DOT/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitdot2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 0.856,
+      "mode": "derin",
+      "order_id": "1502570503561740289",
+      "pair": "DOT/USDT:USDT",
       "status": "pending"
     },
     "fiteth2026102819": {
@@ -11192,6 +11240,14 @@
       "limit_price": 2057.27,
       "mode": "derin",
       "order_id": "1502555336941699073",
+      "pair": "ETH/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fiteth2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 2063.28,
+      "mode": "derin",
+      "order_id": "1502570468283449345",
       "pair": "ETH/USDT:USDT",
       "status": "pending"
     },
@@ -12835,6 +12891,14 @@
       "mode": "derin",
       "order_id": "1502555358945017857",
       "pair": "LINK/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitlink2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 9.999,
+      "mode": "derin",
+      "order_id": "1502570494862753793",
+      "pair": "LINK/USDT:USDT",
       "status": "pending"
     },
     "fitltc2026103000": {
@@ -14108,6 +14172,14 @@
       "limit_price": 48.69,
       "mode": "derin",
       "order_id": "1502555362497593345",
+      "pair": "LTC/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitltc2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 48.74,
+      "mode": "derin",
+      "order_id": "1502570499275161601",
       "pair": "LTC/USDT:USDT",
       "status": "pending"
     },
@@ -16764,6 +16836,14 @@
       "mode": "derin",
       "order_id": "1502555340703989761",
       "pair": "SOL/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitsol2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 83.152,
+      "mode": "derin",
+      "order_id": "1502570472582610945",
+      "pair": "SOL/USDT:USDT",
       "status": "pending"
     },
     "fittrx2026101700": {
@@ -18870,6 +18950,14 @@
       "mode": "derin",
       "order_id": "1502555373297926145",
       "pair": "TRX/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fittrx2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 0.29252,
+      "mode": "derin",
+      "order_id": "1502570512394944513",
+      "pair": "TRX/USDT:USDT",
       "status": "pending"
     },
     "fituni2026110500": {
@@ -20511,6 +20599,14 @@
       "limit_price": 1.1,
       "mode": "derin",
       "order_id": "1502555344252370945",
+      "pair": "XRP/USDT:USDT",
+      "status": "cancelled"
+    },
+    "fitxrp2026110612": {
+      "hour": "2026-11-06T12:00:00+00:00",
+      "limit_price": 1.1014,
+      "mode": "derin",
+      "order_id": "1502570476911132673",
       "pair": "XRP/USDT:USDT",
       "status": "pending"
     }
