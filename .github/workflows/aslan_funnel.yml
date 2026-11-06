@@ -1,0 +1,28 @@
+name: Aslan NAS rejection funnel (research)
+# Research only: where candidate setups of the frozen AslanLiq2_1h (bias) rule die on NAS100, dev + val
+# only (no holdout data is loaded), plus 20 random rejected setups as charts for Aslan to mark.
+on:
+  pull_request:
+    paths: ["research/aslan_nasdaq/funnel.py", ".github/workflows/aslan_funnel.yml"]
+  workflow_dispatch:
+jobs:
+  funnel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy pyarrow histdata matplotlib
+      - uses: actions/cache@v4
+        with:
+          path: user_data/forex1m
+          key: forex-1m-${{ hashFiles('research/aslan_nasdaq/fetch_1m.py', 'research/forex/fetch_histdata.py') }}
+          restore-keys: forex-1m-
+      - run: python -u research/aslan_nasdaq/fetch_1m.py
+      - run: python -u research/aslan_nasdaq/funnel.py --out funnel_out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aslan-funnel
+          path: funnel_out
