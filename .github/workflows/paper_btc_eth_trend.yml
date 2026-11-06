@@ -1,0 +1,59 @@
+# Paper tracking of the BTC/ETH trend line (cards/btc_eth_trend.md): N120 SMA, 20% vol target, rules frozen.
+# It did not pass its pre-registered bar; the supervisor chose to paper-track it unchanged. No keys, no orders.
+# Free public daily data (Binance fapi, Bitget if Binance refuses the runner); writes forward/paper_btc_eth_trend/.
+# Review on 2026-11-30.
+name: BTC ETH trend paper tracking
+
+on:
+  schedule:
+    - cron: "20 0 * * *"  # 20 minutes after the UTC daily close
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/paper_btc_eth_trend.py
+      - research/tsmom/tsmom.py
+      - tests/test_paper_btc_eth_trend.py
+      - .github/workflows/paper_btc_eth_trend.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: paper-btc-eth-trend
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy pytest
+
+      - name: Check (no keys, nothing saved)
+        if: github.event_name == 'pull_request'
+        run: |
+          python -m pytest -q -p no:cacheprovider tests/test_paper_btc_eth_trend.py
+          python scripts/paper_btc_eth_trend.py --check
+
+      - name: Paper tracking (no orders, free data)
+        if: github.event_name != 'pull_request'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
+        run: python scripts/paper_btc_eth_trend.py
+
+      - name: Save the paper log
+        if: always() && github.event_name != 'pull_request'
+        run: |
+          if [ -d forward/paper_btc_eth_trend ]; then git add forward/paper_btc_eth_trend; fi
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "BTC/ETH trend paper log: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0; sleep 5; done
+          exit 1

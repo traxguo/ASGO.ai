@@ -1,0 +1,13 @@
+config,sharpe_pos_dev_val,short_pnl_pos_dev_val,above_shuffle_p90_dev,sharpe_pos_2x_cost,PASS
+N20_ret_vt20,True,False,False,False,False
+N20_ret_vt40,True,False,False,False,False
+N20_sma_vt20,False,False,False,False,False
+N20_sma_vt40,False,False,False,False,False
+N60_ret_vt20,True,False,True,True,False
+N60_ret_vt40,True,False,True,True,False
+N60_sma_vt20,True,False,True,True,False
+N60_sma_vt40,True,False,True,True,False
+N120_ret_vt20,True,False,True,True,False
+N120_ret_vt40,True,False,True,True,False
+N120_sma_vt20,True,False,True,True,False
+N120_sma_vt40,True,False,True,True,False

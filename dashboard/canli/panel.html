@@ -120,6 +120,8 @@ footer p { margin: 0; max-width: 100ch; }
 
   <div class="tiles" id="tiles"></div>
 
+  <section class="card" id="trend"></section>
+
   <section class="card">
     <h2>Şu an açık işlemler</h2>
     <div id="open"></div>
@@ -211,6 +213,21 @@ footer p { margin: 0; max-width: 100ch; }
     ], start, new Date().toISOString());
   }
 
+  // separate paper line: BTC/ETH trend (scripts/paper_btc_eth_trend.py), not part of ASGO Portföy
+  function trendLine(tr) {
+    const el = $("trend");
+    const head = `<h2>BTC/ETH Trend · ayrı kâğıt takip <span class="pill paper">Kâğıt</span></h2>`;
+    if (!tr) { el.innerHTML = head + `<div class="empty">Kayıt henüz yok (forward/paper_btc_eth_trend/).</div>`; return; }
+    const side = (w) => (w > 0 ? "LONG" : w < 0 ? "SHORT" : "yok");
+    const pos = ["BTC", "ETH"].map((a) => `${a} <b>${side(tr.target[a])} ${fmtNum(Math.abs(tr.target[a] || 0) * 2, 2)}x</b>`).join(" · ");
+    el.innerHTML = head + `<p class="small" style="margin:0 0 6px">${pos} (her coin kendi yarısında, ${esc(tr.targetFor || "—")} için) · kasa <b class="${cls(tr.returnPct)}">${Math.round(tr.equity).toLocaleString("tr-TR")} USDT (${signed(tr.returnPct)})</b> · en büyük düşüş %${fmtNum(tr.maxDd, 1)} · ${tr.days} gün</p>
+      <p class="small" style="margin:0">Fiyat 120 günlük ortalamanın üstündeyse long, altındaysa short; %20 oynaklık hedefi, en fazla 3x. Ön kayıtlı çıtayı geçmedi, kurallar donduruldu; sadece kâğıtta izleniyor, emir yok.</p>
+      <div class="chart" id="chartTrend"></div>`;
+    if (tr.curve.length > 1) chart($("chartTrend"), "BTC/ETH Trend kâğıt kasası (günlük)", [
+      { name: "BTC/ETH Trend", color: "var(--accent)", curve: tr.curve },
+    ], tr.curve[0].t, new Date().toISOString());
+  }
+
   function render(data, sourceNote) {
     const T = data.trades;
     const paperT = T.filter((t) => t.track === "paper" && t.unit === "%");
@@ -219,6 +236,7 @@ footer p { margin: 0; max-width: 100ch; }
     const notFilled = demoT.filter((t) => t.real && t.real.state === "no").length;
     const waiting = demoT.filter((t) => t.status === "closed" && t.real && t.real.state === "pending").length;
     portfolioLine(data.portfolio, start0);
+    trendLine(data.trend);
     $("tiles").innerHTML =
       tile("Kâğıt takip · gerçek fiyat", sPaper, "Fitil + Derin Fitil, 81 coin, emir yok. Kriptonun en dürüst ölçüsü.") +
       tile("Demo · gerçek fiyatla", sReal, `Demo işlemleri gerçek fiyatla yeniden hesaplandı. ${notFilled} işlemin fiyatı gerçek piyasada hiç oluşmadı, ${waiting} işlem kontrol bekliyor.`) +
