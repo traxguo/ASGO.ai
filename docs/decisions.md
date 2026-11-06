@@ -178,3 +178,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-11-04 — Yeni Coin Short 14 gün: sadece kâğıt takip
 - Karar (denetleyici): 7 günlük kural reddedildi. 14 günlük kural "active" olmadı; Bitget açık verisiyle ileriye dönük kâğıt takipte (`scripts/paper_yeni_coin.py`). Emir yok, demo hesap yok, kurallar 2026-11-30 değerlendirmesine kadar donuk.
 - Gerekçe: 14 günlük kural kasada artıydı ama geliştirmede zayıftı; karar ancak yeni (ileriye dönük) veriyle verilebilir.
+
+## 2026-11-06 — ASGO Portföy: risk %0.25, coin yaşı kuralı eklenmedi
+- Karar: portföyde işlem başı risk %0.25 (ön kayıtlı ölçüt: doğrulama düşüşü ≤ ~%15; %0.25'te -%12.0). Tek önceden kayıtlı kural "180 günden genç coinde işlem yok" eklenmedi. "ASGO Portföy" kâğıt takibi (`scripts/paper_portfoy.py`, saatlik) başladı; canlı panelde en üst çizgi.
+- Gerekçe: kural doğrulamada getiriyi artırdı (+%41.8 → +%45.2, düşüş eşit) ama geliştirmede düşürdü (+%1.884 → +%1.102); şart iki dönemde birden iyileşmeydi. Kasa dönemi bu testte yüklenmedi. Rapor `results/2026-11-06_portfoy_sistem/rapor.md`.
