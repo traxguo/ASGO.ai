@@ -120,3 +120,17 @@ test("the panel's data layer reads the ASGO Portföy headline line", async () =>
   assert.deepEqual(data.portfolio.curve, [{ t: "2026-10-07T13:00:00.000Z", eq: 9975 }]);
   assert.equal(P.build({}).portfolio, null);
 });
+
+test("the panel's data layer reads the BTC/ETH Trend paper line", async () => {
+  const { createRequire } = await import("node:module");
+  const P = createRequire(import.meta.url)("../dashboard/canli/normalize.js");
+  assert.equal(P.FILES.trend, "forward/paper_btc_eth_trend/state.json");
+  const state = { name: "BTC/ETH Trend", base_usdt: 10000, equity: 10050, return_pct: 0.5, max_dd_pct: 0, days: 1,
+    target: { BTC: 0.31, ETH: -0.2 }, target_for: "2026-11-08", source: "bitget",
+    curve: [{ t: "2026-11-07T00:00:00+00:00", eq: 10000 }, { t: "2026-11-08T00:00:00+00:00", eq: 10050 }] };
+  const data = P.build({ trend: JSON.stringify(state) });
+  assert.equal(data.trend.equity, 10050);
+  assert.equal(data.trend.target.ETH, -0.2);
+  assert.equal(data.trend.curve.length, 2);
+  assert.equal(P.build({}).trend, null);
+});
