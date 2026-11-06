@@ -1,0 +1,10 @@
+key,pair,mode,fill_time,fill_price,exit_time,demo_exit,demo_ret_pct,real_low,real_fill,real_exit,real_ret_pct,status,note
+fitnear2026102013,NEAR/USDT:USDT,fitil,2026-10-24T14:16:30.990000+00:00,4.4538,2026-10-28T19:18:44.209275+00:00,4.745,6.454,4.2,yes,4.699,5.421,checked,real market traded the demo fill price
+fitbnb2026102920,BNB/USDT:USDT,fitil,2026-10-29T20:40:57.344000+00:00,707.28,2026-10-29T20:48:43.289000+00:00,691.5208185053381,-2.307,705.0,yes,686.14,-3.068,checked,real market traded the demo fill price
+fitlink2026102920,LINK/USDT:USDT,derin,2026-10-29T20:43:14.889000+00:00,10.75,2026-10-29T20:48:43.289000+00:00,,,11.032,no,10.974,0.0,checked,real market never traded 10.75 (lowest 11.032); on real prices this trade would not exist
+fitbch2026102920,BCH/USDT:USDT,fitil,2026-10-29T20:47:08.131000+00:00,272.4,2026-10-29T20:48:43.289000+00:00,274.90000000000003,0.837,269.28,yes,271.22,-0.514,checked,real market traded the demo fill price
+fitsol2026103012,SOL/USDT:USDT,derin,2026-10-30T12:14:47.058000+00:00,88.785,2026-10-30T15:18:41.459301+00:00,94.77,6.657,96.39,no,95.55,0.0,checked,real market never traded 88.785 (lowest 96.39); on real prices this trade would not exist
+fitltc2026110412,LTC/USDT:USDT,derin,2026-11-04T12:12:31.460000+00:00,50.37,2026-11-04T15:18:36.223856+00:00,58.51683544303798,16.084,54.57,no,57.0,0.0,checked,real market never traded 50.37 (lowest 54.57); on real prices this trade would not exist
+fitsol2026110415,SOL/USDT:USDT,derin,2026-11-04T15:17:40.881000+00:00,87.522,2026-11-04T18:18:43.437310+00:00,96.907,10.637,95.45,no,95.99,0.0,checked,real market never traded 87.522 (lowest 95.45); on real prices this trade would not exist
+fitsol2026110419,SOL/USDT:USDT,derin,2026-11-04T19:12:20.389000+00:00,87.588,2026-11-04T22:18:38.783621+00:00,96.19800000000001,9.744,94.69,no,95.31,0.0,checked,real market never traded 87.588 (lowest 94.69); on real prices this trade would not exist
+fituni2026110515,UNI/USDT:USDT,fitil,2026-11-05T15:52:11.891000+00:00,6.806,2026-11-05T16:18:40.678915+00:00,6.972,2.358,6.715,yes,6.92,1.594,checked,real market traded the demo fill price

@@ -1,0 +1,23 @@
+name: Aslan NAS rules on other indices (research)
+# Research only: frozen AslanLiq2_1h (bias) on S&P 500, DAX, FTSE, Nikkei vs NAS100.
+# Downloads HistData 1m bars (cached, never committed) and prints the result tables.
+on:
+  pull_request:
+    paths: ["research/aslan_nasdaq/indices.py", "research/aslan_nasdaq/fetch_indices.py", ".github/workflows/aslan_indices.yml"]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy pyarrow histdata
+      - uses: actions/cache@v4
+        with:
+          path: user_data/indices1m
+          key: indices-1m-${{ hashFiles('research/aslan_nasdaq/fetch_indices.py') }}
+      - run: python -u research/aslan_nasdaq/fetch_indices.py
+      - run: python -u research/aslan_nasdaq/indices.py

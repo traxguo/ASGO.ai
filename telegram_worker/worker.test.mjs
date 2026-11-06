@@ -1,7 +1,7 @@
 // Run: node --test telegram_worker/
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import worker, { answer, HELP, dueBots, startBots } from "./worker.js";
+import worker, { answer, HELP, dueBots, startBots, servePanel } from "./worker.js";
 
 const env = { TELEGRAM_CHAT_ID: "42", TELEGRAM_GROUP_ID: "-100", WEBHOOK_SECRET: "w", GH_DISPATCH_TOKEN: "t" };
 
@@ -78,4 +78,31 @@ test("/sor hands the whole question to the GitHub job, also in the group", async
     { cmd: "/sor", arg: "bugün piyasa nasıl?", chat: "-100", sender: "7" });
   assert.match(await answer(env, -100, "/sor", fakeGitHub(calls), 7, "group"), /Ne sormak/);
   assert.equal(calls.length, 1);
+});
+
+test("/panel answers with the live page address, only to the owner chat and group", async () => {
+  const e = { ...env, PANEL_URL: "https://w.example/panel" };
+  assert.equal(await answer(e, 42, "/panel", fakeGitHub()), "Canlı sonuç paneli: https://w.example/panel");
+  assert.equal(await answer(e, -100, "/panel", fakeGitHub(), 7, "supergroup"), "Canlı sonuç paneli: https://w.example/panel");
+  assert.equal(await answer(e, 7, "/panel", fakeGitHub()), "Bu bot özel. Senin numaran: 7");
+});
+
+test("GET /panel serves the panel page from the repo; other paths stay closed", async () => {
+  const asked = [];
+  const fake = async (u) => { asked.push(u); return { ok: true, status: 200, text: async () => '<title>x</title><script src="normalize.js"></script>' }; };
+  const page = await servePanel("/panel", fake);
+  assert.equal(page.headers.get("Content-Type"), "text/html; charset=utf-8");
+  const body = await page.text();
+  assert.ok(body.startsWith("<!doctype html>"));
+  assert.match(body, /src="\/panel\/normalize\.js"/);
+  assert.equal(asked[0], "https://raw.githubusercontent.com/traxguo/asgo.ai/main/dashboard/canli/panel.html");
+  const js = await servePanel("/panel/normalize.js", fake);
+  assert.equal(js.headers.get("Content-Type"), "text/javascript; charset=utf-8");
+  assert.equal((await servePanel("/panel/../secrets", fake)).status, 404);
+  assert.equal(asked.length, 2);
+});
+
+test("a plain GET still answers ok (deploy health check)", async () => {
+  const res = await worker.fetch(new Request("https://w.example/"), env);
+  assert.equal(await res.text(), "ok");
 });

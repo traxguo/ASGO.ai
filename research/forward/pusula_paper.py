@@ -39,6 +39,7 @@ STRATEGIES = [STRATEGY, "PusulaV2"]  # PusulaV2 = accepted background improvemen
 PAIRS_FILE = ROOT / "config" / "pairs_wide16.json"
 RES_DIR = ROOT / "user_data" / "forward_results"
 OUT = ROOT / "forward" / "pusula_kagit.md"
+OUT_JSON = ROOT / "forward" / "pusula_kagit.json"  # same trades, machine-readable, for dashboard/canli/
 DATA = ROOT / "user_data" / "data" / "binance" / "futures"
 
 
@@ -93,11 +94,16 @@ def main() -> None:
     last_candle = max(v["time"] for v in views)
     btc_score = int(pusula.regime_score(btc_daily).iloc[-1])
 
-    tables, notes = [], []
+    tables, notes, machine = [], [], {}
     for name in STRATEGIES:
         rows = []
+        machine[name] = []
         for t in all_stats[name]["trades"]:
             is_open = t["exit_reason"] == "force_exit"
+            machine[name].append({"coin": t["pair"].split("/")[0], "entry_time": t["open_date"], "entry_price": t["open_rate"],
+                                  "exit_time": None if is_open else t["close_date"],
+                                  "exit_price": None if is_open else t["close_rate"],
+                                  "reason": t["exit_reason"], "r": round(trade_r(t)["r"], 3), "open": is_open})
             rows.append({"coin": t["pair"].split("/")[0], "giris": t["open_date"][:16], "giris_fiyati": t["open_rate"],
                          "cikis": "açık" if is_open else t["close_date"][:16],
                          "sebep": {"stop_loss": "stop", "trailing_stop_loss": "BE stop", "exit_signal": "trend bozuldu",
@@ -139,6 +145,8 @@ def main() -> None:
         lines += [v["text"].replace("\n", "  \n"), ""]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines))
+    OUT_JSON.write_text(json.dumps({"updated": datetime.now(timezone.utc).isoformat(), "last_candle": last_candle.isoformat(),
+                                    "strategies": machine}, indent=1) + "\n")
     print(OUT)
 
 

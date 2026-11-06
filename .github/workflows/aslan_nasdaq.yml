@@ -1,0 +1,28 @@
+name: Aslan Nasdaq test (research)
+# Research only: Aslan's strategy (v2, v7 as coded for crypto) on NAS100, EURUSD, XAUUSD.
+# Downloads HistData 1m bars (cached, never committed) and prints the result tables.
+on:
+  pull_request:
+    paths: ["research/aslan_nasdaq/**", ".github/workflows/aslan_nasdaq.yml"]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy pyarrow histdata
+      - uses: actions/cache@v4
+        with:
+          path: user_data/forex1m
+          key: forex-1m-${{ hashFiles('research/aslan_nasdaq/fetch_1m.py', 'research/forex/fetch_histdata.py') }}
+      - run: python -u research/aslan_nasdaq/fetch_1m.py
+      - run: python -u research/aslan_nasdaq/sim.py --out trades
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aslan-nasdaq-trades
+          path: trades
+          retention-days: 30

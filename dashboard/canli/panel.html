@@ -1,0 +1,347 @@
+<title>ASGO Canlı Sonuçlar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a trading ledger. Summary strip, open positions, two equity charts, strategy register, trade log. */
+:root {
+  --bg: #f6f7f4; --panel: #ffffff; --ink: #14171a; --ink-2: #4c535a; --ink-3: #7b828a;
+  --rule: #dfe2dc; --rule-2: #eceee9; --accent: #1d4e89;
+  --good: #137a3f; --bad: #b8322a; --warn: #a86400; --warn-bg: #fff4dd; --bad-bg: #fdebea; --good-bg: #e7f5ec;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --outage: rgba(184, 50, 42, .08);
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111417; --panel: #181c20; --ink: #eef0f1; --ink-2: #b4bac0; --ink-3: #868d94;
+  --rule: #2b3137; --rule-2: #22272c; --accent: #8db4e8;
+  --good: #4cc27c; --bad: #f07a70; --warn: #e6a640; --warn-bg: #2e2412; --bad-bg: #331a18; --good-bg: #13291c;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --outage: rgba(240, 122, 112, .10);
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111417; --panel: #181c20; --ink: #eef0f1; --ink-2: #b4bac0; --ink-3: #868d94;
+  --rule: #2b3137; --rule-2: #22272c; --accent: #8db4e8;
+  --good: #4cc27c; --bad: #f07a70; --warn: #e6a640; --warn-bg: #2e2412; --bad-bg: #331a18; --good-bg: #13291c;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --outage: rgba(240, 122, 112, .10);
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px; }
+header { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+h1 { font: 800 clamp(26px, 4vw, 38px)/1.05 var(--f-display); letter-spacing: -.01em; margin: 0; text-wrap: balance; }
+h1 small { display: block; font: 500 13px/1.4 var(--f-body); color: var(--ink-2); letter-spacing: 0; margin-top: 6px; }
+h2 { font: 700 13px/1.2 var(--f-display); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin: 0 0 10px; }
+.live { display: inline-flex; align-items: center; gap: 8px; font: 500 13px var(--f-mono); color: var(--ink-2); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ink-3); }
+.live[data-mode="live"] .dot { background: var(--good); box-shadow: 0 0 0 3px var(--good-bg); }
+.live[data-mode="error"] .dot { background: var(--bad); }
+button { font: inherit; }
+.refresh { border: 1px solid var(--rule); background: var(--panel); color: var(--ink); padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+.refresh:focus-visible, .tab:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.note { background: var(--warn-bg); border-left: 4px solid var(--warn); padding: 12px 14px; font-size: 14px; display: grid; gap: 6px; }
+.note p { margin: 0; max-width: 95ch; }
+.note b { color: var(--ink); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.tile { background: var(--panel); border: 1px solid var(--rule); padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.tile .k { font: 600 12px var(--f-display); text-transform: uppercase; letter-spacing: .07em; color: var(--ink-2); }
+.tile .v { font: 500 30px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.tile .sub { color: var(--ink-2); font-size: 13px; }
+.tile dl { display: grid; grid-template-columns: repeat(3, auto); gap: 2px 14px; margin: 4px 0 0; justify-content: start; }
+.tile dt { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.tile dd { margin: 0; font: 500 14px var(--f-mono); font-variant-numeric: tabular-nums; grid-row: 2; }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+section { min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--rule); padding: 14px 16px; min-width: 0; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font: 600 11px var(--f-display); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.t { font-family: var(--f-mono); font-size: 13px; white-space: nowrap; color: var(--ink-2); }
+.pill { display: inline-block; font: 600 11px/1 var(--f-body); padding: 4px 7px; border-radius: 3px; white-space: nowrap; border: 1px solid transparent; }
+.pill.demo { background: var(--rule-2); color: var(--ink-2); border-color: var(--rule); }
+.pill.paper { background: transparent; color: var(--accent); border-color: var(--accent); }
+.pill.ok { background: var(--good-bg); color: var(--good); }
+.pill.no { background: var(--bad-bg); color: var(--bad); }
+.pill.wait { background: var(--warn-bg); color: var(--warn); }
+.side { font: 600 12px var(--f-mono); }
+.muted { color: var(--ink-3); }
+.small { font-size: 13px; color: var(--ink-2); }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
+.chart .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.chart .tip { font: 12px/1.4 var(--f-mono); color: var(--ink-2); min-height: 1.4em; margin-top: 4px; }
+.axis text { fill: var(--ink-3); font: 11px var(--f-mono); }
+.axis line, .grid line { stroke: var(--rule); }
+.grid line { stroke-dasharray: 2 3; }
+.empty { color: var(--ink-3); font-size: 14px; padding: 6px 0; }
+details { border-top: 1px solid var(--rule-2); }
+details:first-of-type { border-top: 0; }
+summary { cursor: pointer; padding: 8px 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+summary::-webkit-details-marker { display: none; }
+.sname { font-weight: 600; }
+.stats { font: 13px var(--f-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+details p { margin: 0 0 10px; color: var(--ink-2); font-size: 14px; max-width: 80ch; }
+footer { color: var(--ink-3); font-size: 12px; display: grid; gap: 4px; }
+footer p { margin: 0; max-width: 100ch; }
+@media (max-width: 640px) { summary { grid-template-columns: 1fr; gap: 2px; } .stats { white-space: normal; } .tile .v { font-size: 26px; } }
+@media (prefers-reduced-motion: no-preference) { .live[data-mode="live"] .dot { animation: pulse 2.4s ease-in-out infinite; } }
+@keyframes pulse { 50% { opacity: .45; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>ASGO Canlı Sonuçlar<small>1 Ekim 2026'dan beri botların aldığı her işlem. Gerçek para yok.</small></h1>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span class="live" id="live" data-mode="wait"><span class="dot"></span><span id="liveText">Yükleniyor…</span></span>
+      <button class="refresh" id="refresh" type="button">Yenile</button>
+    </div>
+  </header>
+
+  <div class="note" id="honesty">
+    <p><b>Nasıl okunur:</b> <span class="pill demo">Demo</span> Bitget demo hesabında bot gerçekten emir veriyor ama oyun parasıyla. <span class="pill paper">Kâğıt</span> aynı kurallar gerçek piyasa fiyatlarıyla kâğıt üstünde izleniyor, emir yok. Her strateji 10.000 USDT kasa üstünden sayılır.</p>
+    <p><b>Demo uyarısı:</b> Bitget demo piyasası bazen gerçek piyasada hiç olmayan derin iğneler yapıyor. Her demo işlemini Binance'in gerçek fiyatlarıyla kontrol ettik. "Demo fiyatı, gerçek piyasada oluşmadı" yazan işlemler gerçek parayla hiç açılmazdı. Bu yüzden asıl ölçü <b>gerçek fiyatla</b> sonuçtur.</p>
+    <p><b>Kesinti:</b> 20 Ekim 13:17 ile 28 Ekim akşamı arasında GitHub'ın ücretsiz dakikaları bittiği için botlar çalışmadı (grafikte kırmızı bant). Bu sürede işlem kaydı yok.</p>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <section class="card">
+    <h2>Şu an açık işlemler</h2>
+    <div id="open"></div>
+  </section>
+
+  <section>
+    <h2>Kasa (her strateji 10.000 USDT ile başlar, sadece kapanan işlemler)</h2>
+    <div class="charts">
+      <div class="card chart" id="chartPaper"></div>
+      <div class="card chart" id="chartDemo"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Stratejiler</h2>
+    <div id="strategies"></div>
+  </section>
+
+  <section class="card">
+    <h2>Son işlemler</h2>
+    <div class="scroll"><table id="trades"></table></div>
+  </section>
+
+  <footer>
+    <p>Kaynak: botların GitHub'daki kayıt dosyaları (forward/ klasörü), her açılışta ve 5 dakikada bir yeniden okunur. Demo işlemlerin gerçek fiyat kontrolü her gün Binance'in 1 dakikalık verisi yayınlanınca yapılır (bugünkü işlemler yarın kontrol edilir).</p>
+    <p>Sonuçlar komisyon dahildir. Aslan Nasdaq ve ilk Pusula sonuçları R cinsindendir: 1R, kasanın %1'i sayılmıştır. Geçmiş sonuç gelecek kazancı garanti etmez.</p>
+    <p id="stamp"></p>
+  </footer>
+</div>
+
+<script src="normalize.js"></script>
+<script>
+(function () {
+  "use strict";
+  const P = window.AsgoPanel;
+  const RAW_BASE = "https://raw.githubusercontent.com/traxguo/asgo.ai/main/";
+  const TZ = "Europe/Istanbul";
+  const $ = (id) => document.getElementById(id);
+  const names = Object.fromEntries(P.STRATEGIES.map((s) => [s.id, s]));
+  const SIDE = { long: "LONG", short: "SHORT" };
+
+  const fmtTime = (s) => (s ? new Date(s).toLocaleString("tr-TR", { timeZone: TZ, day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—");
+  const fmtNum = (v, d = 2) => (v === null || v === undefined ? "—" : Number(v).toLocaleString("tr-TR", { minimumFractionDigits: d, maximumFractionDigits: d }));
+  const fmtPrice = (v) => (v === null || v === undefined ? "—" : Number(v).toLocaleString("tr-TR", { maximumSignificantDigits: 6 }));
+  const signed = (v, d = 2, unit = "%") => {
+    if (v === null || v === undefined) return "—";
+    const sign = v > 0 ? "+" : v < 0 ? "−" : "";
+    return unit === "%" ? sign + "%" + fmtNum(Math.abs(v), d) : sign + fmtNum(Math.abs(v), d) + unit;
+  };
+  const cls = (v) => (v > 0 ? "pos" : v < 0 ? "neg" : "");
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const trackPill = (t) => (t === "demo" ? '<span class="pill demo">Demo</span>' : '<span class="pill paper">Kâğıt</span>');
+  function realPill(t) {
+    if (!t.real) return "";
+    if (t.real.state === "yes") return `<span class="pill ok" title="Gerçek piyasa bu fiyatı gördü">Gerçekte de dolardı</span>`;
+    if (t.real.state === "no") return `<span class="pill no" title="Gerçek piyasanın en düşüğü ${fmtPrice(t.real.low)}">Demo fiyatı, gerçek piyasada oluşmadı</span>`;
+    return `<span class="pill wait">Kontrol yarın</span>`;
+  }
+
+  function tile(title, st, sub, muted = false) {
+    const v = st.counted ? `<span class="${muted ? "muted" : cls(st.pnl)}">${signed(st.pnlPct)}</span>` : '<span class="muted">işlem yok</span>';
+    return `<div class="tile"><div class="k">${title}</div><div class="v">${v}</div>
+      <div class="sub">${sub}</div>
+      <dl><dt>İşlem</dt><dt>Kazanan</dt><dt>En büyük düşüş</dt>
+      <dd>${st.counted}</dd><dd>${st.winRate === null ? "—" : "%" + fmtNum(st.winRate * 100, 0)}</dd><dd>${st.counted ? "%" + fmtNum(st.maxDd, 1) : "—"}</dd></dl></div>`;
+  }
+
+  // equity of several strategies combined on one 10k base
+  function combined(trades, real) { return P.stats(trades, real); }
+
+  function render(data, sourceNote) {
+    const T = data.trades;
+    const paperT = T.filter((t) => t.track === "paper" && t.unit === "%");
+    const demoT = T.filter((t) => t.track === "demo");
+    const sPaper = combined(paperT), sDemo = combined(demoT), sReal = combined(demoT, true);
+    const notFilled = demoT.filter((t) => t.real && t.real.state === "no").length;
+    const waiting = demoT.filter((t) => t.status === "closed" && t.real && t.real.state === "pending").length;
+    $("tiles").innerHTML =
+      tile("Kâğıt takip · gerçek fiyat", sPaper, "Fitil + Derin Fitil, 81 coin, emir yok. Kriptonun en dürüst ölçüsü.") +
+      tile("Demo · gerçek fiyatla", sReal, `Demo işlemleri gerçek fiyatla yeniden hesaplandı. ${notFilled} işlemin fiyatı gerçek piyasada hiç oluşmadı, ${waiting} işlem kontrol bekliyor.`) +
+      tile("Demo · Bitget'in gösterdiği", sDemo, "Bitget demo hesabının kendi rakamı. Demo iğneleri yüzünden şişkin, tek başına ölçü değil.", true);
+
+    // open trades + waiting orders
+    const open = T.filter((t) => t.status === "open");
+    let html = "";
+    if (open.length) {
+      html += `<div class="scroll"><table><tr><th>Strateji</th><th></th><th>Yön</th><th>Coin</th><th>Giriş</th><th class="n">Giriş fiyatı</th><th class="n">Şimdiki fiyat</th><th class="n">Şu an</th><th>Not</th></tr>` +
+        open.map((t) => `<tr data-sym="${esc(t.symbol)}" data-entry="${t.entry_price}" data-side="${esc(t.side)}"><td>${esc(names[t.strategy].name)}</td><td>${trackPill(t.track)}</td><td class="side">${SIDE[t.side] || esc(t.side)}</td><td>${esc(t.symbol)}</td><td class="t">${fmtTime(t.entry_time)}</td><td class="n">${fmtPrice(t.entry_price)}</td><td class="n now">—</td><td class="n pl">—</td><td class="small">${esc(t.note)}</td></tr>`).join("") + "</table></div>";
+    } else html += `<div class="empty">Şu an açık pozisyon yok.</div>`;
+    if (data.pending.length) {
+      const by = {};
+      for (const p of data.pending) (by[p.strategy] = by[p.strategy] || []).push(p);
+      html += `<p class="small" style="margin:10px 0 0">Bekleyen alış emirleri (fiyat gelirse dolar, gelmezse saat sonunda iptal): ` +
+        Object.entries(by).map(([sid, list]) => `<b>${esc(names[sid].name)}</b> ${list.map((p) => `${esc(p.symbol)} ${fmtPrice(p.price)}`).join(", ")}`).join(" · ") + "</p>";
+    }
+    $("open").innerHTML = html;
+    if (!window.PANEL_RAW) livePrices();
+
+    // charts
+    const start = "2026-10-01T00:00:00Z", end = new Date().toISOString();
+    chart($("chartPaper"), "Kâğıt takip (gerçek fiyat)", [
+      { name: "Fitil Avcısı", color: "var(--s1)", curve: names.fitil_paper && data.strategies.find((s) => s.id === "fitil_paper").stats.curve },
+      { name: "Derin Fitil", color: "var(--s2)", curve: data.strategies.find((s) => s.id === "derin_paper").stats.curve },
+      { name: "Pusula v2", color: "var(--s3)", curve: data.strategies.find((s) => s.id === "pusula_v2_paper").stats.curve },
+      { name: "Fitil + Derin birlikte", color: "var(--ink)", curve: sPaper.curve, dash: "5 4" },
+    ], start, end);
+    chart($("chartDemo"), "Bitget demo hesap", [
+      { name: "Fitil Avcısı (demo rakamı)", color: "var(--s1)", curve: data.strategies.find((s) => s.id === "fitil_demo").stats.curve },
+      { name: "Derin Fitil (demo rakamı)", color: "var(--s2)", curve: data.strategies.find((s) => s.id === "derin_demo").stats.curve },
+      { name: "Tüm demo, gerçek fiyatla", color: "var(--s4)", curve: sReal.curve },
+    ], start, end);
+
+    // strategy register
+    $("strategies").innerHTML = data.strategies.map((s) => {
+      const st = s.stats;
+      const unit = ["aslan_nas", "pusula_paper", "pusula_v2_paper"].includes(s.id) ? " (R)" : "";
+      const line = st.closed
+        ? `${st.closed} işlem · kazanan %${fmtNum(st.winRate * 100, 0)} · <span class="${cls(st.pnl)}">${signed(st.pnlPct)}</span> · düşüş %${fmtNum(st.maxDd, 1)}${st.open ? ` · ${st.open} açık` : ""}`
+        : st.open ? `${st.open} açık işlem` : `henüz işlem yok`;
+      return `<details><summary><span><span class="sname">${esc(s.name)}</span> ${trackPill(s.track)} <span class="muted small">${s.side.toUpperCase()} · ${new Date(s.since + "T00:00:00Z").toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}'dan beri${unit}</span></span><span class="stats">${line}</span></summary><p>${esc(s.about)}</p></details>`;
+    }).join("");
+
+    // trade log, newest first
+    const rows = [...T].sort((a, b) => String(b.exit_time || b.entry_time).localeCompare(String(a.exit_time || a.entry_time))).slice(0, 40);
+    $("trades").innerHTML = `<tr><th>Strateji</th><th></th><th>Yön</th><th>Coin</th><th>Giriş</th><th class="n">Giriş</th><th>Çıkış</th><th class="n">Çıkış</th><th class="n">Net</th><th>Gerçek fiyat kontrolü</th><th>Not</th></tr>` +
+      rows.map((t) => {
+        const net = t.status === "open" ? '<span class="muted">açık</span>' : t.net_pct === null ? "—" : `<span class="${cls(t.net_pct)}">${t.unit === "R" ? signed(t.net_pct, 2, "R") : signed(t.net_pct)}${t.estimated ? "*" : ""}</span>`;
+        const real = t.real && t.real.state === "yes" ? `<br><span class="small ${cls(t.real.ret)}" style="white-space:nowrap">gerçek fiyatla ${signed(t.real.ret)}</span>` : "";
+        return `<tr><td>${esc(names[t.strategy].name)}</td><td>${trackPill(t.track)}</td><td class="side">${SIDE[t.side] || esc(t.side)}</td><td>${esc(t.symbol)}</td><td class="t">${fmtTime(t.entry_time)}</td><td class="n">${fmtPrice(t.entry_price)}</td><td class="t">${t.exit_time ? fmtTime(t.exit_time) : "—"}</td><td class="n">${fmtPrice(t.exit_price)}</td><td class="n">${net}</td><td>${realPill(t)}${real}</td><td class="small">${esc(t.note)}</td></tr>`;
+      }).join("");
+    $("stamp").textContent = sourceNote;
+  }
+
+  // step-line equity chart; one y-scale, outage shaded, hover readout
+  function chart(el, title, series, start, end) {
+    series = series.filter((s) => s.curve && s.curve.length);
+    const W = 560, H = 230, L = 52, R = 12, Tp = 10, B = 26;
+    const t0 = Date.parse(start), t1 = Date.parse(end);
+    const pts = (s) => [{ t: t0, eq: P.BASE }, ...s.curve.map((p) => ({ t: Date.parse(p.t), eq: p.eq })), { t: t1, eq: s.curve[s.curve.length - 1].eq }];
+    const all = series.flatMap((s) => pts(s).map((p) => p.eq)).concat([P.BASE]);
+    let lo = Math.min(...all), hi = Math.max(...all);
+    const pad = Math.max((hi - lo) * 0.12, 60); lo -= pad; hi += pad;
+    const x = (t) => L + ((t - t0) / (t1 - t0)) * (W - L - R);
+    const y = (v) => Tp + (1 - (v - lo) / (hi - lo)) * (H - Tp - B);
+    const step = Math.pow(10, Math.floor(Math.log10((hi - lo) / 4)));
+    const tickStep = [1, 2, 5, 10].map((m) => m * step).find((s) => (hi - lo) / s <= 5);
+    let g = "";
+    for (let v = Math.ceil(lo / tickStep) * tickStep; v <= hi; v += tickStep) {
+      g += `<g class="grid"><line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/></g><g class="axis"><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${Math.round(v).toLocaleString("tr-TR")}</text></g>`;
+    }
+    const days = [];
+    for (let d = new Date(t0); d.getTime() <= t1; d.setUTCDate(d.getUTCDate() + 7)) days.push(new Date(d));
+    g += days.map((d) => `<g class="axis"><text x="${x(d.getTime())}" y="${H - 6}" text-anchor="middle">${d.getUTCDate()}.${d.getUTCMonth() + 1}</text></g>`).join("");
+    const o0 = x(Date.parse(P.OUTAGE.from)), o1 = x(Date.parse(P.OUTAGE.to));
+    g = `<rect x="${o0}" y="${Tp}" width="${o1 - o0}" height="${H - Tp - B}" fill="var(--outage)"/><text x="${(o0 + o1) / 2}" y="${Tp + 12}" text-anchor="middle" style="fill:var(--bad);font:11px var(--f-mono)">kesinti</text>` + g;
+    g += `<line x1="${L}" x2="${W - R}" y1="${y(P.BASE)}" y2="${y(P.BASE)}" stroke="var(--ink-3)" stroke-width="1"/>`;
+    for (const s of series) {
+      const p = pts(s);
+      let d = `M${x(p[0].t)},${y(p[0].eq)}`;
+      for (let i = 1; i < p.length; i++) d += `H${x(p[i].t)}V${y(p[i].eq)}`;
+      g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" ${s.dash ? `stroke-dasharray="${s.dash}"` : ""} stroke-linejoin="round"/>`;
+      const last = p[p.length - 1];
+      g += `<circle cx="${x(last.t)}" cy="${y(last.eq)}" r="4" fill="${s.color}" stroke="var(--panel)" stroke-width="2"/>`;
+    }
+    const legend = series.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.name)} <b class="${cls(s.curve[s.curve.length - 1].eq - P.BASE)}" style="font-family:var(--f-mono);font-weight:500">${Math.round(s.curve[s.curve.length - 1].eq).toLocaleString("tr-TR")}</b></span>`).join("");
+    el.innerHTML = `<h2>${esc(title)}</h2>` + (series.length
+      ? `<div class="legend">${legend}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)} kasa grafiği">${g}<line class="cross" x1="0" x2="0" y1="${Tp}" y2="${H - B}" stroke="var(--ink-3)" stroke-width="1" visibility="hidden"/><rect x="${L}" y="${Tp}" width="${W - L - R}" height="${H - Tp - B}" fill="transparent"/></svg><div class="tip">Grafiğin üstüne gel: o günkü kasa</div>`
+      : `<div class="empty">Henüz kapanan işlem yok.</div>`);
+    const svg = el.querySelector("svg");
+    if (!svg) return;
+    const cross = svg.querySelector(".cross"), tip = el.querySelector(".tip");
+    svg.addEventListener("pointermove", (e) => {
+      const r = svg.getBoundingClientRect();
+      const px = ((e.clientX - r.left) / r.width) * W;
+      if (px < L || px > W - R) return;
+      const t = t0 + ((px - L) / (W - L - R)) * (t1 - t0);
+      cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("visibility", "visible");
+      tip.textContent = new Date(t).toLocaleDateString("tr-TR", { timeZone: TZ, day: "numeric", month: "short" }) + " · " +
+        series.map((s) => { const p = pts(s).filter((q) => q.t <= t); return `${s.name}: ${Math.round(p[p.length - 1].eq).toLocaleString("tr-TR")}`; }).join(" · ");
+    });
+    svg.addEventListener("pointerleave", () => { cross.setAttribute("visibility", "hidden"); });
+  }
+
+  // current price of open crypto trades (Binance public prices; fill-in only, never changes a trade)
+  async function livePrices() {
+    const rows = [...document.querySelectorAll("#open tr[data-sym]")].filter((r) => r.dataset.sym !== "NASDAQ");
+    if (!rows.length) return;
+    const syms = [...new Set(rows.map((r) => r.dataset.sym + "USDT"))];
+    try {
+      const res = await fetch("https://data-api.binance.vision/api/v3/ticker/price?symbols=" + encodeURIComponent(JSON.stringify(syms)));
+      if (!res.ok) return;
+      const px = Object.fromEntries((await res.json()).map((x) => [x.symbol, Number(x.price)]));
+      for (const r of rows) {
+        const p = px[r.dataset.sym + "USDT"], e = Number(r.dataset.entry);
+        if (!p || !e) continue;
+        const pl = ((p / e) - 1) * 100 * (r.dataset.side === "short" ? -1 : 1);
+        r.querySelector(".now").textContent = fmtPrice(p);
+        r.querySelector(".pl").innerHTML = `<span class="${cls(pl)}">${signed(pl)}</span>`;
+      }
+    } catch (e) { /* prices are optional */ }
+  }
+
+  async function load() {
+    const live = $("live"), text = $("liveText");
+    if (window.PANEL_RAW) {
+      live.dataset.mode = "snapshot";
+      $("refresh").hidden = true;
+      text.textContent = "Anlık görüntü: " + fmtTime(window.PANEL_STAMP);
+      render(P.build(window.PANEL_RAW), "Bu sayfa " + new Date(window.PANEL_STAMP).toLocaleString("tr-TR", { timeZone: TZ }) + " (İstanbul) itibarıyla verilerle hazırlandı. Canlı sürüm Telegram'da /panel komutuyla açılır.");
+      return;
+    }
+    text.textContent = "Okunuyor…";
+    try {
+      const raw = {};
+      const bust = "?t=" + Math.floor(Date.now() / 60000);
+      await Promise.all(Object.entries(P.FILES).map(async ([k, f]) => {
+        const r = await fetch(RAW_BASE + f + bust, { cache: "no-store" });
+        raw[k] = r.ok ? await r.text() : null;
+      }));
+      render(P.build(raw), "Veriler GitHub'dan canlı okundu: " + new Date().toLocaleString("tr-TR", { timeZone: TZ }) + " (İstanbul).");
+      live.dataset.mode = "live";
+      text.textContent = "Canlı · son okuma " + new Date().toLocaleTimeString("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+    } catch (e) {
+      live.dataset.mode = "error";
+      text.textContent = "Veri okunamadı, Yenile'ye bas (" + String(e.message || e).slice(0, 60) + ")";
+    }
+  }
+  $("refresh").addEventListener("click", load);
+  load();
+  if (!window.PANEL_RAW) setInterval(load, 5 * 60 * 1000);
+})();
+</script>
