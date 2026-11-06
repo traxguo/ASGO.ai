@@ -17,6 +17,7 @@
     yeniCoinHedge: "forward/paper_yeni_coin_hedge/state.json",
     aslanNas: "forward/paper_aslan_nas/state.json",
     pusulaPaper: "forward/pusula_kagit.json",
+    portfoy: "forward/paper_portfoy/state.json",
     realCheck: "dashboard/canli/demo_gercek_kontrol.csv",
   };
 
@@ -199,6 +200,18 @@
     }));
   }
 
+  // ASGO Portföy: the shared-equity line written by scripts/paper_portfoy.py (null until the file exists)
+  function portfolio(json) {
+    if (!json || !Array.isArray(json.curve)) return null;
+    return {
+      name: json.name || "ASGO Portföy", risk: num(json.risk_per_trade), base: num(json.base_usdt) || BASE,
+      equity: num(json.equity), returnPct: num(json.return_pct), maxDd: num(json.max_dd_pct),
+      closed: num(json.trades_closed) || 0, open: num(json.trades_open) || 0, wins: num(json.wins) || 0,
+      lastEvent: json.last_event || null, byStrategy: json.by_strategy || {},
+      curve: json.curve.slice(1).map((p) => ({ t: iso(p.t), eq: num(p.eq) })),
+    };
+  }
+
   // raw: {name: file text or null}
   function build(raw) {
     const checks = parseCsv(raw.realCheck);
@@ -216,7 +229,7 @@
     if (aslan && aslan.open && aslan.open.status !== "pozisyon") {
       pending.push({ strategy: "aslan_nas", symbol: "NASDAQ", price: aslan.open.entry, hour: aslan.open.sig_t });
     }
-    return { trades, pending, strategies: STRATEGIES.map((s) => ({ ...s, stats: stats(trades.filter((t) => t.strategy === s.id)) })) };
+    return { trades, pending, portfolio: portfolio(parseJson(raw.portfoy)), strategies: STRATEGIES.map((s) => ({ ...s, stats: stats(trades.filter((t) => t.strategy === s.id)) })) };
   }
 
   // realized equity curve, win rate and max drawdown from closed trades; real=true uses real-price demo results
@@ -245,7 +258,7 @@
     };
   }
 
-  const api = { BASE, OUTAGE, FILES, STRATEGIES, build, stats, parseCsv, parseJson };
+  const api = { BASE, OUTAGE, FILES, STRATEGIES, build, stats, portfolio, parseCsv, parseJson };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.AsgoPanel = api;
 })(typeof window !== "undefined" ? window : globalThis);

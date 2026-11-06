@@ -55,6 +55,11 @@ button { font: inherit; }
 .tile dl { display: grid; grid-template-columns: repeat(3, auto); gap: 2px 14px; margin: 4px 0 0; justify-content: start; }
 .tile dt { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
 .tile dd { margin: 0; font: 500 14px var(--f-mono); font-variant-numeric: tabular-nums; grid-row: 2; }
+.headline { border: 2px solid var(--ink); display: grid; gap: 10px; }
+.headline .top { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: baseline; }
+.headline .big { font: 500 clamp(30px, 6vw, 44px)/1.05 var(--f-mono); font-variant-numeric: tabular-nums; }
+.headline .kv { font: 500 15px var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.headline .kv b { color: var(--ink); font-weight: 500; }
 .pos { color: var(--good); } .neg { color: var(--bad); }
 section { min-width: 0; }
 .card { background: var(--panel); border: 1px solid var(--rule); padding: 14px 16px; min-width: 0; }
@@ -110,6 +115,8 @@ footer p { margin: 0; max-width: 100ch; }
     <p><b>Demo uyarısı:</b> Bitget demo piyasası bazen gerçek piyasada hiç olmayan derin iğneler yapıyor. Her demo işlemini Binance'in gerçek fiyatlarıyla kontrol ettik. "Demo fiyatı, gerçek piyasada oluşmadı" yazan işlemler gerçek parayla hiç açılmazdı. Bu yüzden asıl ölçü <b>gerçek fiyatla</b> sonuçtur.</p>
     <p><b>Kesinti:</b> 20 Ekim 13:17 ile 28 Ekim akşamı arasında GitHub'ın ücretsiz dakikaları bittiği için botlar çalışmadı (grafikte kırmızı bant). Bu sürede işlem kaydı yok.</p>
   </div>
+
+  <section class="card headline" id="portfoy"></section>
 
   <div class="tiles" id="tiles"></div>
 
@@ -183,6 +190,27 @@ footer p { margin: 0; max-width: 100ch; }
   // equity of several strategies combined on one 10k base
   function combined(trades, real) { return P.stats(trades, real); }
 
+  const start0 = "2026-10-01T00:00:00Z";
+
+  // headline: ASGO Portföy, all portfolio strategies on one shared 10,000 USDT (scripts/paper_portfoy.py)
+  function portfolioLine(pf, start) {
+    const el = $("portfoy");
+    if (!pf) { el.innerHTML = `<h2>ASGO Portföy</h2><div class="empty">Portföy kaydı henüz yok (forward/paper_portfoy/).</div>`; return; }
+    const ret = pf.returnPct, n = (k) => pf.byStrategy[k] || { closed: 0, pnl_usdt: 0 };
+    const parts = [["Fitil", "Fitil"], ["Derin Fitil", "Derin"], ["Dalga", "Dalga"], ["PusulaV2", "Pusula v2"], ["Aslan NAS", "Aslan NAS"]]
+      .map(([k, label]) => `${label} <b class="${cls(n(k).pnl_usdt)}">${n(k).pnl_usdt >= 0 ? "+" : "−"}${fmtNum(Math.abs(n(k).pnl_usdt), 0)}</b> (${n(k).closed})`).join(" · ");
+    el.innerHTML = `<h2>${esc(pf.name)} · tek kasa, işlem başı risk %${fmtNum((pf.risk || 0) * 100, 2)}</h2>
+      <div class="top"><span class="big ${cls(ret)}">${Math.round(pf.equity).toLocaleString("tr-TR")} USDT</span>
+      <span class="kv">getiri <b class="${cls(ret)}">${signed(ret)}</b></span>
+      <span class="kv">en büyük düşüş <b>%${fmtNum(pf.maxDd, 1)}</b></span>
+      <span class="kv">işlem <b>${pf.closed}</b> kapandı · <b>${pf.open}</b> açık · kazanan <b>${pf.closed ? "%" + fmtNum(pf.wins / pf.closed * 100, 0) : "—"}</b></span></div>
+      <p class="small" style="margin:0">Beş strateji (Fitil, Derin Fitil, Dalga, Pusula v2, Aslan Nasdaq) aynı 10.000 USDT kasada. Sadece kayıtlı işlemler toplanır, emir yok. Katkı (USDT, kapanan): ${parts}</p>
+      <div class="chart" id="chartPortfoy"></div>`;
+    chart($("chartPortfoy"), "ASGO Portföy kasası (sadece kapanan işlemler)", [
+      { name: "ASGO Portföy", color: "var(--accent)", curve: pf.curve },
+    ], start, new Date().toISOString());
+  }
+
   function render(data, sourceNote) {
     const T = data.trades;
     const paperT = T.filter((t) => t.track === "paper" && t.unit === "%");
@@ -190,6 +218,7 @@ footer p { margin: 0; max-width: 100ch; }
     const sPaper = combined(paperT), sDemo = combined(demoT), sReal = combined(demoT, true);
     const notFilled = demoT.filter((t) => t.real && t.real.state === "no").length;
     const waiting = demoT.filter((t) => t.status === "closed" && t.real && t.real.state === "pending").length;
+    portfolioLine(data.portfolio, start0);
     $("tiles").innerHTML =
       tile("Kâğıt takip · gerçek fiyat", sPaper, "Fitil + Derin Fitil, 81 coin, emir yok. Kriptonun en dürüst ölçüsü.") +
       tile("Demo · gerçek fiyatla", sReal, `Demo işlemleri gerçek fiyatla yeniden hesaplandı. ${notFilled} işlemin fiyatı gerçek piyasada hiç oluşmadı, ${waiting} işlem kontrol bekliyor.`) +

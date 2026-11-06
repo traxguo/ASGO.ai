@@ -1,0 +1,53 @@
+# "ASGO Portföy" paper tracker: adds up the live forward logs (Fitil + Derin paper, Dalga demo, Pusula v2 paper,
+# Aslan Nasdaq frozen line) on one shared 10,000 USDT equity at 0.25% risk per trade (results/2026-11-06_portfoy_sistem).
+# Reads files that are already in the repo; no keys, no orders, no network besides git. Writes forward/paper_portfoy/.
+name: ASGO Portfoy paper tracking
+
+on:
+  schedule:
+    - cron: "50 * * * *"  # after the hourly bots (:04 Fitil, :06 Aslan, :25 Dalga) have committed their logs
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/paper_portfoy.py
+      - tests/test_paper_portfoy.py
+      - .github/workflows/paper_portfoy.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: paper-portfoy
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check (nothing saved)
+        if: github.event_name == 'pull_request'
+        run: |
+          pip install pytest
+          python -m pytest -q -p no:cacheprovider tests/test_paper_portfoy.py
+          python scripts/paper_portfoy.py --check
+
+      - name: Add up the logged trades (no orders)
+        if: github.event_name != 'pull_request'
+        run: python scripts/paper_portfoy.py
+
+      - name: Save the portfolio log
+        if: github.event_name != 'pull_request'
+        run: |
+          git add forward/paper_portfoy
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "ASGO Portfoy paper log: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0; sleep 5; done
+          exit 1
