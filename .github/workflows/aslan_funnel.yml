@@ -1,9 +1,10 @@
-name: Aslan NAS rejection funnel (research)
-# Research only: where candidate setups of the frozen AslanLiq2_1h (bias) rule die on NAS100, dev + val
-# only (no holdout data is loaded), plus 20 random rejected setups as charts for Aslan to mark.
+name: Aslan NAS funnel and ablation (research)
+# Research only: where candidate setups of the frozen AslanLiq2_1h (bias) rule die on NAS100, and the
+# pre-registered one-filter-at-a-time ablation (results/2026-11-06_aslan_ablasyon). Dev + val only:
+# no holdout data is downloaded or loaded.
 on:
   pull_request:
-    paths: ["research/aslan_nasdaq/funnel.py", ".github/workflows/aslan_funnel.yml"]
+    paths: ["research/aslan_nasdaq/funnel.py", "research/aslan_nasdaq/ablation.py", ".github/workflows/aslan_funnel.yml"]
   workflow_dispatch:
 jobs:
   funnel:
@@ -22,6 +23,7 @@ jobs:
           restore-keys: forex-1m-
       - run: python -u research/aslan_nasdaq/fetch_1m.py
       - run: python -u research/aslan_nasdaq/funnel.py --out funnel_out
+      - run: python -u research/aslan_nasdaq/ablation.py | tee funnel_out/ablation.md
       - uses: actions/upload-artifact@v4
         with:
           name: aslan-funnel

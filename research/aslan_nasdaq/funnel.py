@@ -2,7 +2,7 @@
 Rejection funnel of the frozen Nasdaq rule (AslanLiq2_1h, daily bias filter), dev + val only
 (2020-01 .. 2026-03; the holdout is not loaded). Aslan (via GUO, 2026-11-06): "about 10 trades a month
 means the rules are too strict ... it refuses to enter too often". This shows where candidate setups die,
-without changing any rule, and draws random rejected setups for Aslan to mark "would take / would not".
+without changing any rule. With --n N it also draws N random rejected setups (charts are optional).
 
 Stages (in the order the code applies them):
   1. liquidity sweep: a 1d / 4h swing or previous-day level is taken -> a setup opens (12 1h candles)
@@ -420,7 +420,7 @@ def sample(tab: pd.DataFrame, n: int, seed: int) -> pd.DataFrame:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--n", type=int, default=20)
+    ap.add_argument("--n", type=int, default=0, help="rejected setups to draw (0 = none)")
     ap.add_argument("--seed", type=int, default=11)
     ap.add_argument("--data", type=Path, default=sim.DATA / "NAS100_1m.feather")
     a = ap.parse_args()
@@ -437,6 +437,8 @@ def main() -> None:
                          kill=tab["kill"].str.replace(r" \(data end\)", "", regex=True))
     monthly.pivot_table(index="month", columns="kill", values="side", aggfunc="count", fill_value=0) \
         .reindex(columns=[k for k in ORDER if k in set(monthly["kill"])]).to_csv(a.out / "monthly.csv")
+    if a.n <= 0:  # charts are optional (supervisor 2026-11-06: not needed now)
+        return
     pick = sample(tab, a.n, a.seed)
     rows = []
     for no, (_, s) in enumerate(pick.iterrows(), 1):
