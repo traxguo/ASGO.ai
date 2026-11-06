@@ -106,3 +106,17 @@ test("a plain GET still answers ok (deploy health check)", async () => {
   const res = await worker.fetch(new Request("https://w.example/"), env);
   assert.equal(await res.text(), "ok");
 });
+
+test("the panel's data layer reads the ASGO Portföy headline line", async () => {
+  const { createRequire } = await import("node:module");
+  const P = createRequire(import.meta.url)("../dashboard/canli/normalize.js");
+  assert.equal(P.FILES.portfoy, "forward/paper_portfoy/state.json");
+  const state = { name: "ASGO Portföy", base_usdt: 10000, risk_per_trade: 0.0025, equity: 9975, return_pct: -0.25,
+    max_dd_pct: 0.25, trades_closed: 1, trades_open: 0, wins: 0, by_strategy: { PusulaV2: { closed: 1, pnl_usdt: -25 } },
+    curve: [{ t: "2026-10-01T00:00:00+00:00", eq: 10000 }, { t: "2026-10-07T13:00:00+00:00", eq: 9975 }] };
+  const data = P.build({ portfoy: JSON.stringify(state) });
+  assert.equal(data.portfolio.equity, 9975);
+  assert.equal(data.portfolio.risk, 0.0025);
+  assert.deepEqual(data.portfolio.curve, [{ t: "2026-10-07T13:00:00.000Z", eq: 9975 }]);
+  assert.equal(P.build({}).portfolio, null);
+});

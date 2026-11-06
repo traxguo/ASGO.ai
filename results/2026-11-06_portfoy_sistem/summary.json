@@ -1,0 +1,181 @@
+{
+ "risk_levels": {
+  "0.25": {
+   "stats": {
+    "dev": {
+     "return_pct": 1884.45,
+     "cagr_pct": 81.73,
+     "maxdd_pct": -39.57,
+     "sharpe": 1.85,
+     "worst_month_pct": -13.71,
+     "worst_month": "2024-04",
+     "pos_months": 32,
+     "months": 60
+    },
+    "val": {
+     "return_pct": 41.78,
+     "cagr_pct": 32.35,
+     "maxdd_pct": -11.97,
+     "sharpe": 1.23,
+     "worst_month_pct": -2.56,
+     "worst_month": "2025-04",
+     "pos_months": 7,
+     "months": 15
+    },
+    "holdout": {
+     "return_pct": 20.19,
+     "cagr_pct": 44.34,
+     "maxdd_pct": -18.81,
+     "sharpe": 1.41,
+     "worst_month_pct": -6.34,
+     "worst_month": "2026-07",
+     "pos_months": 3,
+     "months": 6
+    }
+   },
+   "max_gross": 3.0,
+   "trades": 5129
+  },
+  "0.20": {
+   "stats": {
+    "dev": {
+     "return_pct": 1134.2,
+     "cagr_pct": 65.27,
+     "maxdd_pct": -33.82,
+     "sharpe": 1.82,
+     "worst_month_pct": -11.19,
+     "worst_month": "2024-04",
+     "pos_months": 32,
+     "months": 60
+    },
+    "val": {
+     "return_pct": 33.23,
+     "cagr_pct": 25.9,
+     "maxdd_pct": -9.81,
+     "sharpe": 1.22,
+     "worst_month_pct": -2.04,
+     "worst_month": "2025-04",
+     "pos_months": 7,
+     "months": 15
+    },
+    "holdout": {
+     "return_pct": 16.49,
+     "cagr_pct": 35.61,
+     "maxdd_pct": -15.33,
+     "sharpe": 1.41,
+     "worst_month_pct": -5.1,
+     "worst_month": "2026-07",
+     "pos_months": 3,
+     "months": 6
+    }
+   },
+   "max_gross": 2.4,
+   "trades": 5129
+  }
+ },
+ "chosen_risk": 0.0025,
+ "coin_age": {
+  "risk": 0.0025,
+  "skipped_signals": {
+   "dev": {
+    "Aslan NAS": 0,
+    "Dalga": 118,
+    "Derin Fitil": 6,
+    "Fitil": 414,
+    "PusulaV2": 11
+   },
+   "val": {
+    "Aslan NAS": 0,
+    "Dalga": 1,
+    "Derin Fitil": 52,
+    "Fitil": 22,
+    "PusulaV2": 0
+   }
+  },
+  "base": {
+   "dev": {
+    "return_pct": 1884.45,
+    "cagr_pct": 81.73,
+    "maxdd_pct": -39.57,
+    "sharpe": 1.85,
+    "worst_month_pct": -13.71,
+    "worst_month": "2024-04",
+    "pos_months": 32,
+    "months": 60
+   },
+   "val": {
+    "return_pct": 41.78,
+    "cagr_pct": 32.35,
+    "maxdd_pct": -11.97,
+    "sharpe": 1.23,
+    "worst_month_pct": -2.56,
+    "worst_month": "2025-04",
+    "pos_months": 7,
+    "months": 15
+   }
+  },
+  "base_by_strategy": {
+   "dev": {
+    "Aslan NAS": 6.08,
+    "Dalga": 193.74,
+    "Derin Fitil": 12.89,
+    "Fitil": 139.61,
+    "PusulaV2": 54.95
+   },
+   "val": {
+    "Aslan NAS": 4.03,
+    "Dalga": 14.58,
+    "Derin Fitil": 7.92,
+    "Fitil": 9.33,
+    "PusulaV2": 4.56
+   }
+  },
+  "base_trades": {
+   "dev": 3778,
+   "val": 744
+  },
+  "age180": {
+   "dev": {
+    "return_pct": 1102.01,
+    "cagr_pct": 64.4,
+    "maxdd_pct": -38.39,
+    "sharpe": 1.63,
+    "worst_month_pct": -12.23,
+    "worst_month": "2024-04",
+    "pos_months": 34,
+    "months": 60
+   },
+   "val": {
+    "return_pct": 45.16,
+    "cagr_pct": 34.87,
+    "maxdd_pct": -11.97,
+    "sharpe": 1.32,
+    "worst_month_pct": -1.98,
+    "worst_month": "2025-09",
+    "pos_months": 8,
+    "months": 15
+   }
+  },
+  "age180_by_strategy": {
+   "dev": {
+    "Aslan NAS": 6.08,
+    "Dalga": 135.91,
+    "Derin Fitil": 12.5,
+    "Fitil": 114.63,
+    "PusulaV2": 52.02
+   },
+   "val": {
+    "Aslan NAS": 4.03,
+    "Dalga": 14.76,
+    "Derin Fitil": 11.84,
+    "Fitil": 7.44,
+    "PusulaV2": 4.56
+   }
+  },
+  "age180_trades": {
+   "dev": 3239,
+   "val": 672
+  },
+  "adopt": false
+ }
+}
