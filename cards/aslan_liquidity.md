@@ -185,3 +185,12 @@ Denetçinin isteği: daha çok işlem için Nasdaq'ta geçen kural (v2 1h yön f
 - Dört endeksin hiçbiri geçmedi; hepsinde ayda ~6-7 işlem olurdu ama kenar yok.
 - **Önemli uyarı:** S&P 500, Nasdaq'a en çok benzeyen piyasa (işlem günlerinin %56'sı ortak, günlük sonuç korelasyonu +0.48), ama orada kural geliştirme ve doğrulamada eksi. Gerçek bir kenar olsaydı S&P'de de görünmesi beklenirdi. Bu, Nasdaq sonucunun şans olma ihtimalini artırıyor. Nasdaq kağıt takibi sürüyor; karar 2026-11-30 ve sonrasındaki kağıt sonuçlarına göre.
 - Kağıt takibine yeni endeks eklenmedi.
+
+## Huni ve tek tek gevşetme (2026-11-06) — "çok takıyor" sorusu
+Aslan: "ayda 10 işlem çok ağır kural demek, esnetilebilir". Kod: `research/aslan_nasdaq/funnel.py`, `ablation.py`, rapor `results/2026-11-06_aslan_ablasyon/README.md` (denemeler ve geçme şartı testten önce yazıldı). Sadece geliştirme + doğrulama; kasa harcandığı için kullanılmadı.
+
+- 75 ayda 1670 likidite alımı (ayda ~22). Bunların %44'ü **günlük yön ters** olduğu için, %22'si **12 saatte teyit gelmediği** için eleniyor; %28'i işleme dönüyor (ayda ~6). Haber, stop sınırları ve emir dolmaması neredeyse hiç kurulum öldürmüyor.
+- Her filtre tek tek gevşetildi (7 deneme). Geçme şartı: hem geliştirme hem doğrulamada ayda daha çok işlem, toplam net R daha yüksek, 2 kat maliyette ortalama R > 0, rastgele girişten iyi.
+- **Geçen 2 deneme:** yön filtresi yok (ayda ~11-12 işlem) ve aynı anda 2 işlem (ayda ~7-8). İkisi birlikte geçmedi.
+- Dikkat: yön filtresiz sürümde işlem başı kazanç geliştirmede düşüyor ve kasa çalıştırmasında (2026-11-05, yanında rapor edilmişti) toplamda dondurulmuş kuralın gerisindeydi. "Aynı anda 2 işlem" aynı anda 2 kat risk demek. 7 denemede 2 geçiş tesadüf olabilir.
+- Karar: ikisi de dondurulmuş kuralın **yerine geçmez**; 2026-11-06'dan itibaren kağıt takipte yanına ayrı satır olarak eklendi (`forward/paper_aslan_nas_nobias/`, `forward/paper_aslan_nas_maxopen2/`, Telegram'da "GEVŞEK 1 / GEVŞEK 2"). Değerlendirme 2026-11-30'da diğerleriyle.

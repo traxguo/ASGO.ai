@@ -69,3 +69,29 @@ def test_first_run_says_tracking_started():
     state = {}
     msgs = pa.run_once(walk(40), state, pd.Timestamp("2025-02-20", tz="UTC").to_pydatetime())
     assert msgs and msgs[0].startswith("Takip başladı") and state["trades"] == []
+
+
+def test_variant_with_frozen_config_logs_the_same_trades():
+    h1 = walk()
+    start = h1.index[len(h1) // 2].isoformat()
+    end = (h1.index[-1] + timedelta(hours=1)).to_pydatetime()
+    a, b = {"started": start}, {"started": start}
+    pa.run_once(h1, a, end)
+    pa.run_variant(h1, b, end, {}, "test")
+    assert a["trades"] == b["trades"]
+
+
+def test_variant_incremental_runs_match_one_full_run():
+    h1 = walk()
+    start = h1.index[len(h1) // 2]
+    for cfg, _ in pa.VARIANTS.values():
+        inc = {"started": start.isoformat()}
+        for t in h1.index[len(h1) // 2::7]:
+            pa.run_variant(h1, inc, (t + timedelta(hours=1, minutes=5)).to_pydatetime(), cfg, "test")
+        msgs = pa.run_variant(h1, inc, (h1.index[-1] + timedelta(hours=1)).to_pydatetime(), cfg, "test")
+        full = {"started": start.isoformat()}
+        pa.run_variant(h1, full, (h1.index[-1] + timedelta(hours=1)).to_pydatetime(), cfg, "test")
+        # with 2 open at once, trades can close in another order than they opened: compare as sets
+        key = lambda t: t["sig_t"]  # noqa: E731
+        assert sorted(inc["trades"], key=key) == sorted(full["trades"], key=key) and full["trades"]
+        assert isinstance(msgs, list)

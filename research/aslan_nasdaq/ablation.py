@@ -143,7 +143,10 @@ def replay(p: pd.DataFrame, max_open: int, min_stop: float) -> pd.DataFrame:
                          pd.Timestamp(t[j] * 60_000_000_000, tz="UTC")))
         poss = keep
     r = pd.DataFrame(rows, columns=["t_in", "side", "entry", "stop", "exit", "gross_r", "stop_pct", "sig_t", "t_out"])
-    return r.sort_values("t_in", kind="stable").reset_index(drop=True)
+    r = r.sort_values("t_in", kind="stable").reset_index(drop=True)
+    # what is still open after the last candle (used by the live paper tracker)
+    r.attrs["open_orders"], r.attrs["open_poss"] = orders, poss
+    return r
 
 
 def run(f: dict, cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
