@@ -1057,3 +1057,94 @@ def test_v2_no_be_channel55_breaks_out_above_55_candle_high_with_same_stop_input
     assert cut["enter_long"].iloc[-1] == 1
     s = cls.__new__(cls)
     assert cls.signal_conditions(s, b)["short"] == {}
+
+
+def test_v2_no_be_exit_low10_exits_on_closed_daily_close_below_previous_10_day_low():
+    """PusulaV2NoBeExitLow10: exit when the last closed daily close is below the previous 10 daily lows."""
+    tf = pusula.REGIME_TF
+    cls = pusula.PusulaV2NoBeExitLow10
+    base = pusula.PusulaV2NoBe
+    assert issubclass(cls, base) and cls.exit_low_days == 10
+    for name in ("custom_stoploss", "signal_conditions", "populate_entry_trend", "add_plan_columns",
+                 "custom_stake_amount", "leverage", "custom_entry_price", "check_entry_timeout", "swing_levels"):
+        assert getattr(cls, name) is getattr(base, name)
+
+    # Daily flag against a plain loop (the day itself not in the window).
+    rng = np.random.default_rng(3)
+    closes = 100 * np.exp(np.cumsum(rng.normal(0, 0.03, 120)))
+    d = daily(closes)
+    flag = pusula.daily_close_below_prior_low(d)
+    for i in range(len(d)):
+        expect = i >= 10 and d["close"].iloc[i] < d["low"].iloc[i - 10:i].min()
+        assert bool(flag.iloc[i]) == expect
+    assert flag.any() and not flag.iloc[:10].any()
+
+    # 4h rows: 140 days rising, a jump, 12 flat days at the new level (EMA20 still catching up below),
+    # then one drop day (day D) that closes below the previous 10 daily lows but still above EMA20.
+    day_close = np.concatenate([np.linspace(100, 150, 140), [200.0, 250.0], np.full(12, 250.0), [235.0],
+                                np.linspace(240, 260, 15)])
+    rows = []
+    for k, c in enumerate(day_close):
+        prev = day_close[k - 1] if k else c
+        for j in range(6):
+            cl = prev + (c - prev) * (j + 1) / 6
+            rows.append({"open": cl, "high": cl + 0.1, "low": cl - 0.1, "close": cl, "volume": 1.0})
+    h4 = pd.DataFrame(rows)
+    h4.insert(0, "date", pd.date_range("2021-01-01", periods=len(h4), freq="4h", tz="UTC"))
+    d1 = h4.resample("1D", on="date").agg({"open": "first", "high": "max", "low": "min", "close": "last",
+                                            "volume": "sum"}).reset_index()
+    day_d = d1["date"].iloc[154]
+
+    class DP:
+        def __init__(self, dd):
+            self.dd = dd
+
+        def get_pair_dataframe(self, pair, timeframe):
+            return self.dd
+
+        def current_whitelist(self):
+            return ["X/USDT:USDT"]
+
+    def run(c, h, dd):
+        s = c.__new__(c)
+        s.dp, s.mgmt = DP(dd), c.mgmt
+        out = s.populate_indicators(h.copy(), {"pair": "X/USDT:USDT"})
+        out = s.populate_exit_trend(out, {"pair": "X/USDT:USDT"})
+        out["exit_long"] = out.get("exit_long", pd.Series(np.nan, index=out.index)).fillna(0).astype(int)
+        return out.set_index("date")
+
+    a, b = run(base, h4, d1), run(cls, h4, d1)
+    signal_candle = day_d + pd.Timedelta(hours=20)  # closes together with day D
+    assert b.loc[signal_candle, f"close_{tf}"] > b.loc[signal_candle, f"ema_fast_{tf}"]  # still above EMA20
+    # New exit only on the rows that see day D as the last closed daily candle; baseline has none.
+    assert list(b.index[b["exit_long"] == 1]) == list(pd.date_range(signal_candle, periods=6, freq="4h"))
+    assert a["exit_long"].sum() == 0
+    # Earlier 4h rows of day D (daily candle still open) have no exit.
+    assert b.loc[day_d:day_d + pd.Timedelta(hours=16), "exit_long"].sum() == 0
+    # No lookahead: cut at day D's close gives the exit; cut one 4h candle earlier gives none.
+    t = signal_candle + pd.Timedelta(hours=4)
+    cut = run(cls, h4[h4["date"] + pd.Timedelta(hours=4) <= t], d1[d1["date"] + pd.Timedelta(days=1) <= t])
+    assert cut["exit_long"].iloc[-1] == 1 and cut.index[-1] == signal_candle
+    t2 = t - pd.Timedelta(hours=4)
+    cut2 = run(cls, h4[h4["date"] + pd.Timedelta(hours=4) <= t2], d1[d1["date"] + pd.Timedelta(days=1) <= t2])
+    assert cut2["exit_long"].sum() == 0
+    # ms timestamps in the daily file give the same result.
+    b_ms = run(cls, h4, d1.assign(date=d1["date"].dt.as_unit("ms")))
+    assert (b_ms["exit_long"] == b["exit_long"]).all()
+
+    # Exit columns directly: close below EMA20 alone no longer exits; BTC turn still does.
+    df = pd.DataFrame({
+        f"close_{tf}": [105.0, 95.0, 105.0, 105.0, 95.0],
+        f"ema_fast_{tf}": [100.0] * 5,
+        f"below_low10_{tf}": [False, False, True, False, True],
+        f"above_high10_{tf}": [False] * 5,
+        f"mkt_score_{tf}": [1, 1, 1, -1, 1],
+    })
+
+    def exits(c):
+        s = c.__new__(c)
+        out = s.populate_exit_trend(df.copy(), {"pair": "X/USDT:USDT"})
+        return out.get("exit_long", pd.Series(np.nan, index=df.index)).fillna(0).astype(int).tolist()
+
+    assert exits(base) == [0, 1, 0, 1, 1]
+    assert exits(cls) == [0, 0, 1, 1, 1]

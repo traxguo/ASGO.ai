@@ -1860,3 +1860,94 @@ class PusulaV2NoBeChannel55(PusulaV2NoBe):
     """
 
     channel = CHANNEL_55
+
+
+EXIT_LOW_DAYS = 10
+
+
+def daily_close_below_prior_low(daily: DataFrame, days: int = EXIT_LOW_DAYS) -> Series:
+    """
+    Per daily candle: True when its close is below the lowest low of the
+    previous `days` daily candles (the candle itself not included). Uses only
+    that daily candle and older ones; False while fewer than `days` older
+    candles exist.
+    """
+    prior_low = daily["low"].rolling(days).min().shift(1)
+    return (daily["close"] < prior_low).fillna(False)
+
+
+def daily_close_above_prior_high(daily: DataFrame, days: int = EXIT_LOW_DAYS) -> Series:
+    """Short mirror of daily_close_below_prior_low (close above the previous `days` daily highs)."""
+    prior_high = daily["high"].rolling(days).max().shift(1)
+    return (daily["close"] > prior_high).fillna(False)
+
+
+def add_closed_daily_flag(df: DataFrame, daily: DataFrame, flag: Series, column: str,
+                          timeframe_inf: str = REGIME_TF) -> DataFrame:
+    """
+    Add a per-daily-candle boolean `flag` to a frame already merged with
+    merge_informative_pair, as column `column`. Each row gets the flag of the
+    daily candle in f"date_{tf}", i.e. the last daily candle that had CLOSED at
+    or before the row's close (forward filled), so no lookahead. Rows before any
+    closed daily candle get False. Timestamps are compared in one unit (ns), so a
+    ms / ns mix between the daily file and the 4h frame cannot break the lookup.
+    """
+    keys = pd.to_datetime(daily["date"], utc=True).dt.as_unit("ns")
+    lookup = pd.Series(np.asarray(flag, dtype=bool), index=pd.DatetimeIndex(keys))
+    seen = pd.to_datetime(df[f"date_{timeframe_inf}"], utc=True).dt.as_unit("ns")
+    df[column] = seen.map(lookup).fillna(False).astype(bool).to_numpy()
+    return df
+
+
+class PusulaV2NoBeExitLow10(PusulaV2NoBe):
+    """
+    Queue item 30 (2026-11-07, research/queue/pusula_kuyruk.md), exit as a price
+    level, fixed before testing.
+
+    PusulaV2NoBe with a different trend exit: a long is closed when the last
+    closed daily close is below the lowest low of the previous 10 daily candles
+    (that day not included; Turtle "System 1" exit), instead of the last closed
+    daily close below the daily EMA(20). Only closed daily candles: the flag is
+    computed on the daily file and read through f"date_1d" (the last daily
+    candle closed at or before the 4h candle's close, merge_informative_pair),
+    the same moment the baseline EMA20 exit uses. The BTC-turn exit (last
+    closed daily BTC score <= -1), the fixed stop, the entries, 1% risk and
+    max 3 trades are unchanged. Threshold (10 days) fixed, no sweep. The short
+    mirror (close above the previous 10 daily highs) is set but unused (long
+    only).
+
+    Coupling with the entries (checked):
+    - The daily EMA20 is still computed and still used by the long entry
+      ("daily_above_ema20": last closed daily close above EMA20) and by the
+      regime score (EMA20 vs EMA50). Only the exit stops using it.
+    - Freqtrade skips an entry on a candle that also has an exit signal. In the
+      baseline the EMA20 exit (close < EMA20) and the entry condition
+      (close > EMA20) exclude each other, so the EMA20 exit never blocked an
+      entry. The new exit can be true while the daily close is still above
+      EMA20 (a sharp drop after a long rise), so it CAN block an entry signal
+      on such candles (a 4h breakout on a day whose daily close broke the
+      10-day low). This is the only entry-side difference; its count is
+      reported. Conversely, days below EMA20 but above the 10-day low have no
+      exit signal now, but the entry is still blocked there by its own
+      "daily_above_ema20" condition, so no new entry can appear.
+    - The BTC-turn exit is unchanged, so it blocks the same entry candles.
+    All new data comes from the daily file (dp.get_pair_dataframe), never from
+    the analyzed 4h frame (limited to the last 1000 candles in backtesting
+    callbacks).
+    """
+
+    exit_low_days = EXIT_LOW_DAYS
+
+    def populate_indicators(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df = super().populate_indicators(df, metadata)
+        daily = self.dp.get_pair_dataframe(pair=metadata["pair"], timeframe=REGIME_TF)
+        df = add_closed_daily_flag(df, daily, daily_close_below_prior_low(daily, self.exit_low_days),
+                                   f"below_low10_{REGIME_TF}")
+        return add_closed_daily_flag(df, daily, daily_close_above_prior_high(daily, self.exit_low_days),
+                                     f"above_high10_{REGIME_TF}")
+
+    def populate_exit_trend(self, df: DataFrame, metadata: dict) -> DataFrame:
+        df.loc[df[f"below_low10_{REGIME_TF}"].fillna(False).astype(bool), "exit_long"] = 1
+        df.loc[df[f"above_high10_{REGIME_TF}"].fillna(False).astype(bool), "exit_short"] = 1  # unused (long only)
+        df.loc[df[f"mkt_score_{REGIME_TF}"] <= -1, "exit_long"] = 1  # BTC-turn exit (round 2a), unchanged
+        return df
