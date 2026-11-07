@@ -4,17 +4,17 @@
  "base_usdt": 10000.0,
  "risk_per_trade": 0.0025,
  "fitil_risk_unit": 0.04,
- "last_event": "2026-11-07T06:00:00+00:00",
+ "last_event": "2026-11-07T18:00:00+00:00",
  "equity": 9982.0,
  "return_pct": -0.18,
  "max_dd_pct": 2.029,
  "trades_closed": 20,
- "trades_open": 0,
+ "trades_open": 1,
  "wins": 7,
  "by_strategy": {
   "Fitil": {
    "closed": 11,
-   "open": 0,
+   "open": 1,
    "wins": 3,
    "pnl_usdt": -57.3
   },
@@ -129,6 +129,15 @@
    "eq": 9982.0
   }
  ],
- "open": [],
+ "open": [
+  {
+   "strategy": "Fitil",
+   "symbol": "ONE",
+   "side": "long",
+   "entry_time": "2026-11-07T18:00:00+00:00",
+   "unit": "%",
+   "equity_at_entry": 9982.0
+  }
+ ],
  "note": "Sadece kayıtlı işlemler toplanır; emir yok. Açık işlemler kasaya kapanınca yazılır."
 }
