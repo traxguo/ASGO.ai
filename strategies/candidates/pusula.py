@@ -1951,3 +1951,47 @@ class PusulaV2NoBeExitLow10(PusulaV2NoBe):
         df.loc[df[f"above_high10_{REGIME_TF}"].fillna(False).astype(bool), "exit_short"] = 1  # unused (long only)
         df.loc[df[f"mkt_score_{REGIME_TF}"] <= -1, "exit_long"] = 1  # BTC-turn exit (round 2a), unchanged
         return df
+
+
+SQUEEZE_LOOKBACK = 180    # previous 180 4h candles = 30 days
+
+
+def atr_ratio_squeeze(df: DataFrame, lookback: int = SQUEEZE_LOOKBACK) -> Series:
+    """
+    Per 4h candle: True when that candle's ATR(14) / close is <= the median of
+    the same ratio over the previous `lookback` candles (the candle itself NOT
+    included). Uses only that candle and older ones. False while the median is
+    not ready (fewer than `lookback` older ratios) or the ratio is NaN.
+    Expects df["atr"] (ATR(14), PusulaBase.populate_indicators).
+    """
+    ratio = df["atr"] / df["close"]
+    prior_median = ratio.shift(1).rolling(lookback, min_periods=lookback).median()
+    return (ratio <= prior_median).fillna(False)
+
+
+class PusulaV2NoBeSqueeze(PusulaV2NoBe):
+    """
+    Queue item 31 (2026-11-08, research/queue/pusula_kuyruk.md), addition test
+    (volatility squeeze), fixed before testing.
+
+    PusulaV2NoBe with one extra long-entry condition ("atr_squeeze"): on the
+    signal (breakout) 4h candle, ATR(14) / close is <= the median of that ratio
+    over the previous 180 4h candles (30 days; the signal candle is not in the
+    median window). The signal candle has closed when the order is placed
+    (Freqtrade places it on the next candle), so nothing later is used.
+    Thresholds fixed (ATR 14, 180 candles, median), no sweep.
+
+    The ATR is the same 4h ATR(14) column ("atr") the stop and entry zone
+    already use; it is not recomputed or changed. The breakout is still "first
+    4h close above the previous 20-candle high", so a breakout that fails the
+    squeeze test is skipped, not delayed. Warm-up: startup_candle_count stays
+    400 (>= 180 + 14). Stop, size, exits, 8% stop limit, 1% risk and max 3
+    trades are unchanged. Shorts stay off.
+    """
+
+    squeeze_lookback = SQUEEZE_LOOKBACK
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["atr_squeeze"] = atr_ratio_squeeze(df, self.squeeze_lookback)
+        return conds

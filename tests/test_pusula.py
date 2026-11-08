@@ -1148,3 +1148,62 @@ def test_v2_no_be_exit_low10_exits_on_closed_daily_close_below_previous_10_day_l
 
     assert exits(base) == [0, 1, 0, 1, 1]
     assert exits(cls) == [0, 0, 1, 1, 1]
+
+
+def test_v2_no_be_squeeze_needs_atr_ratio_at_or_below_previous_180_candle_median():
+    """PusulaV2NoBeSqueeze: signal candle ATR(14)/close <= median of the previous 180 ratios (itself excluded)."""
+    tf = pusula.REGIME_TF
+    cls = pusula.PusulaV2NoBeSqueeze
+    base = pusula.PusulaV2NoBe
+    assert issubclass(cls, base) and cls.squeeze_lookback == 180
+    assert cls.startup_candle_count == base.startup_candle_count >= 180 + 14
+    for name in ("custom_stoploss", "populate_exit_trend", "populate_indicators", "populate_entry_trend",
+                 "add_plan_columns", "custom_stake_amount", "leverage", "custom_entry_price",
+                 "check_entry_timeout", "swing_levels"):
+        assert getattr(cls, name) is getattr(base, name)
+
+    # Flag against a plain loop: median of ratios i-180 .. i-1 (candle i not in the window).
+    rng = np.random.default_rng(31)
+    m = 400
+    close = 100 * np.exp(np.cumsum(rng.normal(0, 0.01, m)))
+    atr = np.abs(rng.normal(1.0, 0.3, m)) * close / 100
+    atr[:13] = np.nan  # ATR(14) warm-up
+    flag = pusula.atr_ratio_squeeze(pd.DataFrame({"close": close, "atr": atr}))
+    ratio = atr / close
+    for i in range(m):
+        win = ratio[i - 180:i] if i >= 180 else np.array([np.nan])
+        expect = (not np.isnan(win).any()) and ratio[i] <= np.median(win)
+        assert bool(flag.iloc[i]) == expect
+    assert flag.any() and not flag.iloc[:193].any()
+
+    # Entry: baseline conditions on the last candle (first close above the 20-candle high) plus the squeeze.
+    n = 182
+    df = pd.DataFrame({
+        "close": [100.0] * (n - 1) + [102.0], "high": [100.5] * (n - 1) + [102.5],
+        "low": [99.5] * (n - 1) + [101.5], "atr": [1.0] * n,
+        "swing_low": [99.0] * n, "swing_high": [103.0] * n, "dc_upper": [101.0] * n, "dc_lower": [90.0] * n,
+        f"score_{tf}": [1] * n, f"close_{tf}": [105.0] * n, f"ema_fast_{tf}": [100.0] * n, f"mkt_score_{tf}": [1] * n,
+    })
+
+    def entry_for(c, last_atr, later_atr=None):
+        s = c.__new__(c)
+        s.mgmt = c.mgmt
+        x = df.copy()
+        x.loc[n - 1, "atr"] = last_atr
+        if later_atr is not None:  # a later candle exists; it must not change the signal candle's verdict
+            x = pd.concat([x, x.iloc[[-1]].assign(atr=later_atr, close=103.0)], ignore_index=True)
+        out = s.populate_entry_trend(x, {"pair": "X/USDT:USDT"})
+        return int(out.get("enter_long", pd.Series(np.nan, index=x.index)).fillna(0).iloc[n - 1])
+
+    # Previous 180 ratios are all 1/100 = 0.01. Signal ratio 1.02/102 = 0.01 (equal) passes, 1.10/102 fails.
+    assert entry_for(base, 1.10) == 1
+    assert entry_for(cls, 1.02) == 1
+    assert entry_for(cls, 0.80) == 1
+    assert entry_for(cls, 1.10) == 0
+    # No lookahead: a later, very volatile candle does not change the signal candle's verdict.
+    assert entry_for(cls, 1.02, later_atr=5.0) == 1
+    # Too little history for the median (fewer than 180 earlier candles) blocks the entry.
+    s = cls.__new__(cls)
+    short = df.iloc[-150:].reset_index(drop=True)
+    assert not cls.signal_conditions(s, short)["long"]["atr_squeeze"].any()
+    assert cls.signal_conditions(s, df)["short"] == {}
