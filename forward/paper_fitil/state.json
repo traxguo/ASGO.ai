@@ -216,13 +216,13 @@
    "limit_price": 0.002241525,
    "fill_time": "2026-11-07T21:30:00+00:00",
    "entry": 0.002241525,
-   "exit_time": null,
-   "exit": null,
-   "ret_pct": null,
-   "pnl_usdt": null,
+   "exit_time": "2026-11-08T00:45:00+00:00",
+   "exit": 0.0020956,
+   "ret_pct": -6.64,
+   "pnl_usdt": -140.37,
    "size": 2113.9080000000004
   }
  ],
- "equity": 10569.54,
+ "equity": 10429.17,
  "done_until": "2026-11-08T00:00:00+00:00"
 }
