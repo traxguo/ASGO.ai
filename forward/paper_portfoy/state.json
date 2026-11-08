@@ -4,19 +4,19 @@
  "base_usdt": 10000.0,
  "risk_per_trade": 0.0025,
  "fitil_risk_unit": 0.04,
- "last_event": "2026-11-08T05:00:00+00:00",
- "equity": 9984.06,
- "return_pct": -0.159,
+ "last_event": "2026-11-08T13:45:00+00:00",
+ "equity": 9934.06,
+ "return_pct": -0.659,
  "max_dd_pct": 2.029,
- "trades_closed": 23,
+ "trades_closed": 24,
  "trades_open": 0,
  "wins": 8,
  "by_strategy": {
   "Fitil": {
-   "closed": 14,
+   "closed": 15,
    "open": 0,
    "wins": 4,
-   "pnl_usdt": -55.22
+   "pnl_usdt": -105.23
   },
   "Derin Fitil": {
    "closed": 4,
@@ -139,6 +139,10 @@
   {
    "t": "2026-11-08T05:00:00+00:00",
    "eq": 9984.06
+  },
+  {
+   "t": "2026-11-08T13:45:00+00:00",
+   "eq": 9934.06
   }
  ],
  "open": [],
