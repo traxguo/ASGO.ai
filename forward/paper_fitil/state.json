@@ -247,8 +247,21 @@
    "ret_pct": -8.014,
    "pnl_usdt": -166.28,
    "size": 2075.0240000000003
+  },
+  {
+   "pair": "ONE/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-11-08T16:00:00+00:00",
+   "limit_price": 0.001838155,
+   "fill_time": "2026-11-08T16:30:00+00:00",
+   "entry": 0.001838155,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2041.768
   }
  ],
  "equity": 10208.84,
- "done_until": "2026-11-08T16:00:00+00:00"
+ "done_until": "2026-11-08T17:00:00+00:00"
 }
