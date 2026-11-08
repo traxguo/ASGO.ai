@@ -173,3 +173,41 @@ def test_derin_fitil_coin_waits_24_hours_after_a_fill():
     assert len(ex.orders) == 1
     run(ex, FakePubDownLow(94), state, H + timedelta(hours=25, minutes=2))  # fill 10:20 -> free from the 11:00 hour next day
     assert len(ex.orders) == 2
+
+
+class FakeExLateFill(FakeEx):
+    """The exchange lists the market sell only after `late` reads (the 2026-11-08 LINK 'nan' close)."""
+
+    def __init__(self, late, **k):
+        super().__init__(**k)
+        self.late, self.reads = late, 0
+
+    def fetch_my_trades(self, pair, since=None, params=None):
+        self.reads += 1
+        return [] if self.reads <= self.late else super().fetch_my_trades(pair, since, params)
+
+
+def test_late_sell_fill_is_read_again_before_reporting(monkeypatch):
+    monkeypatch.setattr(bf.time, "sleep", lambda s: None)
+    ex, state = FakeExLateFill(late=1), {}
+    run(ex, FakePub(), state, H + timedelta(minutes=2))
+    ex.fill, ex.status = ex.orders[0][2], "filled"
+    log = bf.Log()
+    bf.run_once(ex, FakePub(btc_drop=0.05), state, H + timedelta(minutes=32), log, [])
+    t = list(state["trades"].values())[0]
+    assert t["exit_price"] == 97.0 and t["ret_pct"] == t["ret_pct"]
+    assert any("sonuç %" in line for line in log.lines)
+
+
+def test_unknown_exit_is_fixed_on_the_next_run(monkeypatch):
+    monkeypatch.setattr(bf.time, "sleep", lambda s: None)
+    ex, state = FakeExLateFill(late=10), {}
+    run(ex, FakePub(), state, H + timedelta(minutes=2))
+    ex.fill, ex.status = ex.orders[0][2], "filled"
+    run(ex, FakePub(btc_drop=0.05), state, H + timedelta(minutes=32), pairs=())
+    t = list(state["trades"].values())[0]
+    assert t["status"] == "closed" and t["exit_price"] != t["exit_price"]
+    ex.late = 0
+    log = bf.Log()
+    bf.run_once(ex, FakePub(), state, H + timedelta(minutes=47), log, [])
+    assert t["exit_price"] == 97.0 and any("önceki satışın sonucu" in line for line in log.lines)
