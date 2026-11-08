@@ -21,6 +21,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -135,28 +136,63 @@ class Log:
             self.lines.append(f"• {pair.split('/')[0]}: {detail}")
 
 
+def exit_fill(ex, pair: str, since: datetime, tries: int = 3, wait: float = 2.0) -> tuple[float, float]:
+    """(average sell price, fees) of our fills since `since`; the exchange can list a market fill a few
+    seconds late, so ask again before giving up (the 2026-10-29 and 2026-11-08 'nan' closes)."""
+    price, fees = float("nan"), 0.0
+    for i in range(tries):
+        price, _, fees = bd.close_fills(ex, pair, since, "sell")
+        if price == price:
+            break
+        if i < tries - 1:
+            time.sleep(wait)
+    return price, fees
+
+
+def settle(t: dict, price: float, fees: float) -> float:
+    """Fill in exit price, P/L and return; returns the return in % (nan if the price is unknown)."""
+    fees += float(t.get("entry_fees") or 0)
+    pnl = (price - t["fill_price"]) * t["amount"] - fees if price == price else float("nan")
+    ret = pnl / (t["fill_price"] * t["amount"]) * 100 if pnl == pnl else float("nan")
+    t.update(exit_price=price, pnl_usdt=round(pnl, 4), fees_usdt=round(fees, 4), ret_pct=round(ret, 3))
+    return ret
+
+
 def close_trade(ex, log: Log, now: datetime, t: dict, reason: str) -> None:
     pair = t["pair"]
     if bd.position_size(ex, pair) > 0:
         ex.create_order(pair, "market", "sell", t["amount"], None,
                         {**bd.PRODUCT, "reduceOnly": True, "marginMode": "isolated"})
-    fill_time = datetime.fromisoformat(t["fill_time"])
-    price, _, fees = bd.close_fills(ex, pair, fill_time, "sell")
-    fees += float(t.get("entry_fees") or 0)
-    pnl = (price - t["fill_price"]) * t["amount"] - fees if price == price else float("nan")
-    ret = pnl / (t["fill_price"] * t["amount"]) * 100 if pnl == pnl else float("nan")
-    t.update(status="closed", exit_time=now.isoformat(), exit_price=price, exit_reason=reason,
-             pnl_usdt=round(pnl, 4), fees_usdt=round(fees, 4), ret_pct=round(ret, 3))
+    price, fees = exit_fill(ex, pair, datetime.fromisoformat(t["fill_time"]))
+    t.update(status="closed", exit_time=now.isoformat(), exit_reason=reason)
+    ret = settle(t, price, fees)
     bd.append_csv(OUT_DIR / "trades.csv", TRADE_FIELDS, t)
     tr = {"time_exit": "3 saat doldu, satıldı", "btc_guard": "BTC de çakıldı, hemen satıldı",
           "over_limit": "5 işlem sınırı doluydu, hemen satıldı",
           "stop": f"fiyat %{DEEP_STOP * 100:.0f} düştü, stop ile satıldı"}[reason]
-    log.event(now, pair, "closed", f"{tr}, sonuç %{ret:+.2f}", tell=True)
+    result = f"sonuç %{ret:+.2f}" if ret == ret else "satış fiyatı borsada henüz görünmüyor, sonuç sonraki turda yazılacak"
+    log.event(now, pair, "closed", f"{tr}, {result}", tell=True)
+
+
+def repair_unknown_exits(ex, log: Log, now: datetime, trades: dict) -> None:
+    """Closed trades whose sell fill was not readable yet: read it again and report the real result."""
+    for t in trades.values():
+        if t.get("status") != "closed" or t.get("exit_price") == t.get("exit_price"):
+            continue
+        if now - datetime.fromisoformat(t["exit_time"]) > timedelta(hours=24):
+            continue  # later sells of the same coin would mix in (close_fills reads every sell since the fill)
+        price, fees = exit_fill(ex, t["pair"], datetime.fromisoformat(t["fill_time"]), tries=1)
+        if price != price:
+            continue
+        ret = settle(t, price, fees)
+        bd.append_csv(OUT_DIR / "trades.csv", TRADE_FIELDS, t)
+        log.event(now, t["pair"], "result fixed", f"önceki satışın sonucu: %{ret:+.2f}", tell=True)
 
 
 def run_once(ex, pub, state: dict, now: datetime, log: Log, pairs: list[str]) -> None:
     trades = state.setdefault("trades", {})
     hour = now.replace(minute=0, second=0, microsecond=0)
+    repair_unknown_exits(ex, log, now, trades)
 
     # 1. pending limits
     drops: dict = {}
