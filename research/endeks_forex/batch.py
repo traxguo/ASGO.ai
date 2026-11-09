@@ -32,6 +32,7 @@ MIN = 60_000_000_000  # one minute in ns
 DAY_NS = 1440 * MIN
 STALE = 30 * MIN
 SPIKE = 0.05
+WRONG = {"GER40": [("2020-06-13", "2023-12-04")]}
 GAP_DAYS = 5  # consecutive daily rows further apart than this = missing data; no trade spans such a gap
 CLEAN: dict = {}
 
@@ -63,6 +64,14 @@ class Inst:
         out = np.where(ok, self.c[np.clip(i, 0, None)], np.nan)
         return out
 
+    def px_open(self, t) -> np.ndarray:
+        """Opening price at time(s) t: open of the first bar starting in [t, t + 15 min) (NaN if none)."""
+        t = np.asarray(t, dtype=np.int64)
+        i = np.searchsorted(self.start, t)
+        i2 = np.clip(i, 0, len(self.start) - 1)
+        ok = (i < len(self.start)) & (self.start[i2] - t < 15 * MIN)
+        return np.where(ok, self.o[i2], np.nan)
+
     def has_bar(self, t) -> np.ndarray:
         t = np.asarray(t, dtype=np.int64)
         i = np.searchsorted(self.start, t)
@@ -85,6 +94,10 @@ def load(name: str, data: Path) -> Inst:
     # more than SPIKE away from the centered median close of the surrounding 25 bars
     med = d.close.rolling(25, center=True, min_periods=5).median()
     bad = ((d.close / med - 1).abs() > SPIKE) | (d.high / med - 1 > SPIKE) | (1 - d.low / med > SPIKE)
+    # HistData "grxeur" holds a different index (Euro Stoxx 50 price level, ~3000-4400) from 2020-06-15 to
+    # 2023-12-01 (seen in diag/daily_GER40.csv); that window is treated as missing data
+    for lo, hi in WRONG.get(name, []):
+        bad |= pd.Series((t >= pd.Timestamp(lo, tz="UTC")) & (t < pd.Timestamp(hi, tz="UTC")), index=d.index)
     CLEAN[name] = int(bad.sum())
     t, d = t[~bad.to_numpy()], d[~bad]
     return Inst(name, t.asi8.copy(), d.open.to_numpy(float), d.high.to_numpy(float), d.low.to_numpy(float),
@@ -124,7 +137,7 @@ def session_table(x: Inst, open_hm: str, close_hm: str, tz: str) -> pd.DataFrame
     te = tc + 10 * MIN
     ok = (to > 0) & (tc > 0)
     df = pd.DataFrame({"date": DATES, "t_open": to, "t_close": tc, "t_ent": te})[ok].reset_index(drop=True)
-    df["p_open"] = x.px(df.t_open.to_numpy())
+    df["p_open"] = x.px_open(df.t_open.to_numpy())
     df["p_close"] = x.px(df.t_close.to_numpy())
     df["p_ent"] = x.px(df.t_ent.to_numpy())
     return df.dropna().reset_index(drop=True)
