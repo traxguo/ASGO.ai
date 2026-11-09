@@ -107,3 +107,81 @@ Geçen her fikir için kâğıt takip (gerçek emir yok) kurulur. Kötü sonuç 
 
 Kod: `research/endeks_forex/` (veri: `fetch.py`, test: `batch.py`). İş akışı: `.github/workflows/endeks_forex_batch.yml`
 (GitHub sunucusunda çalışır, sonuç CSV'lerini bu klasöre commit'ler).
+
+---
+
+## 2. Sonuç (ön kayıttan sonra hesaplandı, 2026-11-09)
+
+**Kısa cevap: 8 fikrin 15 yön satırından hiçbiri geçmedi (0/15). Kâğıt takip kurulmadı, ASGO Portföy'e ekleme yok.**
+En yakın olan, günlük RSI(2) long (NAS/SPX): iki dönemde artı, PF 1.9 / 1.3, 2x masrafta artı, düşüş küçük — ama
+**rastgele long girişten ayırt edilemiyor** (p = 0.16). 2020-2026'da endeksler çok yükseldiği için birkaç gün tutulan
+herhangi bir long da kazandırdı; kural bunun üstüne anlamlı bir şey eklemiyor. Üst üste 3 düşüş günü long da aynı durumda (p = 0.10).
+
+Ön kayıt commit'leri: 01af554 (kurallar), 289113a (çıta eki: düşüş ≤ %25). Kod `research/endeks_forex/batch.py`,
+çalıştırma GitHub iş akışı `endeks_forex_batch.yml` (çalışma 42579437334). Ham çıktı: `run_log.txt`.
+
+### Ana ayarlar (masraf + swap dahil, işlem başı net %, fikrin enstrümanları birlikte)
+"p" = geliştirmede rastgele giriş kontrolü (aynı yön, aynı tutma süresi). "Düşüş" = test edilen büyüklükte en büyük düşüş.
+
+| Fikir | Yön | Gel. işlem | Gel. ort. | Gel. PF | Gel. kazanma | Doğ. işlem | Doğ. ort. | Doğ. PF | Doğ. kazanma | 2x masraf gel./doğ. | p (gel.) | Düşüş gel./doğ. | Sonuç | Düşüren şart |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| I1 Gece kayması | long (gece) | 2317 | −0.005% | 0.98 | 51.5% | 610 | −0.005% | 0.98 | 51.8% | −0.035 / −0.035 | 0.89 | 29.5 / 16.7% | GEÇMEDİ | net, PF, kontrol, 2x, düşüş |
+| I1 Gece kayması | short (gün içi) | 2354 | −0.048% | 0.89 | 44.7% | 616 | −0.026% | 0.93 | 47.7% | −0.058 / −0.036 | 0.92 | 48.6 / 21.1% | GEÇMEDİ | net, PF, kontrol, 2x, düşüş |
+| I2 Ay dönümü | long | 129 | +0.170% | 1.18 | 51.9% | 42 | −0.031% | 0.96 | 47.6% | +0.075 / −0.126 | 0.49 | 9.0 / 3.3% | GEÇMEDİ | PF, doğ. eksi, kontrol |
+| I3 RSI(2) | long | 71 | +0.448% | 1.94 | 66.2% | 34 | +0.229% | 1.35 | 73.5% | +0.368 / +0.143 | 0.16 | 4.5 / 5.1% | GEÇMEDİ | kontrol (p ≥ 0.05) |
+| I3 RSI(2) | short | 23 | +0.563% | 1.98 | 65.2% | 4 | +0.215% | 1.37 | 75.0% | +0.512 / +0.175 | 0.069 | 2.6 / 0.8% | GEÇMEDİ | kontrol, doğ. 4 işlem |
+| I4 Boşluk doldurma | long | 669 | +0.018% | 1.05 | 63.7% | 170 | +0.071% | 1.21 | 64.1% | +0.008 / +0.061 | 0.47 | 9.2 / 4.9% | GEÇMEDİ | gel. PF, kontrol |
+| I4 Boşluk doldurma | short | 831 | −0.040% | 0.89 | 56.2% | 210 | +0.053% | 1.23 | 61.0% | −0.050 / +0.043 | 0.59 | 19.7 / 2.8% | GEÇMEDİ | gel. eksi, kontrol |
+| I5 3 gün | long | 147 | +0.254% | 1.44 | 66.7% | 51 | +0.849% | 6.41 | 80.4% | +0.209 / +0.809 | 0.10 | 11.3 / 1.0% | GEÇMEDİ | kontrol (p ≥ 0.05) |
+| I5 3 gün | short | 215 | −0.044% | 0.92 | 54.9% | 67 | +0.017% | 1.04 | 59.7% | −0.075 / −0.014 | 0.21 | 14.8 / 2.5% | GEÇMEDİ | gel. eksi, PF, kontrol |
+| I6 Altın–DXY | long | 8 | +0.468% | 2.85 | 62.5% | 3 | +0.592% | 1.27 | 66.7% | +0.376 / +0.500 | 0.34 | 1.6 / 6.5% | GEÇMEDİ | kontrol, çok az işlem |
+| I6 Altın–DXY | short | 16 | −0.634% | 0.56 | 31.3% | 9 | −0.065% | 0.97 | 33.3% | −0.688 / −0.119 | 0.72 | 14.5 / 19.6% | GEÇMEDİ | eksi, az işlem |
+| I7 DAX–NAS farkı | long | 12 | −0.416% | 0.80 | 58.3% | 8 | −0.366% | 0.72 | 37.5% | −0.656 / −0.635 | 0.39 | 14.2 / 8.9% | GEÇMEDİ | eksi, az işlem |
+| I7 DAX–NAS farkı | short | 4 | +0.014% | 1.03 | 50.0% | 5 | −1.808% | 0.31 | 40.0% | −0.310 / −2.087 | 0.57 | 1.1 / 12.7% | GEÇMEDİ | eksi, az işlem |
+| I8 Londra kırılımı | long | 1006 | −0.012% | 0.90 | 43.7% | 240 | +0.002% | 1.02 | 46.7% | −0.022 / −0.008 | 0.35 | 10.6 / 2.6% | GEÇMEDİ | net, PF, kontrol, 2x |
+| I8 Londra kırılımı | short | 1063 | −0.008% | 0.94 | 41.8% | 225 | −0.025% | 0.80 | 40.4% | −0.018 / −0.035 | 0.69 | 10.3 / 4.7% | GEÇMEDİ | net, PF, kontrol, 2x |
+
+Doğrulamada 30'dan az işlem: I3 short (4; 2025-26'da endeksler SMA200'ün altında çok az kaldı), I6 (3 ve 9; |z| > 2
+seyrek ve 5 gün tutuluyor), I7 (8 ve 5; DAX verisi eksik, aşağıya bakın). Bu satırlar zaten başka şartlardan da düşüyor.
+
+### Enstrüman kırılımı (ana ayar, net ort. % gel. / doğ.)
+- I3 RSI(2) long: NAS +0.50 / +0.57 (31 / 12 işlem), SPX +0.52 / +0.69 (33 / 10), DAX −0.10 / −0.50 (7 / 12).
+- I5 3 gün long: NAS +0.50 / +1.33, SPX +0.28 / +0.98, DAX −0.68 / +0.41. Doğrulamadaki toplam +43 puanın ~14'ü Nisan 2025, ~13'ü Mart 2026 düşüş-dönüşlerinden (3 + 8 işlem).
+- I4 boşluk doldurma long: NAS +0.002 / +0.05, SPX +0.04 / +0.09 — masraftan sonra sıfıra yakın.
+- I1 gece long: NAS −0.000 / +0.005, SPX −0.009 / −0.016. Masrafsız gece getirisi küçük artı; günlük masraf + gecelik swap (%5/yıl) bunu siliyor.
+- Tam tablo `summary.csv` (her ayar × yön × dönem × masraf × enstrüman), yıllar `yearly_primary.csv`, işlemler `trades_primary.csv`.
+
+### Izgara (sadece bilgi; geçme kararı ana ayarla, ızgaradan seçim yapılmadı)
+- I3 long'un tüm 6 komşusu geliştirmede artı (PF 1.9–4.2); 25/75 eşiği daha çok işlem verir (gel. 154, doğ. 74, ort. +0.40% / +0.24%).
+  Bu ayarlar için rastgele kontrol çalıştırılmadı; ana ayarın kontrolü (p = 0.16) aynı nedenle muhtemelen onlarda da zayıf olur.
+- I4 boşluk doldurma "sadece kapanışta çık" doğrulamada daha iyi (long +0.21%, short +0.17%) ama geliştirmede short eksi, long PF 1.10.
+- I8 hedefli (1R/2R) sürümler de iki yönde eksi. I1 SMA200 filtresi sıfır civarı.
+
+### Al-tut kıyası (dönem başı → sonu)
+| | NAS100 | SPX500 | DAX | EURUSD | GBPUSD | Altın |
+|---|---|---|---|---|---|---|
+| Geliştirme 2020-24 | +140% | +82% | (veri eksik) | −8% | −6% | +73% |
+| Doğrulama 2025-26/03 | +13% | +11% | +16% | +12% | +6% | +78% |
+
+Long kurallarının hepsi al-tuttan çok daha az kazandırıyor (örneğin I3 long geliştirmede 71 işlem × +0.45% ≈ +32%, kasa
+üçe bölünmüş olarak ≈ +%11; NAS al-tut +%140). Short kuralları yükselen piyasada genelde eksi.
+
+### Veri sorunları ve düzeltmeler (şeffaflık için)
+1. **İlk çalıştırma (veri hatası, CSV `run1_pass_data_error.csv`):** DAX gün listesi katı saat eşleşmesi yüzünden aylarca eksikti,
+   işlemler aylarca açık kaldı; bir de +%278'lik sahte işlem vardı. Kurallar değiştirilmeden veri okuma düzeltildi:
+   gün = açılış ve kapanışta taze (≤ 30 dk) fiyat; komşu 25 mumun medyanından %5'ten fazla sapan tekil mumlar atıldı;
+   hiçbir günlük işlem 5 günden uzun veri boşluğunu aşamaz (rastgele kontrolde de).
+2. **HistData "grxeur" (DAX) 2020-06-15 → 2023-12-01 arası DAX değil:** fiyat 3000–4400 (Euro Stoxx 50 seviyesi), 2023-12-01'de
+   4424'ten 16429'a atlıyor (`diag/daily_GER40.csv`). Bu dönem eksik veri sayıldı. DAX geliştirmede sadece 2020-01 → 06 ve
+   2023-12 → 2024-12 var; I2/I3/I5'in DAX kısmı ve I7 (DAX–NAS) bu yüzden az işlemli. **Not:** önceki
+   `results/2026-11-05_aslan_endeksler` GER40 testi de aynı bozuk veriyi kullanmış olmalı; o sonuç güvenilir değil.
+3. Açılış fiyatı = nakit açılış saatinde başlayan ilk 5 dk mumun açılışı (README'deki "açılış (09:30)" tanımı; ilk kod sürümü bir önceki mumun kapanışını alıyordu, yaz aylarında DAX açılışını bulamıyordu).
+4. NAS/SPX 2023-03 → 07 arası HistData'da günde ~16 saat veri var; 2023'te ~60 gün düştü (`data_check.csv`).
+5. Bilinen küçük kusur: saat-bazlı rastgele kontrolde (I1, I4, I8) çıkış anında fiyat yoksa (hafta sonu vb.) rastgele işlem 0 sayıldı;
+   bu rastgele ortalamayı sıfıra çeker. Bu üç fikir zaten geliştirmede net/PF şartından düştüğü için karar değişmez.
+
+### Öğrenilenler
+- 2020-2026 boğa piyasasında "birkaç gün long tut" kuralları rastgele long girişle aynı kazancı veriyor; geri dönüş (RSI2, 3 gün) fikirleri
+  burada ölçülebilir bir avantaj göstermedi (p 0.10–0.16). Short tarafı hiçbir fikirde iki dönemde birden tutmadı.
+- Gece kayması (overnight drift) masrafsız bile çok küçük; gecelik swap ve masraf bunu tamamen siliyor.
+- Londra kırılımı forex'te sıfır avantaj (forex_tarama'daki açılış aralığı kırılımı sonucu ile aynı).
