@@ -95,6 +95,13 @@ masraf ve swap aynı hesaplanır. Rastgele giriş havuzu:
 5. Kazanma oranı (net getirisi > 0 olan işlemlerin payı) ≥ %50, **hem geliştirmede hem doğrulamada**
    (2026-11-09, proje sahibinin kararı; ön kayıt commit'lenmeden ve getiri hesaplanmadan önce eklendi).
 
+**Ek (2026-11-09, proje sahibinin kararı, getiriler hesaplanmadan önce):** 5. madde (kazanma oranı ≥ %50) kaldırıldı;
+kazanma oranı sadece bilgi olarak raporlanır. Yerine yeni 5. madde:
+5. Test edilen büyüklükte en büyük düşüş (max drawdown) **≤ %25, hem geliştirmede hem doğrulamada**.
+   Test edilen büyüklük: kasa fikrin enstrümanlarına eşit bölünür (k enstrüman → her işlem kasanın 1/k'sı kadar pozisyon,
+   kaldıraçsız; DAX–NAS için bir bacak = kasanın tamamı). İşlemler çıkış zamanı sırasıyla bileşik toplanır:
+   kasa × (1 + net getiri / k). Düşüş, bu kasa eğrisinin zirveden en büyük yüzde düşüşüdür (yön başına, dönem başına, 1x masraf).
+
 Her fikir için kazanma oranı, long ve short ayrı, enstrüman kırılımı ve al-tut kıyası raporlanır.
 Geçen her fikir için kâğıt takip (gerçek emir yok) kurulur. Kötü sonuç gizlenmez.
 
