@@ -37,11 +37,13 @@ jobs:
           path: user_data/efb5m
           key: efb-5m-${{ hashFiles('research/endeks_forex/fetch.py', 'research/forex/fetch_histdata.py') }}
         continue-on-error: true  # the key already exists when the restore hit
+      - name: Data diagnostics (compact daily summaries)
+        run: python -u research/endeks_forex/diag.py
       - name: Run the pre-registered batch
         run: python -u research/endeks_forex/batch.py 2>&1 | tee results/2026-11-09_endeks_forex_batch/run_log.txt
       - name: Commit the result CSVs
         run: |
-          git add results/2026-11-09_endeks_forex_batch/*.csv results/2026-11-09_endeks_forex_batch/run_log.txt
+          git add results/2026-11-09_endeks_forex_batch/*.csv results/2026-11-09_endeks_forex_batch/run_log.txt results/2026-11-09_endeks_forex_batch/diag
           if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
