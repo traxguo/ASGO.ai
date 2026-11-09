@@ -90,3 +90,19 @@ Short: funding ≥ üst %p ve > 0 VE kapanış < önceki 5 günün en düşük k
 önceki 5 günün en yüksek kapanışı. H gün sonra kapanışta çıkış. Izgara: p ∈ {**5**, 10} × H ∈ {3, **5**, 10}.
 
 Kod: `research/coin_batch/batch.py` (ön kayıttan sonra çalıştırılır).
+
+### Ek (2026-11-09, proje sahibinin kararı; hiçbir getiri hesaplanmadan önce yazıldı ve commit edildi)
+
+Çıtadaki 6. madde (**kazanma oranı ≥ %50**) proje sahibi tarafından **geri alındı**; kazanma oranı sadece bilgi olarak raporlanır.
+Yerine yeni 6. madde:
+
+6. **En büyük düşüş (max drawdown), test edilen boyutta, hem gel. hem doğ. %25'ten kötü değil.**
+   Ölçüm (her fikir, her yön, ayrı): tek kasa 1.0 ile başlar; her işlemin kârı = girişteki kasa × (1/K) × işlem getirisi
+   (işlem getirisi yukarıdaki gibi, kendi boyutu dahil). Olaylar zamana göre sıralanır (aynı anda önce çıkışlar), kasa
+   işlem kapanınca güncellenir (`scripts/paper_portfoy.py` ile aynı mantık). Düşüş, bu kapanış bazlı kasa eğrisinin
+   tepeden en derin düşüşüdür; her dönem kendi kasasıyla (1.0'dan) ölçülür.
+   K (kasanın kaç dilime bölündüğü, fikrin evren büyüklüğü): F1 = 2 (BTC, ETH yarım kasa), F2 = 36, F3 = 3, F4 = 10,
+   F5 = 1, F6 = 36, F7 = 1, F8 = 36.
+
+Son çıta (hepsi gerekli, ANA ayar, long ve short ayrı): net ortalama > 0 ve PF ≥ 1.2 (gel. + doğ.), rastgele kontrol
+gel. p < 0.05, 2x masrafta ortalama > 0 (gel. + doğ.), doğ. ≥ 30 işlem (ya da nedeni), düşüş ≤ %25 (gel. + doğ.).
