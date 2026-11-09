@@ -1,0 +1,50 @@
+name: Endeks forex batch (research)
+# Research only: 8 pre-registered index/forex ideas (results/2026-11-09_endeks_forex_batch/README.md).
+# Downloads HistData 1m bars (dev + val only, 2020-01 .. 2026-03; cached, never committed), runs the test
+# and commits the result CSVs back to the branch (the research container cannot download Actions artifacts).
+on:
+  push:
+    branches: ["claude/**"]
+    paths: ["research/endeks_forex/**", ".github/workflows/endeks_forex_batch.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: endeks-forex-batch-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy pyarrow histdata
+      - uses: actions/cache/restore@v4
+        with:
+          path: user_data/efb5m
+          key: efb-5m-${{ hashFiles('research/endeks_forex/fetch.py', 'research/forex/fetch_histdata.py') }}
+      - run: python -u research/endeks_forex/fetch.py
+      - uses: actions/cache/save@v4
+        with:
+          path: user_data/efb5m
+          key: efb-5m-${{ hashFiles('research/endeks_forex/fetch.py', 'research/forex/fetch_histdata.py') }}
+        continue-on-error: true  # the key already exists when the restore hit
+      - name: Run the pre-registered batch
+        run: python -u research/endeks_forex/batch.py 2>&1 | tee results/2026-11-09_endeks_forex_batch/run_log.txt
+      - name: Commit the result CSVs
+        run: |
+          git add results/2026-11-09_endeks_forex_batch/*.csv results/2026-11-09_endeks_forex_batch/run_log.txt
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Endeks forex batch results: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3 4 5; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0; sleep 7; done
+          exit 1
