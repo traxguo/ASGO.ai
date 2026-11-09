@@ -1,0 +1,15 @@
+idea,config,side,net_pos,pf_1.2,rand_p<0.05_dev,cost2x_pos,val_30,dd_25,PASS
+F1,N120,long,True,True,False,True,False,True,False
+F2,L60,long,False,False,True,False,True,False,False
+F2,L60,short,False,False,True,False,True,False,False
+F3,k0.5_H1,long,True,True,True,True,True,True,True
+F3,k0.5_H1,short,True,True,True,True,True,False,False
+F4,z2.5_H3,long,True,False,False,True,True,True,False
+F5,main,long,True,False,False,False,True,False,False
+F5,main,short,False,False,False,False,True,False,False
+F6,X0.95_H14,long,False,False,False,False,False,True,False
+F7,N50,long,False,False,False,False,True,False,False
+F8,p5_H5,long,False,False,False,False,True,True,False
+F8,p5_H5,short,True,False,True,True,True,True,False
+F3,k0.5_H1_real,long,False,False,False,False,True,False,False
+F3,k0.5_H1_real,short,False,False,False,False,True,False,False

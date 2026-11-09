@@ -1,0 +1,90 @@
+NAS100: 418206 bars 2020-01-01 23:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+SPX500: 418635 bars 2020-01-01 23:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+GER40: 189044 bars 2020-01-01 23:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+EURUSD: 456779 bars 2020-01-01 22:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+GBPUSD: 456475 bars 2020-01-01 22:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+XAUUSD: 433544 bars 2020-01-01 23:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+USDJPY: 456483 bars 2020-01-01 22:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+USDCAD: 456412 bars 2020-01-01 22:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+USDSEK: 454227 bars 2020-01-01 22:05:00+00:00 -> 2026-03-31 23:55:00+00:00
+USDCHF: 456098 bars 2020-01-01 22:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+NAS100: 1480 sessions 2020-01-02 -> 2026-03-31
+SPX500: 1492 sessions 2020-01-02 -> 2026-03-31
+GER40: 712 sessions 2020-01-02 -> 2026-03-31
+data check {'inst': 'NAS100', 'bars': 418206, 'bad_prints_removed': 5, 'sessions_2020': 249, 'sessions_2021': 251, 'sessions_2022': 250, 'sessions_2023': 176, 'sessions_2024': 246, 'sessions_2025': 247, 'sessions_2026': 61, 'gaps_over_5d': 13, 'longest_gap_days': 12.0}
+data check {'inst': 'SPX500', 'bars': 418635, 'bad_prints_removed': 6, 'sessions_2020': 248, 'sessions_2021': 251, 'sessions_2022': 250, 'sessions_2023': 187, 'sessions_2024': 248, 'sessions_2025': 247, 'sessions_2026': 61, 'gaps_over_5d': 8, 'longest_gap_days': 27.0}
+data check {'inst': 'GER40', 'bars': 189044, 'bad_prints_removed': 142329, 'sessions_2020': 116, 'sessions_2021': 0, 'sessions_2022': 0, 'sessions_2023': 18, 'sessions_2024': 257, 'sessions_2025': 258, 'sessions_2026': 63, 'gaps_over_5d': 1, 'longest_gap_days': 1270.0}
+data check {'inst': 'EURUSD', 'bars': 456779, 'bad_prints_removed': 0}
+data check {'inst': 'GBPUSD', 'bars': 456475, 'bad_prints_removed': 0}
+data check {'inst': 'XAUUSD', 'bars': 433544, 'bad_prints_removed': 0}
+data check {'inst': 'USDJPY', 'bars': 456483, 'bad_prints_removed': 0}
+data check {'inst': 'USDCAD', 'bars': 456412, 'bad_prints_removed': 0}
+data check {'inst': 'USDSEK', 'bars': 454227, 'bad_prints_removed': 1}
+data check {'inst': 'USDCHF', 'bars': 456098, 'bad_prints_removed': 0}
+I1: done, 8428 trades so far
+I2: done, 9116 trades so far
+I3: done, 10076 trades so far
+I4: done, 20590 trades so far
+I5: done, 22475 trades so far
+I6: done, 22880 trades so far
+I7: done, 23029 trades so far
+I8: done, 30666 trades so far
+control I1 -1 dev: real -0.0478% random -0.0279% p=0.9150
+control I1 -1 val: real -0.0264% random -0.0270% p=0.5087
+control I1 +1 dev: real -0.0046% random +0.0261% p=0.8926
+control I1 +1 val: real -0.0055% random +0.0199% p=0.7261
+control I2 +1 dev: real +0.1696% random +0.1543% p=0.4883
+control I2 +1 val: real -0.0305% random +0.0548% p=0.6092
+control I3 -1 dev: real +0.5625% random -0.2923% p=0.0690
+control I3 -1 val: real +0.2154% random -0.1248% p=0.3303
+control I3 +1 dev: real +0.4481% random +0.1336% p=0.1624
+control I3 +1 val: real +0.2285% random +0.0731% p=0.3443
+control I4 -1 dev: real -0.0404% random -0.0337% p=0.5912
+control I4 -1 val: real +0.0530% random -0.0275% p=0.0985
+control I4 +1 dev: real +0.0184% random +0.0155% p=0.4703
+control I4 +1 val: real +0.0709% random +0.0049% p=0.1489
+control I5 -1 dev: real -0.0440% random -0.1651% p=0.2089
+control I5 -1 val: real +0.0165% random -0.1156% p=0.2619
+control I5 +1 dev: real +0.2544% random +0.0547% p=0.1044
+control I5 +1 val: real +0.8488% random +0.0213% p=0.0005
+control I6 -1 dev: real -0.6337% random -0.3191% p=0.7226
+control I6 -1 val: real -0.0649% random -1.0141% p=0.1924
+control I6 +1 dev: real +0.4676% random +0.1364% p=0.3398
+control I6 +1 val: real +0.5920% random +0.8353% p=0.5797
+control I7 -1 dev: real +0.0135% random +0.3166% p=0.5662
+control I7 -1 val: real -1.8079% random -0.2642% p=0.8706
+control I7 +1 dev: real -0.4165% random -0.6854% p=0.3863
+control I7 +1 val: real -0.3663% random -0.2894% p=0.5122
+control I8 -1 dev: real -0.0077% random -0.0027% p=0.6922
+control I8 -1 val: real -0.0245% random -0.0216% p=0.5667
+control I8 +1 dev: real -0.0124% random -0.0164% p=0.3453
+control I8 +1 val: real +0.0021% random +0.0019% p=0.4928
+idea  side       cell  dev_n  dev_avg_pct   dev_pf  dev_win_pct  val_n  val_avg_pct   val_pf  val_win_pct  dev_avg_2x  val_avg_2x  p_control_dev  dev_maxdd_pct  val_maxdd_pct  c1_net_pf  c2_control  c3_2x  c4_val30  c5_dd25  PASS
+  I1  long        all 2317.0    -0.004645 0.984416    51.532154  610.0    -0.005494 0.980149    51.803279   -0.034705   -0.035391       0.892554      29.498327      16.718374      False       False  False      True    False False
+  I1 short        all 2354.0    -0.047812 0.885448    44.732370  616.0    -0.026432 0.926398    47.727273   -0.057812   -0.036432       0.915042      48.579726      21.094558      False       False  False      True    False False
+  I2  long in-2_out+3  129.0     0.169631 1.180002    51.937984   42.0    -0.030546 0.957235    47.619048    0.074572   -0.126325       0.488256       9.026382       3.262866      False       False  False      True     True False
+  I3  long 10/90_sma5   71.0     0.448128 1.941623    66.197183   34.0     0.228525 1.345177    73.529412    0.368091    0.143183       0.162419       4.524098       5.139680       True       False   True      True     True False
+  I3 short 10/90_sma5   23.0     0.562544 1.976419    65.217391    4.0     0.215377 1.373511    75.000000    0.511746    0.174555       0.068966       2.628641       0.768838       True       False   True     False     True False
+  I4  long 0.25%_fill  669.0     0.018400 1.051414    63.677130  170.0     0.070942 1.209312    64.117647    0.008400    0.060942       0.470265       9.201359       4.938174      False       False   True      True     True False
+  I4 short 0.25%_fill  831.0    -0.040387 0.890412    56.197353  210.0     0.053033 1.227066    60.952381   -0.050387    0.043033       0.591204      19.662021       2.778834      False       False  False      True     True False
+  I5  long      first  147.0     0.254394 1.436614    66.666667   51.0     0.848801 6.411210    80.392157    0.209075    0.808718       0.104448      11.257650       0.980886       True       False   True      True     True False
+  I5 short      first  215.0    -0.043966 0.923791    54.883721   67.0     0.016507 1.040012    59.701493   -0.075470   -0.014450       0.208896      14.837571       2.547941      False       False  False      True     True False
+  I6  long    z2.0_h5    8.0     0.467617 2.850730    62.500000    3.0     0.592024 1.271958    66.666667    0.375904    0.500311       0.339830       1.611191       6.530673       True       False   True     False     True False
+  I6 short    z2.0_h5   16.0    -0.633686 0.558483    31.250000    9.0    -0.064947 0.972920    33.333333   -0.688412   -0.118912       0.722639      14.491588      19.640911      False       False  False     False     True False
+  I7  long  z2.0_lb20   12.0    -0.416483 0.796767    58.333333    8.0    -0.366279 0.721972    37.500000   -0.655661   -0.635423       0.386307      14.191223       8.884644      False       False  False     False     True False
+  I7 short  z2.0_lb20    4.0     0.013500 1.030488    50.000000    5.0    -1.807937 0.306079    40.000000   -0.309583   -2.086841       0.566217       1.063272      12.737286      False       False  False     False     True False
+  I8  long       none 1006.0    -0.012375 0.900137    43.737575  240.0     0.002148 1.019259    46.666667   -0.022375   -0.007852       0.345327      10.553364       2.647029      False       False  False      True     True False
+  I8 short       none 1063.0    -0.007686 0.941437    41.768579  225.0    -0.024547 0.795127    40.444444   -0.017686   -0.034547       0.692154      10.341868       4.684294      False       False  False      True     True False
+  inst period       first        last  buy_hold_pct
+NAS100    dev  8748.10000 21035.77500    140.461072
+NAS100    val 21110.83100 23778.62900     12.637106
+SPX500    dev  3233.85500  5887.32300     82.052782
+SPX500    val  5903.49600  6529.63600     10.606258
+ GER40    dev 13156.96000 19810.49900     50.570489
+ GER40    val 19871.29900 23022.39900     15.857544
+EURUSD    dev     1.12125     1.03531     -7.664660
+EURUSD    val     1.03507     1.15584     11.667810
+GBPUSD    dev     1.32463     1.25116     -5.546454
+GBPUSD    val     1.25113     1.32306      5.749203
+XAUUSD    dev  1520.50500  2624.15500     72.584437
+XAUUSD    val  2624.89800  4680.14800     78.298281
