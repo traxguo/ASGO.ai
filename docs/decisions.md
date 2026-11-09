@@ -182,3 +182,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-11-06 — ASGO Portföy: risk %0.25, coin yaşı kuralı eklenmedi
 - Karar: portföyde işlem başı risk %0.25 (ön kayıtlı ölçüt: doğrulama düşüşü ≤ ~%15; %0.25'te -%12.0). Tek önceden kayıtlı kural "180 günden genç coinde işlem yok" eklenmedi. "ASGO Portföy" kâğıt takibi (`scripts/paper_portfoy.py`, saatlik) başladı; canlı panelde en üst çizgi.
 - Gerekçe: kural doğrulamada getiriyi artırdı (+%41.8 → +%45.2, düşüş eşit) ama geliştirmede düşürdü (+%1.884 → +%1.102); şart iki dönemde birden iyileşmeydi. Kasa dönemi bu testte yüklenmedi. Rapor `results/2026-11-06_portfoy_sistem/rapor.md`.
+
+## 2026-11-09 — Coin fikir paketi (8 günlük fikir): hiçbiri geçmedi, kâğıt takip yok
+- Karar: 8 ön kayıtlı fikir (BTC/ETH trend long/nakit, coin TSMOM, günlük volatilite kırılımı, aşırı düşüş günü al, haftanın günü, 52 hafta zirvesi, BTC hakimiyet rejimi, günlük funding aşırılığı) reddedildi; kâğıt takip ve portföy eklemesi yapılmadı. Çıta (proje sahibi, 2026-11-09, getirilerden önce): net > 0 ve PF ≥ 1.2 iki dönemde, rastgele giriş kontrolü p < 0.05 (gel.), 2x masrafta artı, doğ. ≥ 30 işlem, düşüş ≤ %25; kazanma oranı sadece bilgi.
+- Gerekçe: hiçbir ana ayar çıtanın tamamını sağlamadı. Ön kayıtlı kuralla geçen tek satır (volatilite kırılımı long) "aynı gün iki seviye değerse işlem yok" kuralındaki ileriye bakma hatasından geliyordu; hata düzeltilince eksi. Izgara komşuları (aşırı düşüş z2.0/3 gün) sonuç görüldükten sonra seçilmedi. Rapor `results/2026-11-09_coin_batch/README.md`, kart `cards/coin_paketi.md`.
