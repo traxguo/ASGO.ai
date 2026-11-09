@@ -31,6 +31,9 @@ DEV_START = pd.Timestamp("2020-01-01", tz="UTC")
 MIN = 60_000_000_000  # one minute in ns
 DAY_NS = 1440 * MIN
 STALE = 30 * MIN
+SPIKE = 0.05
+GAP_DAYS = 5  # consecutive daily rows further apart than this = missing data; no trade spans such a gap
+CLEAN: dict = {}
 
 COST = {"NAS100": 1e-4, "SPX500": 1e-4, "GER40": 1e-4, "EURUSD": 1e-4, "GBPUSD": 1e-4, "XAUUSD": 1.5e-4}
 # yearly overnight financing (long, short), pessimistic estimates
@@ -77,7 +80,13 @@ def load(name: str, data: Path) -> Inst:
     t = t.tz_localize("UTC") if t.tz is None else t.tz_convert("UTC")
     keep = t < HOLDOUT
     t = t[keep].as_unit("ns")
-    d = d[keep]
+    d = d[keep].reset_index(drop=True)
+    # data cleaning (fix after the first run, see README): drop bad prints, i.e. bars whose close, high or low is
+    # more than SPIKE away from the centered median close of the surrounding 25 bars
+    med = d.close.rolling(25, center=True, min_periods=5).median()
+    bad = ((d.close / med - 1).abs() > SPIKE) | (d.high / med - 1 > SPIKE) | (1 - d.low / med > SPIKE)
+    CLEAN[name] = int(bad.sum())
+    t, d = t[~bad.to_numpy()], d[~bad]
     return Inst(name, t.asi8.copy(), d.open.to_numpy(float), d.high.to_numpy(float), d.low.to_numpy(float),
                 d.close.to_numpy(float))
 
@@ -113,7 +122,7 @@ def session_table(x: Inst, open_hm: str, close_hm: str, tz: str) -> pd.DataFrame
     """One row per weekday with a cash open and close bar: open/close prices and the close+10 min entry price."""
     to, tc = local_times(open_hm, tz), local_times(close_hm, tz)
     te = tc + 10 * MIN
-    ok = (to > 0) & (tc > 0) & x.has_bar(np.where(to > 0, to, 0)) & x.has_bar(np.where(tc > 0, tc - 5 * MIN, 0))
+    ok = (to > 0) & (tc > 0)
     df = pd.DataFrame({"date": DATES, "t_open": to, "t_close": tc, "t_ent": te})[ok].reset_index(drop=True)
     df["p_open"] = x.px(df.t_open.to_numpy())
     df["p_close"] = x.px(df.t_close.to_numpy())
@@ -133,6 +142,10 @@ class Daily:
     p: dict
     legs: list  # [(inst, sign)] relative to the trade side
 
+    def __post_init__(self):
+        gap = np.r_[0, (np.diff(self.t) > GAP_DAYS * DAY_NS).astype(int)]
+        self.cgap = np.cumsum(gap)  # rows i..j span a data gap when cgap[j] != cgap[i]
+
 
 @dataclass
 class Book:
@@ -147,6 +160,8 @@ class Book:
 
 def daily_trade(book, key, idea, cell, primary, side, i, j):
     g = book.grids[key]
+    if g.cgap[j] != g.cgap[i]:
+        return  # missing data inside the holding period
     gross, cost, sw = 0.0, 0.0, 0.0
     n = int(nights([g.t[i]], [g.t[j]])[0])
     for inst, sign in g.legs:
@@ -164,7 +179,10 @@ def control_daily(book, tr: pd.DataFrame, rng, sets: int) -> np.ndarray:
         g = book.grids[r.inst]
         per = period_of(g.t)
         hold = r.j - r.i
-        cand = np.flatnonzero((per == period_of([r.t_in])[0]) & (np.arange(len(g.t)) + hold < len(g.t)))
+        idx = np.arange(len(g.t))
+        okh = idx + hold < len(g.t)
+        okh[okh] = g.cgap[idx[okh] + hold] == g.cgap[idx[okh]]
+        cand = np.flatnonzero((per == period_of([r.t_in])[0]) & okh)
         ii = rng.choice(cand, sets)
         jj = ii + hold
         n = nights(g.t[ii], g.t[jj])
@@ -527,6 +545,20 @@ def main() -> None:
             d = tabs[inst]
             book.grids[f"{inst}:close"] = Daily(d.t_ent.to_numpy(), {inst: d.p_ent.to_numpy()}, [(inst, 1)])
             print(f"{inst}: {len(d)} sessions {d.date.iloc[0].date()} -> {d.date.iloc[-1].date()}", flush=True)
+    # data check: bad prints removed, sessions per year and data gaps in the daily tables
+    chk = []
+    for n, x in insts.items():
+        row = {"inst": n, "bars": len(x.start), "bad_prints_removed": CLEAN.get(n, 0)}
+        if n in tabs:
+            d = tabs[n]
+            yrs = pd.DatetimeIndex(d.date).year
+            row.update({f"sessions_{y}": int((yrs == y).sum()) for y in range(2020, 2027)})
+            gaps = np.diff(d.t_ent.to_numpy()) / DAY_NS
+            row["gaps_over_5d"] = int((gaps > GAP_DAYS).sum())
+            row["longest_gap_days"] = round(float(gaps.max()), 1)
+        chk.append(row)
+        print("data check", row, flush=True)
+    pd.DataFrame(chk).to_csv(out / "data_check.csv", index=False)
 
     steps = [("I1", lambda: i1_overnight(book, tabs)), ("I2", lambda: i2_tom(book, tabs)),
              ("I3", lambda: i3_rsi2(book, tabs)), ("I4", lambda: i4_gap(book, tabs)),
