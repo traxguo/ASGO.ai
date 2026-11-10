@@ -1,3 +1,4 @@
+# STOPPED on 2026-11-10 (docs/decisions.md): no schedule any more; the job can only be started by hand.
 # Runs Dalga (cards/dalga.md) on the Bitget DEMO account (play money) after every 1h candle,
 # next to the Pusula bot (bitget_demo.yml). Same keys, same account; a bot skips coins the other holds.
 # Keys live in GitHub Secrets (Settings > Secrets and variables > Actions), never in the repo.
@@ -5,8 +6,6 @@
 name: Dalga Bitget demo
 
 on:
-  schedule:
-    - cron: "25 * * * *"  # UTC, 25 minutes after each 1h candle closes (Pusula runs at :07)
   workflow_dispatch:
 
 permissions:

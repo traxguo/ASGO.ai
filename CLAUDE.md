@@ -12,6 +12,9 @@
 9. Proje sahibi yazılımcı değil: ona sade Türkçe yaz; kod, isimler ve kod yorumları İngilizce.
 10. Kaynak tarif: `PROJECT_BRIEF.md`. Kurallar: `docs/rules.md`. Eşikler: `docs/metrics.md`.
 
+## Güncel yön (2026-11-10)
+Proje tek piyasaya odaklandı: **Nasdaq (US100), long + short, XM**. Plan `docs/nasdaq_plan.md`. Kripto demo botları durdu; kripto kâğıt takipleri 2026-11-30'a kadar değişmeden çalışır; yeni kripto fikri aranmaz.
+
 ## Oturum başı
 1. Bu dosyayı oku.
 2. `docs/roadmap.md`'den mevcut seviyeyi ve sıradaki işi bul.

@@ -2,7 +2,9 @@
 
 Seviyeler sırayla ilerler. Bir seviyenin çıkış şartı sağlanmadan sonrakine geçilmez.
 
-**Şu anki seviye: 1 — Sabit liste** (son güncelleme: 2026-10-04)
+**Şu anki seviye: 1 — Sabit liste** (son güncelleme: 2026-11-10)
+
+> **2026-11-10 yön değişikliği:** proje tek piyasaya, Nasdaq'a (US100, long + short, XM) odaklandı. Kripto demo botları durdu, kripto kâğıt takipleri 2026-11-30'a kadar sürüyor, yeni kripto fikri aranmıyor. Güncel plan: `docs/nasdaq_plan.md`. Aşağıdaki kripto seviyeleri geçmiş kayıt olarak duruyor.
 
 ## Seviye 0 — Altyapı
 - [x] Repo yapısı, `.gitignore`, `.env.example`
@@ -47,6 +49,7 @@ Seviye 0 çıkış şartı sağlandı (2026-10-04).
 **Çıkış şartı:** Her giriş sinyali tasarıma uygun görselle birkaç saniye içinde geliyor.
 
 ## Sıradaki adım
+00. (2026-11-10) Nasdaq planı: `docs/nasdaq_plan.md`. Önce saat (Cloudflare) ve XM koşulları, sonra en fazla 3 ön kayıtlı fikir. Aslan Nasdaq kâğıt takibi sürüyor (değerlendirme 2026-11-30).
 0a. (2026-10-10) Hızlı adaylar `Nabiz`, `Kirilim1s`, `PusulaHizli` geliştirme döneminde elendi (en iyisi günde 0.6 işlem, +0.06R, DD %48; masraf avantajın yarısını yiyor). Sıradaki hızlı aday: limit emirli (maker) giriş ile masrafı düşürmek (kuyruk 1c). 1 aylık demo sonrası (≈2026-11-10) "hazır mıyız" raporu (`docs/decisions.md`).
 0. (2026-10-10) Pusula (`PusulaTrendLong`, donduruldu) ileriye dönük kağıt takipte: `research/forward/pusula_paper.py`, rapor `forward/pusula_kagit.md`, her pazartesi güncellenir. Yan strateji Kalabalık (funding tersine) geliştirme + doğrulamayı geçti, kasada başa baş (+0.05R); aylık kağıt takibe alınacak. Sıradaki yan fikir: güçlü/zayıf coin sepeti.
 1. (2026-10-09) Pusula 2. tur: `PusulaTrend` ve `PusulaTrendLong` geliştirme ve doğrulamayı büyük ölçüde geçti (`cards/pusula.md`). Proje sahibi kasa testine girecek versiyonu seçecek; kasa testi geçerse Seviye 1 çıkış şartı sağlanır.

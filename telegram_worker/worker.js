@@ -85,14 +85,13 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
 // the worker starts the demo jobs that are due (owner approved 2026-10-12); GitHub's schedules stay
 // as a backup and the jobs' concurrency groups keep runs from overlapping.
 
+// 2026-11-10: the Bitget demo bots were stopped (docs/decisions.md). The clock now starts only the paper
+// trackers that need a punctual hourly run: Fitil paper tracking (its workflow also winds the demo account
+// down) and the Aslan Nasdaq paper tracker.
+
 export function dueBots(when) {
-  const minute = when.getUTCMinutes(), hour = when.getUTCHours();
-  const due = ["bitget_demo_fitil.yml"];                // Fitil Avcisi: every tick (15 min), limits live one hour
-  if (minute < 15) {
-    due.push("bitget_demo_dalga.yml");                  // first tick after each 1h candle
-    if (hour % 4 === 0) due.push("bitget_demo.yml");    // first tick after each 4h candle (Pusula)
-  }
-  return due;
+  if (when.getUTCMinutes() >= 15) return [];            // first tick after each closed hour
+  return ["bitget_demo_fitil.yml", "paper_aslan_nas.yml"];
 }
 
 export async function startBots(env, when, fetchFn = fetch) {

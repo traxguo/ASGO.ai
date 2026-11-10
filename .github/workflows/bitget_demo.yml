@@ -1,11 +1,10 @@
+# STOPPED on 2026-11-10 (docs/decisions.md): no schedule any more; the job can only be started by hand.
 # Runs PusulaV2 on the Bitget DEMO account (play money) after every 4h candle.
 # Keys live in GitHub Secrets (Settings > Secrets and variables > Actions), never in the repo.
 # Without keys the trading step is skipped. Steps for the owner: docs/bitget_demo_kurulum.md
 name: Pusula Bitget demo
 
 on:
-  schedule:
-    - cron: "7 0,4,8,12,16,20 * * *"  # UTC, 7 minutes after each 4h candle closes
   workflow_dispatch:
     inputs:
       smoke_test:
