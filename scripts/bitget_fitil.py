@@ -189,7 +189,7 @@ def repair_unknown_exits(ex, log: Log, now: datetime, trades: dict) -> None:
         log.event(now, t["pair"], "result fixed", f"önceki satışın sonucu: %{ret:+.2f}", tell=True)
 
 
-def run_once(ex, pub, state: dict, now: datetime, log: Log, pairs: list[str]) -> None:
+def run_once(ex, pub, state: dict, now: datetime, log: Log, pairs: list[str], wind_down: bool = False) -> None:
     trades = state.setdefault("trades", {})
     hour = now.replace(minute=0, second=0, microsecond=0)
     repair_unknown_exits(ex, log, now, trades)
@@ -233,8 +233,8 @@ def run_once(ex, pub, state: dict, now: datetime, log: Log, pairs: list[str]) ->
         elif t.get("mode") == "derin" and stop_hit(pub, t):
             close_trade(ex, log, now, t, "stop")
 
-    # 3. new limits, once per hour
-    if state.get("last_hour") == hour.isoformat():
+    # 3. new limits, once per hour (never while winding down: the bot only cancels and exits)
+    if wind_down or state.get("last_hour") == hour.isoformat():
         return
     state["last_hour"] = hour.isoformat()
     if btc_drop(pub, hour, now) >= BTC_GUARD:
@@ -300,6 +300,8 @@ def notify(lines: list[str]) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="no keys: print eligible coins and limit prices")
+    ap.add_argument("--wind-down", action="store_true",
+                    help="stopped bot (2026-11-10): cancel pending limits and exit open trades, place nothing new")
     a = ap.parse_args()
     now = datetime.now(timezone.utc)
     pairs = json.loads(PAIRS_FILE.read_text(encoding="utf-8"))["exchange"]["pair_whitelist"]
@@ -325,7 +327,7 @@ def main() -> None:
     ex = bd.choose_demo_product(ex, pairs)
     state = bd.load_state(STATE_FILE)
     log = Log()
-    run_once(ex, pub, state, now, log, pairs)
+    run_once(ex, pub, state, now, log, pairs, wind_down=a.wind_down)
     notify(log.lines)
     bd.save_state(state, STATE_FILE)
 

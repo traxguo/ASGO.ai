@@ -211,3 +211,11 @@ def test_unknown_exit_is_fixed_on_the_next_run(monkeypatch):
     log = bf.Log()
     bf.run_once(ex, FakePub(), state, H + timedelta(minutes=47), log, [])
     assert t["exit_price"] == 97.0 and any("önceki satışın sonucu" in line for line in log.lines)
+
+
+def test_wind_down_cancels_old_limits_and_places_nothing_new():
+    ex, state = FakeEx(), {}
+    run(ex, FakePub(), state, H + timedelta(minutes=2))
+    bf.run_once(ex, FakePub(), state, H + timedelta(hours=8), bf.Log(), [PAIR], wind_down=True)
+    assert len(ex.orders) == 1 and len(ex.cancelled) == 1
+    assert [t["status"] for t in state["trades"].values()] == ["cancelled"]
