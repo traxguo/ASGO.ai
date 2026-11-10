@@ -1995,3 +1995,33 @@ class PusulaV2NoBeSqueeze(PusulaV2NoBe):
         conds = super().signal_conditions(df)
         conds["long"]["atr_squeeze"] = atr_ratio_squeeze(df, self.squeeze_lookback)
         return conds
+
+
+def weekday_candle(df: DataFrame) -> Series:
+    """
+    Per candle: True when the candle opens Monday-Friday UTC (Freqtrade's
+    "date" is the candle open time). A 4h candle opening Saturday 00:00 up to
+    Sunday 20:00 UTC is False; the Monday 00:00 candle is True. Calendar only,
+    so it uses nothing but the candle's own open time.
+    """
+    return pd.to_datetime(df["date"], utc=True).dt.day_of_week < 5
+
+
+class PusulaV2NoBeNoWeekend(PusulaV2NoBe):
+    """
+    Queue item 33 (2026-11-10, research/queue/pusula_kuyruk.md), addition test
+    (weekend entry filter), fixed before testing.
+
+    PusulaV2NoBe with one extra long-entry condition ("weekday"): the signal
+    (breakout) 4h candle must not open on Saturday or Sunday UTC (Saturday
+    00:00 - Sunday 20:00 candles are blocked; the Monday 00:00 candle is free).
+    No threshold (calendar), no sweep. The breakout is still "first 4h close
+    above the previous 20-candle high", so a weekend breakout is skipped, not
+    delayed to Monday. Stop, size, exits, 8% stop limit, 1% risk, max 3 trades
+    and warm-up are unchanged. Shorts stay off.
+    """
+
+    def signal_conditions(self, df: DataFrame):
+        conds = super().signal_conditions(df)
+        conds["long"]["weekday"] = weekday_candle(df)
+        return conds

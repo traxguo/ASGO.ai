@@ -1207,3 +1207,56 @@ def test_v2_no_be_squeeze_needs_atr_ratio_at_or_below_previous_180_candle_median
     short = df.iloc[-150:].reset_index(drop=True)
     assert not cls.signal_conditions(s, short)["long"]["atr_squeeze"].any()
     assert cls.signal_conditions(s, df)["short"] == {}
+
+
+def test_v2_no_be_no_weekend_skips_breakouts_on_saturday_and_sunday_utc_candles():
+    """PusulaV2NoBeNoWeekend: a long breakout on a 4h candle opening Sat/Sun UTC is skipped, not delayed."""
+    tf = pusula.REGIME_TF
+    cls = pusula.PusulaV2NoBeNoWeekend
+    base = pusula.PusulaV2NoBe
+    assert issubclass(cls, base)
+    assert cls.startup_candle_count == base.startup_candle_count
+    for name in ("custom_stoploss", "populate_exit_trend", "populate_indicators", "populate_entry_trend",
+                 "add_plan_columns", "custom_stake_amount", "leverage", "custom_entry_price",
+                 "check_entry_timeout", "swing_levels"):
+        assert getattr(cls, name) is getattr(base, name)
+
+    # 2026-11-06 is a Friday. 4h candles Fri 16:00 .. Mon 04:00 UTC.
+    dates = pd.date_range("2026-11-06 16:00", "2026-11-09 04:00", freq="4h", tz="UTC")
+    flag = pusula.weekday_candle(pd.DataFrame({"date": dates}))
+    expect = [d.weekday() < 5 for d in dates]
+    assert flag.tolist() == expect
+    assert not flag[(dates >= "2026-11-07 00:00") & (dates <= "2026-11-08 20:00")].any()
+    assert flag[dates == "2026-11-08 20:00"].tolist() == [False]
+    assert flag[dates == "2026-11-09 00:00"].tolist() == [True]
+
+    def entries(c, start, closes):
+        n = len(closes)
+        df = pd.DataFrame({
+            "date": pd.date_range(start, periods=n, freq="4h", tz="UTC"),
+            "close": closes, "high": [x + 0.5 for x in closes], "low": [x - 0.5 for x in closes],
+            "atr": [1.0] * n, "swing_low": [99.0] * n, "swing_high": [106.0] * n,
+            "dc_upper": [101.0] * n, "dc_lower": [90.0] * n,
+            f"score_{tf}": [1] * n, f"close_{tf}": [105.0] * n, f"ema_fast_{tf}": [100.0] * n,
+            f"mkt_score_{tf}": [1] * n,
+        })
+        s = c.__new__(c)
+        s.mgmt = c.mgmt
+        out = s.populate_entry_trend(df, {"pair": "X/USDT:USDT"})
+        return out, out.get("enter_long", pd.Series(np.nan, index=df.index)).fillna(0).astype(int).tolist()
+
+    closes = [100.0, 102.0, 103.0, 104.0]  # first close above the channel on candle 1
+    # Breakout on Friday 20:00: both enter.
+    for c in (base, cls):
+        assert entries(c, "2026-11-06 16:00", closes)[1] == [0, 1, 0, 0]
+    # Breakout on Saturday 00:00 / Sunday 20:00: baseline enters, the new class skips (no delay to later candles).
+    assert entries(base, "2026-11-06 20:00", closes)[1] == [0, 1, 0, 0]
+    assert entries(cls, "2026-11-06 20:00", closes)[1] == [0, 0, 0, 0]
+    assert entries(cls, "2026-11-08 16:00", closes)[1] == [0, 0, 0, 0]
+    # Breakout on the Monday 00:00 candle is free; stop columns are unchanged.
+    b_df, b = entries(base, "2026-11-08 20:00", closes)
+    n_df, n = entries(cls, "2026-11-08 20:00", closes)
+    assert b == n == [0, 1, 0, 0]
+    pd.testing.assert_series_equal(b_df["long_stop"], n_df["long_stop"])
+    s = cls.__new__(cls)
+    assert cls.signal_conditions(s, entries(base, "2026-11-06 16:00", closes)[0])["short"] == {}

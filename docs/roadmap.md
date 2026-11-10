@@ -47,6 +47,7 @@ Seviye 0 çıkış şartı sağlandı (2026-10-04).
 **Çıkış şartı:** Her giriş sinyali tasarıma uygun görselle birkaç saniye içinde geliyor.
 
 ## Sıradaki adım
+00. (2026-11-10) Pusula araştırma kuyruğu: kuyruk 33 (hafta sonu kırılımı yok) reddedildi; ≈30 turdur `PusulaV2NoBe` üzerindeki giriş / çıkış / yer ayarlarının hiçbiri kabul kuralını geçmedi, temel bir düzlükte (kuyruk 32). Yeni kural ayarı maddesi eklenmedi; sıradaki iş madde 5'in (güçlü / zayıf coin sepeti) kartı (kuyruk 34) ya da kural dışı işler, proje sahibi yeni fikir eklemezse.
 0a. (2026-10-10) Hızlı adaylar `Nabiz`, `Kirilim1s`, `PusulaHizli` geliştirme döneminde elendi (en iyisi günde 0.6 işlem, +0.06R, DD %48; masraf avantajın yarısını yiyor). Sıradaki hızlı aday: limit emirli (maker) giriş ile masrafı düşürmek (kuyruk 1c). 1 aylık demo sonrası (≈2026-11-10) "hazır mıyız" raporu (`docs/decisions.md`).
 0. (2026-10-10) Pusula (`PusulaTrendLong`, donduruldu) ileriye dönük kağıt takipte: `research/forward/pusula_paper.py`, rapor `forward/pusula_kagit.md`, her pazartesi güncellenir. Yan strateji Kalabalık (funding tersine) geliştirme + doğrulamayı geçti, kasada başa baş (+0.05R); aylık kağıt takibe alınacak. Sıradaki yan fikir: güçlü/zayıf coin sepeti.
 1. (2026-10-09) Pusula 2. tur: `PusulaTrend` ve `PusulaTrendLong` geliştirme ve doğrulamayı büyük ölçüde geçti (`cards/pusula.md`). Proje sahibi kasa testine girecek versiyonu seçecek; kasa testi geçerse Seviye 1 çıkış şartı sağlanır.
