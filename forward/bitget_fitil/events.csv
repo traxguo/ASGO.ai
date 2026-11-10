@@ -7353,3 +7353,16 @@ time,pair,event,detail
 2026-11-10T18:53:37.790906+00:00,BCH/USDT:USDT,limit placed,"10.59 @ 209.74 (hour open 227.98, score -1, derin)"
 2026-11-10T18:53:37.790906+00:00,UNI/USDT:USDT,limit placed,"362.0 @ 6.135 (hour open 6.669, score -1, derin)"
 2026-11-10T18:53:37.790906+00:00,NEAR/USDT:USDT,limit placed,"684.0 @ 3.2433 (hour open 3.5253, score -1, derin)"
+2026-11-10T19:00:03.662571+00:00,ADA/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,AVAX/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,BCH/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,BNB/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,BTC/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,DOGE/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,ETH/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,LINK/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,LTC/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,NEAR/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,TRX/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,UNI/USDT:USDT,limit cancelled,hour over
+2026-11-10T19:00:03.662571+00:00,XRP/USDT:USDT,limit cancelled,hour over
