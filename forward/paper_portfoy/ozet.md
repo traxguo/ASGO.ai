@@ -1,14 +1,14 @@
 # ASGO Portföy — kâğıt takip (emir yok)
 
-Tek kasa 10,000 USDT, işlem başı risk %0.25, başlangıç 2026-10-01. Son olay: 2026-11-10 06:00 UTC.
+Tek kasa 10,000 USDT, işlem başı risk %0.25, başlangıç 2026-10-01. Son olay: 2026-11-10 18:45 UTC.
 
-- **Kasa:** 9,916.55 USDT (-0.83%)
+- **Kasa:** 9,937.21 USDT (-0.63%)
 - **En büyük düşüş (kapanan işlemlerle):** %2.03
-- **İşlem:** 26 kapandı (9 kazanan), 0 açık
+- **İşlem:** 27 kapandı (10 kazanan), 0 açık
 
 | Strateji | Kapanan | Kazanan | Açık | Katkı (USDT) |
 |---|---|---|---|---|
-| Fitil Avcısı (kâğıt) | 17 | 5 | 0 | -122.74 |
+| Fitil Avcısı (kâğıt) | 18 | 6 | 0 | -102.08 |
 | Derin Fitil (kâğıt) | 4 | 4 | 0 | +172.53 |
 | Dalga (demo) | 0 | 0 | 0 | +0.00 |
 | Pusula v2 (kâğıt) | 5 | 0 | 0 | -133.22 |
