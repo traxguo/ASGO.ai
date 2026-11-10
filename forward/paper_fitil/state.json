@@ -260,8 +260,21 @@
    "ret_pct": -3.87,
    "pnl_usdt": -79.03,
    "size": 2041.768
+  },
+  {
+   "pair": "HOT/USDT:USDT",
+   "mode": "fitil",
+   "hour": "2026-11-10T02:00:00+00:00",
+   "limit_price": 0.00043623999999999996,
+   "fill_time": "2026-11-10T02:45:00+00:00",
+   "entry": 0.00043623999999999996,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2025.962
   }
  ],
  "equity": 10129.81,
- "done_until": "2026-11-09T21:00:00+00:00"
+ "done_until": "2026-11-10T03:00:00+00:00"
 }
