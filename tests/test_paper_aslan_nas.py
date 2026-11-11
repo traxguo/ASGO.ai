@@ -104,3 +104,22 @@ def test_bars_file_for_the_chart_has_only_closed_candles(tmp_path):
     rows = (tmp_path / "bars.csv").read_text().strip().split("\n")
     assert rows[0] == "t,open,high,low,close" and len(rows) == 51
     assert int(rows[-1].split(",")[0]) == int(h1.index[-2].timestamp())
+
+
+def test_cash_basis_uses_the_last_closed_new_york_close():
+    h1 = walk(20)
+    now = h1.index[-1] + timedelta(hours=2)
+    ny = h1.index.tz_convert("America/New_York")
+    bar = h1[(ny.hour == 15)].iloc[-1:]                      # last 15:00-16:00 New York candle
+    day = bar.index[0].tz_convert("America/New_York").tz_localize(None).normalize()
+    cash = pd.Series({day: bar["close"].iloc[0] - 100.0, day + timedelta(days=5): 1.0})  # a later day with no candle
+    b = pa.cash_basis(h1, cash, now)
+    assert b["basis"] == 100.0 and b["day"] == day.strftime("%Y-%m-%d")
+    assert pa.cash_basis(h1, pd.Series({day: 1.0}), now) is None           # absurd gap: no conversion
+
+
+def test_cash_line_moves_levels_down_by_the_basis():
+    o = {"status": "sinyal", "side": "short", "entry": 28100.0, "stop": 28200.0, "target": 27900.0}
+    line = pa.cash_line(o, {"basis": 100.0})
+    assert "SHORT giriş 28000.00, stop 28100.00, hedef 27800.00" in line
+    assert pa.cash_line(None, {"basis": 100.0}) is None and pa.cash_line(o, None) is None

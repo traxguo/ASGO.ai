@@ -1,0 +1,4 @@
+idea,unit,p_dev,ctrl_mean_pct,pass,failed
+N1,both,0.9755,-0.0074,False,"net, PF, kontrol, 2x masraf, az örnek, bir yön geliştirmede eksi"
+N2,long,0.2594,0.0002,False,"net, PF, kontrol, 2x masraf"
+N2,short,0.5927,-0.0201,False,"net, PF, kontrol, 2x masraf"
