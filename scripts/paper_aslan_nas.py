@@ -229,6 +229,17 @@ def run_variant(h1: pd.DataFrame, state: dict, now: datetime, cfg: dict, title: 
     return msgs
 
 
+def save_bars(h1: pd.DataFrame, now: datetime, out_dir: Path = OUT_DIR, keep: int = 600) -> None:
+    """Last closed 1h candles for the live chart page (dashboard/canli/nasdaq.html)."""
+    bars = closed_bars(h1, now).tail(keep)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with (out_dir / "bars.csv").open("w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        w.writerow(["t", "open", "high", "low", "close"])
+        for ts, row in bars.iterrows():
+            w.writerow([int(ts.timestamp()), *(round(float(row[c]), 2) for c in ("open", "high", "low", "close"))])
+
+
 def save(state: dict, out_dir: Path = OUT_DIR) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "state.json").write_text(json.dumps(state, indent=1, ensure_ascii=False), encoding="utf-8")
@@ -282,6 +293,8 @@ def main() -> None:
             continue
         save(state, out_dir)
         notify(msgs, header)
+    if not a.check:
+        save_bars(h1, now)
 
 
 if __name__ == "__main__":
