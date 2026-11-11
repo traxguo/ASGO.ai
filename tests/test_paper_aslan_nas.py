@@ -95,3 +95,12 @@ def test_variant_incremental_runs_match_one_full_run():
         key = lambda t: t["sig_t"]  # noqa: E731
         assert sorted(inc["trades"], key=key) == sorted(full["trades"], key=key) and full["trades"]
         assert isinstance(msgs, list)
+
+
+def test_bars_file_for_the_chart_has_only_closed_candles(tmp_path):
+    h1 = walk(10)
+    now = h1.index[-1] + timedelta(minutes=30)
+    pa.save_bars(h1, now, tmp_path, keep=50)
+    rows = (tmp_path / "bars.csv").read_text().strip().split("\n")
+    assert rows[0] == "t,open,high,low,close" and len(rows) == 51
+    assert int(rows[-1].split(",")[0]) == int(h1.index[-2].timestamp())

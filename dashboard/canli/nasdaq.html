@@ -1,0 +1,204 @@
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASGO Nasdaq grafiği</title>
+<style>
+  :root { --bg:#131722; --panel:#1e222d; --line:#2a2e39; --text:#d1d4dc; --muted:#8a8f9c;
+          --long:#26a69a; --short:#ef5350; --entry:#4c8dff; --warn:#f0b90b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 -apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:14px 16px 40px; }
+  h1 { font-size:19px; margin:4px 0 2px; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:12px; }
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .tabs button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:8px;
+                 padding:8px 12px; font-size:14px; cursor:pointer; }
+  .tabs button.on { border-color:var(--entry); background:#22324f; }
+  .now { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:12px; }
+  .now .big { font-size:18px; font-weight:600; }
+  .now .levels { display:flex; gap:18px; flex-wrap:wrap; margin-top:8px; }
+  .now .levels div { min-width:90px; }
+  .now .levels span { display:block; color:var(--muted); font-size:12px; }
+  .long { color:var(--long); } .short { color:var(--short); }
+  .e { color:var(--entry); } .s { color:var(--short); } .t { color:var(--long); }
+  #chart { height:460px; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .legend { color:var(--muted); font-size:12.5px; margin:8px 2px 16px; display:flex; gap:14px; flex-wrap:wrap; }
+  .legend i { display:inline-block; width:18px; height:0; border-top:2px solid; vertical-align:middle; margin-right:5px; }
+  .tablewrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; white-space:nowrap; }
+  th, td { padding:8px 10px; text-align:right; border-bottom:1px solid var(--line); }
+  th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align:left; }
+  th { color:var(--muted); font-weight:500; }
+  tr:last-child td { border-bottom:0; }
+  .note { color:var(--muted); font-size:12.5px; margin-top:14px; }
+  .banner { background:#3b2f08; border:1px solid var(--warn); color:var(--warn); border-radius:10px; padding:10px 14px;
+            margin-bottom:12px; font-weight:600; }
+  h2 { font-size:15px; margin:18px 0 8px; }
+  @media (max-width:600px) { #chart { height:360px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>ASGO Nasdaq grafiği</h1>
+  <div class="sub" id="sub">Yükleniyor…</div>
+  <div class="banner" id="banner" hidden>ÖRNEK GÖRÜNÜM: aşağıdaki işlemler uydurmadır, sadece grafiğin nasıl görüneceğini gösterir.</div>
+  <div class="tabs" id="tabs"></div>
+  <div class="now" id="now"></div>
+  <div id="chart"></div>
+  <div class="legend">
+    <span><i style="border-color:var(--entry)"></i>Giriş</span>
+    <span><i style="border-color:var(--short)"></i>Stop</span>
+    <span><i style="border-color:var(--long)"></i>Hedef</span>
+    <span>▲ long girişi</span><span>▼ short girişi</span><span>● çıkış</span>
+  </div>
+  <h2>Kapanan işlemler</h2>
+  <div class="tablewrap"><table id="trades"></table></div>
+  <p class="note">
+    Kâğıt takip: gerçek emir yok. Kurallar donuk, seviyeler test edilmiş kuralın çıktısıdır. Grafik saat başı,
+    kapanan mumla güncellenir (anlık fiyat değildir). Fiyat kaynağı Nasdaq vadeli kontratıdır (NQ);
+    XM'deki US100 fiyatı birkaç puan farklı olabilir. Saatler Türkiye saatidir.
+  </p>
+</main>
+
+<script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+(async function () {
+  const q = new URLSearchParams(location.search);
+  const RAW = q.get("base") || "https://raw.githubusercontent.com/traxguo/asgo.ai/main/forward/";
+  const DEMO = q.get("ornek") === "1";
+  const LINES = [
+    { dir: "paper_aslan_nas", name: "Ana kural (donuk)" },
+    { dir: "paper_aslan_nas_nobias", name: "Gevşek 1 (yön filtresi yok)" },
+    { dir: "paper_aslan_nas_maxopen2", name: "Gevşek 2 (aynı anda 2 işlem)" },
+  ];
+  const TR = 3 * 3600;                       // show Turkey time (UTC+3) on the axis
+  const sec = iso => Math.floor(Date.parse(iso) / 1000);
+  const fmt = n => Number(n).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const when = iso => new Date(Date.parse(iso) + TR * 1000).toISOString().slice(5, 16).replace("T", " ");
+  const sideTr = s => s === "long" ? "LONG (alış)" : "SHORT (satış)";
+  const get = async path => { const r = await fetch(RAW + path + "?t=" + Date.now()); if (!r.ok) throw new Error(path + " " + r.status); return r; };
+
+  let bars = [];
+  try {
+    const text = await (await get("paper_aslan_nas/bars.csv")).text();
+    bars = text.trim().split("\n").slice(1).map(l => l.split(",").map(Number))
+      .map(([t, open, high, low, close]) => ({ time: t + TR, raw: t, open, high, low, close }));
+  } catch (e) { /* first hour after the page went live: no candle file yet */ }
+
+  const states = await Promise.all(LINES.map(async l => {
+    try { return await (await get(l.dir + "/state.json")).json(); } catch (e) { return { trades: [], open: null }; }
+  }));
+
+  if (DEMO && bars.length > 80) {            // made-up trades so the owner can see the look; never shown without ?ornek=1
+    document.getElementById("banner").hidden = false;
+    const b = i => bars[bars.length - i], iso = x => new Date(x.raw * 1000).toISOString();
+    const e1 = b(70).close, e2 = b(40).close, e3 = b(3).close;
+    states[0] = { trades: [
+      { sig_t: iso(b(71)), side: "long", t_in: iso(b(70)), entry: e1, stop: e1 * 0.995, target: e1 * 1.01, t_out: iso(b(58)), exit: e1 * 1.01, net_r: 1.98, why: "hedef" },
+      { sig_t: iso(b(41)), side: "short", t_in: iso(b(40)), entry: e2, stop: e2 * 1.004, target: e2 * 0.992, t_out: iso(b(33)), exit: e2 * 1.004, net_r: -1.02, why: "stop" },
+    ], open: { status: "pozisyon", side: "long", sig_t: iso(b(4)), entry: e3, stop: e3 * 0.995, target: e3 * 1.01 } };
+  }
+
+  const last = bars[bars.length - 1];
+  document.getElementById("sub").textContent = last
+    ? `Nasdaq 1 saatlik mumlar. Son kapanan mum: ${when(new Date((last.raw + 3600) * 1000).toISOString())} (Türkiye), kapanış ${fmt(last.close)}.`
+    : "Mum verisi henüz yok; ilk saat başı çalışmasından sonra görünecek.";
+
+  const chart = LightweightCharts.createChart(document.getElementById("chart"), {
+    autoSize: true,
+    layout: { background: { color: "#131722" }, textColor: "#d1d4dc" },
+    grid: { vertLines: { color: "#1e222d" }, horzLines: { color: "#1e222d" } },
+    timeScale: { timeVisible: true, secondsVisible: false, borderColor: "#2a2e39" },
+    rightPriceScale: { borderColor: "#2a2e39" },
+    crosshair: { mode: 0 },
+  });
+  const candles = chart.addCandlestickSeries({ upColor: "#26a69a", downColor: "#ef5350", borderVisible: false,
+                                               wickUpColor: "#26a69a", wickDownColor: "#ef5350" });
+  candles.setData(bars);
+  let extra = [], priceLines = [];
+  const NARROW = window.innerWidth < 600;      // phones: short marker texts, the table has the prices
+
+  // snap a trade time to the candle that contains it, so markers always sit on a real candle
+  const times = bars.map(b => b.raw);
+  function snap(iso) {
+    const t = sec(iso);
+    let lo = 0, hi = times.length - 1, ans = null;
+    while (lo <= hi) { const m = (lo + hi) >> 1; if (times[m] <= t) { ans = m; lo = m + 1; } else hi = m - 1; }
+    return ans === null ? null : times[ans] + TR;
+  }
+
+  function show(i) {
+    const st = states[i], open = st.open ? (Array.isArray(st.open) ? st.open : [st.open]) : [];
+    document.querySelectorAll("#tabs button").forEach((b, k) => b.classList.toggle("on", k === i));
+    extra.forEach(s => chart.removeSeries(s)); extra = [];
+    priceLines.forEach(p => candles.removePriceLine(p)); priceLines = [];
+
+    const markers = [];
+    for (const t of st.trades || []) {
+      const a = snap(t.t_in), z = snap(t.t_out);
+      if (a === null || z === null) continue;                   // older than the candles on the page
+      const long = t.side === "long";
+      markers.push({ time: a, position: long ? "belowBar" : "aboveBar", color: long ? "#26a69a" : "#ef5350",
+                     shape: long ? "arrowUp" : "arrowDown", text: (long ? "LONG" : "SHORT") + (NARROW ? "" : " " + fmt(t.entry)) });
+      markers.push({ time: z, position: long ? "aboveBar" : "belowBar", color: t.net_r > 0 ? "#26a69a" : "#ef5350",
+                     shape: "circle", text: (NARROW ? "" : `Çıkış ${fmt(t.exit)} `) + `${t.net_r > 0 ? "+" : ""}${Number(t.net_r).toFixed(2)}R` });
+      if (z > a) for (const [price, color] of [[t.entry, "#4c8dff"], [t.stop, "#ef5350"], [t.target, "#26a69a"]]) {
+        const s = chart.addLineSeries({ color, lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false,
+                                        crosshairMarkerVisible: false });
+        s.setData([{ time: a, value: price }, { time: z, value: price }]);
+        extra.push(s);
+      }
+    }
+    for (const o of open) {
+      const long = o.side === "long", a = snap(o.sig_t);
+      if (o.status === "pozisyon" && a !== null) {
+        markers.push({ time: a, position: long ? "belowBar" : "aboveBar", color: long ? "#26a69a" : "#ef5350",
+                       shape: long ? "arrowUp" : "arrowDown", text: (long ? "LONG" : "SHORT") + (NARROW ? "" : " " + fmt(o.entry)) });
+      }
+      for (const [price, color, title] of [[o.entry, "#4c8dff", o.status === "pozisyon" ? "Giriş" : "Limit giriş"],
+                                           [o.stop, "#ef5350", "Stop"], [o.target, "#26a69a", "Hedef"]]) {
+        priceLines.push(candles.createPriceLine({ price, color, lineWidth: 2, lineStyle: 0, axisLabelVisible: true, title }));
+      }
+    }
+    markers.sort((x, y) => x.time - y.time);
+    candles.setMarkers(markers);
+
+    const now = document.getElementById("now");
+    if (!open.length) {
+      now.innerHTML = `<div class="big">Şu an açık işlem veya bekleyen sinyal yok.</div>
+        <div class="sub" style="margin:4px 0 0">Kural bir fırsat görünce burada ve Telegram'da giriş, stop ve hedef görünür.</div>`;
+    } else {
+      now.innerHTML = open.map(o => {
+        const head = { sinyal: "YENİ SİNYAL", emir: "EMİR BEKLİYOR", pozisyon: "İŞLEM AÇIK" }[o.status] || o.status;
+        return `<div class="big"><span class="${o.side}">${head}: ${sideTr(o.side)}</span></div>
+          <div class="levels">
+            <div><span>${o.status === "pozisyon" ? "Giriş" : "Limit giriş"}</span><b class="e">${fmt(o.entry)}</b></div>
+            <div><span>Stop</span><b class="s">${fmt(o.stop)}</b></div>
+            <div><span>Hedef (2R)</span><b class="t">${fmt(o.target)}</b></div>
+            <div><span>Sinyal saati</span><b>${when(o.sig_t)}</b></div>
+          </div>`;
+      }).join('<hr style="border:0;border-top:1px solid var(--line);margin:10px 0">');
+    }
+
+    const rows = (st.trades || []).slice().reverse();
+    const total = rows.reduce((a, t) => a + Number(t.net_r), 0), wins = rows.filter(t => t.net_r > 0).length;
+    document.getElementById("trades").innerHTML = rows.length
+      ? `<tr><th>Yön</th><th>Giriş zamanı</th><th>Giriş</th><th>Stop</th><th>Hedef</th><th>Çıkış zamanı</th><th>Çıkış</th><th>Sonuç</th></tr>` +
+        rows.map(t => `<tr><td class="${t.side}">${t.side === "long" ? "LONG" : "SHORT"}</td><td>${when(t.t_in)}</td>
+          <td>${fmt(t.entry)}</td><td>${fmt(t.stop)}</td><td>${fmt(t.target)}</td><td>${when(t.t_out)}</td><td>${fmt(t.exit)}</td>
+          <td class="${t.net_r > 0 ? "long" : "short"}">${t.net_r > 0 ? "+" : ""}${Number(t.net_r).toFixed(2)}R (${t.why})</td></tr>`).join("") +
+        `<tr><td colspan="7" style="text-align:left">Toplam: ${rows.length} işlem, ${wins} kazanan</td>
+          <td class="${total > 0 ? "long" : "short"}">${total > 0 ? "+" : ""}${total.toFixed(2)}R</td></tr>`
+      : `<tr><td style="text-align:left;color:var(--muted)">Takip başladığından beri kapanan işlem yok.</td></tr>`;
+  }
+
+  const tabs = document.getElementById("tabs");
+  LINES.forEach((l, i) => { const b = document.createElement("button"); b.textContent = l.name; b.onclick = () => show(i); tabs.appendChild(b); });
+  show(0);
+  if (bars.length > 120) chart.timeScale().setVisibleLogicalRange({ from: bars.length - 120, to: bars.length + 5 });
+  setTimeout(() => location.reload(), 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>

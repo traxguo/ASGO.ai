@@ -132,3 +132,14 @@ test("the panel's data layer reads the BTC/ETH Trend paper line", async () => {
   assert.equal(data.trend.curve.length, 2);
   assert.equal(P.build({}).trend, null);
 });
+
+test("/grafik gives the Nasdaq chart address and the worker serves that page", async () => {
+  const e = { ...env, PANEL_URL: "https://w.example/panel" };
+  assert.equal(await answer(e, 42, "/grafik", fakeGitHub()), "Nasdaq grafiği (giriş, stop, hedef): https://w.example/panel/nasdaq");
+  const asked = [];
+  const fake = async (url) => { asked.push(url); return { ok: true, text: async () => "<html></html>" }; };
+  const page = await servePanel("/panel/nasdaq", fake);
+  assert.equal(page.status, 200);
+  assert.match(await page.text(), /^<!doctype html>/);
+  assert.equal(asked[0], "https://raw.githubusercontent.com/traxguo/asgo.ai/main/dashboard/canli/nasdaq.html");
+});

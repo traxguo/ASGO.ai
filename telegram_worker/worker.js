@@ -14,6 +14,7 @@ export const HELP = [
   "/kapat NEAR: o coindeki demo işlemini hemen kapat",
   "/sor ...: yapay zekâya serbest soru (sohbet; sinyal veya seviye vermez)",
   "/panel: canlı sonuç paneli (tüm işlemler, kazanma oranı, açık işlemler)",
+  "/grafik: Nasdaq grafiği (long/short, giriş, stop, hedef)",
   "/yardim: bu mesaj",
   "",
   "Not: Bot kendi kafasına göre alım/stop seviyesi söylemez; işlemleri sadece Pusula açar.",
@@ -64,6 +65,7 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
   }
   if (cmd === "/start" || cmd === "/yardim" || cmd === "/help") return HELP;
   if (cmd === "/panel") return env.PANEL_URL ? `Canlı sonuç paneli: ${env.PANEL_URL}` : "Panel adresi henüz yok.";
+  if (cmd === "/grafik") return env.PANEL_URL ? `Nasdaq grafiği (giriş, stop, hedef): ${env.PANEL_URL}/nasdaq` : "Grafik adresi henüz yok.";
   if (cmd === "/kapat" && !ownerSpeaking) return "İşlem kapatmayı sadece hesap sahibi yapabilir.";
   if (cmd === "/fiyat" && !arg) return "Hangi coin? Örnek: /fiyat BTC";
   if (cmd === "/yorum" && !arg) return "Hangi coin? Örnek: /yorum ETH";
@@ -119,7 +121,8 @@ export async function startBots(env, when, fetchFn = fetch) {
 // log files from GitHub in the browser. Read-only: nothing here can place or close a trade.
 
 const RAW = "https://raw.githubusercontent.com/traxguo/asgo.ai/main/dashboard/canli/";
-const PANEL_FILES = { "": ["panel.html", "text/html; charset=utf-8"], "normalize.js": ["normalize.js", "text/javascript; charset=utf-8"] };
+const PANEL_FILES = { "": ["panel.html", "text/html; charset=utf-8"], "normalize.js": ["normalize.js", "text/javascript; charset=utf-8"],
+  "nasdaq": ["nasdaq.html", "text/html; charset=utf-8"] };  // /panel/nasdaq: Nasdaq chart with entry, stop and target
 
 export async function servePanel(path, fetchFn = fetch) {
   const sub = path.replace(/^\/panel\/?/, "");
@@ -128,6 +131,7 @@ export async function servePanel(path, fetchFn = fetch) {
   const res = await fetchFn(RAW + file[0], { cf: { cacheTtl: 60 } });
   if (!res.ok) return new Response(`panel not available (${res.status})`, { status: 502 });
   let body = await res.text();
+  if (sub === "nasdaq") body = "<!doctype html>\n" + body;
   if (sub === "") body = "<!doctype html>\n" + body.replace('<script src="normalize.js">', '<script src="/panel/normalize.js">');
   return new Response(body, { headers: { "Content-Type": file[1], "Cache-Control": "max-age=60" } });
 }
