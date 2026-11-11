@@ -61,3 +61,43 @@ Kod: `research/nasdaq_batch/batch.py`. İş akışı: `.github/workflows/nasdaq_
 sonuç CSV'lerini bu klasöre commit'ler).
 
 ---
+
+## 2. Sonuçlar (2026-11-11, gerçek veri, GitHub sunucusunda çalıştı)
+
+### GUO'ya not
+- İki yeni Nasdaq fikri de **geçmedi**. İkisi de para kaybettirdi veya rastgele girişten ayırt edilemedi.
+- Haber günü fikri (ilk tepkinin yönüne gir) açıkça zararlı: işlem başı yaklaşık -%0.24.
+- Gün sonu momentum fikri sıfır civarı; masrafı çıkarmıyor.
+- Kâğıt takibe yeni bir şey eklenmedi. Elimizdeki tek aday hâlâ Aslan Nasdaq.
+- 3 fikir hakkının 2'si kullanıldı. Üçüncüsü Aslan'ın getireceği somut kural için duruyor.
+
+### Ana ayarlar (yargılanan satırlar)
+
+| Fikir | Yön | Geliştirme: işlem / ort. / PF | Doğrulama: işlem / ort. / PF | 2x masraf (gel. / doğ.) | Rastgele kontrol p | Sonuç |
+|---|---|---|---|---|---|---|
+| N1 haber günü yönü | ikisi | 92 / -%0.237 / 0.64 | 24 / -%0.361 / 0.43 | -%0.247 / -%0.371 | 0.98 | **geçmedi** |
+| N1 (bilgi) | long | 52 / -%0.266 / 0.59 | 18 / -%0.323 / 0.51 | | | |
+| N1 (bilgi) | short | 40 / -%0.199 / 0.70 | 6 / -%0.477 / 0.13 | | | |
+| N2 gergin dönem momentum | long | 135 / +%0.023 / 1.19 | 70 / -%0.031 / 0.70 | +%0.013 / -%0.041 | 0.26 | **geçmedi** |
+| N2 gergin dönem momentum | short | 152 / -%0.027 / 0.84 | 78 / +%0.022 / 1.23 | -%0.037 / +%0.012 | 0.59 | **geçmedi** |
+
+Al-tut (NAS100): geliştirme +%137 (düşüş %36), doğrulama +%13 (düşüş %22).
+En büyük düşüş hiçbir satırda sınırı (%25) aşmadı (N1 geliştirme %24.4); elenme sebebi düşüş değil, getirinin eksi olması.
+
+### Ne gördük
+- **N1:** haber sonrası ilk tepkiyi takip etmek her eşikte (%0 / %0.20 / %0.40), iki dönemde de eksi. Rastgele günlerde aynı
+  saatte aynı yöne girmek daha iyi sonuç verdi (p 0.98). Türüne göre: CPI/NFP sabahları 98 işlem, ortalama -%0.33;
+  FOMC 18 işlem, ortalama +%0.10 (çok az örnek).
+- **N2:** long geliştirmede hafif artı, doğrulamada eksi; short tam tersi. Yani tutarlı bir etki yok. Rejim filtresi
+  olmadan ve sakin günlerde de aynı tablo.
+- N2'de 2020 ve 2023'te işlem yok: 2020 ısınma dönemi (270 gün veri gerekir), 2023 kurala göre "sakin" yıl.
+
+### Dikkat: ters yön (ilk tepkiye karşı işlem) artı göründü, ama bu bir sonuç DEĞİL
+Bilgi ızgarasında N1'in tersi (ilk tepkinin aksine gir) her hücrede artı: eşik %0.20'de geliştirme +%0.217 / PF 1.50
+(92 işlem), doğrulama +%0.341 / PF 2.24 (24 işlem). Bu, ana ayarın aynadaki görüntüsüdür (eksi masraf); ön kayıtta
+"ızgara sadece bilgi, seçim yapılmaz" yazıyor. Sonucu gördükten sonra yön çevirip "geçti" demek kendimizi kandırmaktır.
+Ayrıca doğrulamada 24 işlem var (çıta 30) ve haber takvimi resmî kaynakla doğrulanmadı.
+Bu yüzden: **aday değil, sadece not.** Denenmek istenirse yeni bir ön kayıt, doğrulanmış takvim ve henüz görülmemiş
+veri (kasa dönemi veya ileriye dönük kâğıt takip) gerekir; ve bu, planın 3 fikir hakkından birini harcar.
+
+Dosyalar: `summary.csv` (tüm hücreler), `pass.csv` (çıta kontrolü), `yearly.csv`, `trades_primary.csv`, `buy_hold.csv`, `run_log.txt`.
