@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-09T10:37:08.417071+00:00",
- "last_candle": "2026-11-08T20:00:00+00:00",
+ "updated": "2026-11-11T10:04:00.691471+00:00",
+ "last_candle": "2026-11-10T20:00:00+00:00",
  "strategies": {
   "PusulaTrendLong": [
    {
@@ -50,7 +50,17 @@
     "exit_time": "2026-10-29 20:00:00+00:00",
     "exit_price": 731.87,
     "reason": "stop_loss",
-    "r": -1.096,
+    "r": -1.097,
+    "open": false
+   },
+   {
+    "coin": "BCH",
+    "entry_time": "2026-10-28 00:00:00+00:00",
+    "entry_price": 294.99,
+    "exit_time": "2026-10-29 20:00:00+00:00",
+    "exit_price": 272.9,
+    "reason": "stop_loss",
+    "r": -1.029,
     "open": false
    }
   ],
@@ -102,7 +112,17 @@
     "exit_time": "2026-10-29 20:00:00+00:00",
     "exit_price": 731.87,
     "reason": "stop_loss",
-    "r": -1.096,
+    "r": -1.097,
+    "open": false
+   },
+   {
+    "coin": "BCH",
+    "entry_time": "2026-10-28 00:00:00+00:00",
+    "entry_price": 294.99,
+    "exit_time": "2026-10-29 20:00:00+00:00",
+    "exit_price": 272.9,
+    "reason": "stop_loss",
+    "r": -1.029,
     "open": false
    }
   ]
