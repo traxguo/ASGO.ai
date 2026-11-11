@@ -9,7 +9,7 @@ Fitil Avcısı,kâğıt (gerçek fiyat),long,FIL,2026-10-17 21:30,1.040535,2026-
 Fitil Avcısı,kâğıt (gerçek fiyat),long,SAND,2026-10-18 08:00,0.06152199999999999,2026-10-18 11:15,0.06069,-1.48,%,-29.75,kapandı,,,,
 Pusula (ilk sürüm),kâğıt (gerçek fiyat),long,BTC,2026-10-21 12:00,83365.8,2026-10-22 16:00,81068.3,-1.07,R,-107.40,kapandı,stop_loss,,,
 Pusula v2,kâğıt (gerçek fiyat),long,BTC,2026-10-21 12:00,83365.8,2026-10-22 16:00,81068.3,-1.07,R,-107.40,kapandı,stop_loss,,,
-Fitil Avcısı,Bitget demo hesap,long,NEAR,2026-10-24 14:16,4.4538,2026-10-28 19:18,4.745,6.45,%,127.63,kapandı,time_exit,gerçek piyasada da dolardı,5.42,"Kesinti: emir 20 Ekim'de iptal edilmeliydi, 24 Ekim'de doldu ve 3 saat yerine 4 gün tutuldu. Kural dışı."
+Fitil Avcısı,Bitget demo hesap,long,NEAR,2026-10-24 14:16,4.4538,2026-10-28 19:18,4.745,6.45,%,127.63,kapandı,time_exit,gerçek piyasada da dolardı,5.38,"Kesinti: emir 20 Ekim'de iptal edilmeliydi, 24 Ekim'de doldu ve 3 saat yerine 4 gün tutuldu. Kural dışı."
 Pusula (ilk sürüm),kâğıt (gerçek fiyat),long,BNB,2026-10-27 16:00,749.67,2026-10-29 20:00,731.87,-1.10,R,-109.60,kapandı,stop_loss,,,
 Pusula v2,kâğıt (gerçek fiyat),long,BNB,2026-10-27 16:00,749.67,2026-10-29 20:00,731.87,-1.10,R,-109.60,kapandı,stop_loss,,,
 Fitil Avcısı,kâğıt (gerçek fiyat),long,BNB,2026-10-29 20:30,702.5819999999999,2026-10-29 23:45,700.13,-0.48,%,-9.59,kapandı,,,,
@@ -39,4 +39,8 @@ Fitil Avcısı,kâğıt (gerçek fiyat),long,ONE,2026-11-08 01:45,0.001940565,20
 Fitil Avcısı,kâğıt (gerçek fiyat),long,ONE,2026-11-08 10:30,0.00202103,2026-11-08 13:45,0.0018617,-8.01,%,-166.28,kapandı,,,,
 Fitil Avcısı,kâğıt (gerçek fiyat),long,ONE,2026-11-08 16:30,0.001838155,2026-11-08 19:45,0.0017694,-3.87,%,-79.03,kapandı,,,,
 Derin Fitil,Bitget demo hesap,long,LINK,2026-11-08 22:01,9.792,2026-11-08 22:03,,,%,,kapandı,btc_guard,gerçek piyasada DOLMAZDI,0 (işlem olmazdı),
-Fitil Avcısı,kâğıt (gerçek fiyat),long,HOT,2026-11-10 02:45,0.00043623999999999996,,,,%,,açık,,,,
+Fitil Avcısı,kâğıt (gerçek fiyat),long,HOT,2026-11-10 02:45,0.00043623999999999996,2026-11-10 06:00,0.0004414,1.05,%,21.33,kapandı,,,,
+Derin Fitil,Bitget demo hesap,long,DOT,2026-11-10 12:51,0.782,2026-11-10 18:53,0.839,7.21,%,155.61,kapandı,time_exit,gerçek piyasada DOLMAZDI,0 (işlem olmazdı),
+Fitil Avcısı,kâğıt (gerçek fiyat),long,INJ,2026-11-10 15:30,7.7273,2026-11-10 18:45,7.995,3.33,%,67.69,kapandı,,,,
+Derin Fitil,Bitget demo hesap,long,SOL,2026-11-10 18:00,77.66,2026-11-10 21:07,84.282,8.44,%,182.25,kapandı,time_exit,gerçek piyasada DOLMAZDI,0 (işlem olmazdı),
+Fitil Avcısı,kâğıt (gerçek fiyat),long,ONE,2026-11-11 00:30,0.0017746,2026-11-11 03:45,0.0017288,-2.71,%,-55.40,kapandı,,,,
