@@ -3,7 +3,7 @@
  "trades": [],
  "open": [
   {
-   "status": "sinyal",
+   "status": "pozisyon",
    "side": "short",
    "sig_t": "2026-11-11T20:00:00+00:00",
    "entry": 28484.25,
@@ -11,5 +11,5 @@
    "target": 28058.75
   }
  ],
- "last_bar": "2026-11-11T20:00:00+00:00"
+ "last_bar": "2026-11-11T21:00:00+00:00"
 }
