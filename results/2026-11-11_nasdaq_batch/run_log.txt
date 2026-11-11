@@ -1,0 +1,16 @@
+NAS100 bars 418206, cleaned 5
+event days 196, session days 1481, N1 rows 748, N2 rows 1795
+idea          cell  primary  unit  dev_n  dev_avg_pct  dev_pf  dev_win_pct  dev_total_pct  dev_avg2x_pct  dev_dd_pct  val_n  val_avg_pct  val_pf  val_win_pct  val_total_pct  val_avg2x_pct  val_dd_pct
+  N1       thr0.20     True  both     92       -0.237   0.640       47.826        -21.800         -0.247      24.371     24       -0.361   0.425       45.833         -8.670         -0.371       9.716
+  N1       thr0.20     True  long     52       -0.266   0.592       50.000        -13.838         -0.276      15.717     18       -0.323   0.508       50.000         -5.809         -0.333       7.083
+  N1       thr0.20     True short     40       -0.199   0.701       45.000         -7.962         -0.209      12.906      6       -0.477   0.126       33.333         -2.860         -0.487       2.968
+  N2 first30_tense     True  both    287       -0.004   0.975       47.735         -1.041         -0.014       8.316    148       -0.003   0.970       47.297         -0.444         -0.013       2.805
+  N2 first30_tense     True  long    135        0.023   1.189       48.889          3.068          0.013       4.649     70       -0.031   0.695       45.714         -2.149         -0.041       3.384
+  N2 first30_tense     True short    152       -0.027   0.839       46.711         -4.109         -0.037       6.717     78        0.022   1.226       48.718          1.704          0.012       1.960
+idea  unit  p_dev  ctrl_mean_pct  pass                                                           failed
+  N1  both 0.9755        -0.0074 False net, PF, kontrol, 2x masraf, az örnek, bir yön geliştirmede eksi
+  N2  long 0.2594         0.0002 False                                      net, PF, kontrol, 2x masraf
+  N2 short 0.5927        -0.0201 False                                      net, PF, kontrol, 2x masraf
+period  ret_pct  dd_pct
+   dev   136.89   35.55
+   val    12.87   21.95
