@@ -34,6 +34,7 @@
   .note { color:var(--muted); font-size:12.5px; margin-top:14px; }
   .banner { background:#3b2f08; border:1px solid var(--warn); color:var(--warn); border-radius:10px; padding:10px 14px;
             margin-bottom:12px; font-weight:600; }
+  a { color:var(--entry); }
   h2 { font-size:15px; margin:18px 0 8px; }
   @media (max-width:600px) { #chart { height:360px; } }
 </style>
@@ -42,6 +43,7 @@
 <main>
   <h1>ASGO Nasdaq grafiği</h1>
   <div class="sub" id="sub">Yükleniyor…</div>
+  <div class="sub" id="price"></div>
   <div class="banner" id="banner" hidden>ÖRNEK GÖRÜNÜM: aşağıdaki işlemler uydurmadır, sadece grafiğin nasıl görüneceğini gösterir.</div>
   <div class="tabs" id="tabs"></div>
   <div class="now" id="now"></div>
@@ -56,8 +58,9 @@
   <div class="tablewrap"><table id="trades"></table></div>
   <p class="note">
     Kâğıt takip: gerçek emir yok. Kurallar donuk, seviyeler test edilmiş kuralın çıktısıdır. Grafik saat başı,
-    kapanan mumla güncellenir (anlık fiyat değildir). Fiyat kaynağı Nasdaq vadeli kontratıdır (NQ);
-    XM'deki US100 fiyatı birkaç puan farklı olabilir. Saatler Türkiye saatidir.
+    kapanan mumla güncellenir (anlık fiyat değildir). Kural Nasdaq vadeli kontratında (NQ) çalışır; sayfa seviyeleri
+    US100 (nakit) fiyatına çevirerek gösterir, bu yüzden aracı kurumundaki fiyatla birkaç puan fark olabilir.
+    Sonuçlar (R) çevirmeden etkilenmez. Saatler Türkiye saatidir.
   </p>
 </main>
 
@@ -86,9 +89,20 @@
       .map(([t, open, high, low, close]) => ({ time: t + TR, raw: t, open, high, low, close }));
   } catch (e) { /* first hour after the page went live: no candle file yet */ }
 
-  const states = await Promise.all(LINES.map(async l => {
+  // The rules run on the future (NQ); brokers and TradingView show the cash index (US100), which sits lower.
+  // basis.json = future minus cash at the last New York close; the page shows everything moved to US100 by default.
+  let basis = null;
+  try { basis = await (await get("paper_aslan_nas/basis.json")).json(); } catch (e) { /* not measured yet */ }
+  const CASH = !!basis && q.get("fiyat") !== "vadeli";
+  const SHIFT = CASH ? Number(basis.basis) : 0;
+  if (SHIFT) bars = bars.map(b => ({ ...b, open: b.open - SHIFT, high: b.high - SHIFT, low: b.low - SHIFT, close: b.close - SHIFT }));
+  const moved = o => ({ ...o, entry: o.entry - SHIFT, stop: o.stop - SHIFT, target: o.target - SHIFT,
+                        ...(o.exit !== undefined ? { exit: o.exit - SHIFT } : {}) });
+
+  const states = (await Promise.all(LINES.map(async l => {
     try { return await (await get(l.dir + "/state.json")).json(); } catch (e) { return { trades: [], open: null }; }
-  }));
+  }))).map(st => ({ ...st, trades: (st.trades || []).map(moved),
+                    open: Array.isArray(st.open) ? st.open.map(moved) : st.open ? moved(st.open) : st.open }));
 
   if (DEMO && bars.length > 80) {            // made-up trades so the owner can see the look; never shown without ?ornek=1
     document.getElementById("banner").hidden = false;
@@ -101,6 +115,14 @@
   }
 
   const last = bars[bars.length - 1];
+  const priceNote = document.getElementById("price");
+  if (basis) {
+    priceNote.innerHTML = CASH
+      ? `Fiyatlar <b>US100 (nakit)</b> karşılığıdır: vadeli kontrat fiyatından ${fmt(basis.basis)} puan düşüldü (ölçüm: ${basis.day} kapanışı). Fark gün içinde birkaç puan oynar. <a href="?fiyat=vadeli">Vadeli (NQ) fiyatıyla göster</a>`
+      : `Fiyatlar <b>vadeli kontrat (NQ)</b> fiyatıdır; US100 bundan yaklaşık ${fmt(basis.basis)} puan aşağıdadır. <a href="?">US100 karşılığıyla göster</a>`;
+  } else {
+    priceNote.textContent = "Fiyatlar vadeli kontrat (NQ) fiyatıdır; US100 karşılığı ilk ölçümden sonra gösterilecek.";
+  }
   document.getElementById("sub").textContent = last
     ? `Nasdaq 1 saatlik mumlar. Son kapanan mum: ${when(new Date((last.raw + 3600) * 1000).toISOString())} (Türkiye), kapanış ${fmt(last.close)}.`
     : "Mum verisi henüz yok; ilk saat başı çalışmasından sonra görünecek.";

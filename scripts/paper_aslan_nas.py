@@ -41,6 +41,7 @@ import sim  # noqa: E402
 
 OUT_DIR = REPO / "forward" / "paper_aslan_nas"
 SYMBOL = "NQ=F"
+CASH_SYMBOL = "^NDX"
 COST = sim.COST["NAS100"]  # same round-trip cost as the backtest
 HEADER = "KÂĞIT Aslan Nasdaq (gerçek emir yok)"
 FIELDS = ["sig_t", "side", "t_in", "entry", "stop", "target", "t_out", "exit", "gross_r", "net_r", "why"]
@@ -65,6 +66,50 @@ def fetch_1h() -> pd.DataFrame:
     idx = pd.DatetimeIndex(d.index)
     d.index = idx.tz_localize("UTC") if idx.tz is None else idx.tz_convert("UTC")
     return d[~d.index.duplicated(keep="last")].sort_index().astype(float)
+
+
+def fetch_cash_daily() -> pd.Series:
+    """Daily closes of the Nasdaq-100 cash index (^NDX), indexed by date; used only to show levels as US100."""
+    import yfinance as yf
+
+    d = yf.download(CASH_SYMBOL, period="15d", interval="1d", progress=False, auto_adjust=False)
+    if d is None or d.empty:
+        raise RuntimeError(f"no data from Yahoo for {CASH_SYMBOL}")
+    if isinstance(d.columns, pd.MultiIndex):
+        d.columns = d.columns.get_level_values(0)
+    c = d.rename(columns=str.lower)["close"].dropna().astype(float)
+    c.index = pd.DatetimeIndex(c.index).tz_localize(None).normalize()
+    return c
+
+
+def cash_basis(h1: pd.DataFrame, cash: pd.Series, now: datetime) -> dict | None:
+    """Future minus cash index at the latest New York 16:00 close that both have.
+
+    The rules run on the future (NQ=F); brokers quote the cash index (US100 / USTEC), which sits lower by this
+    amount. It only translates the displayed levels; the tracked rules and results stay on the future."""
+    bars = closed_bars(h1, now)
+    for day in sorted(cash.index, reverse=True):
+        start = (pd.Timestamp(day) + pd.Timedelta(hours=15)).tz_localize("America/New_York").tz_convert("UTC")
+        if start not in bars.index:      # the 15:00-16:00 New York candle is not closed yet (or a holiday gap)
+            continue
+        fut, idx = float(bars.loc[start, "close"]), float(cash[day])
+        if idx <= 0 or abs(fut / idx - 1) > 0.03:
+            return None                  # not a believable basis: show future prices only
+        return {"basis": round(fut - idx, 2), "day": pd.Timestamp(day).strftime("%Y-%m-%d"),
+                "future": round(fut, 2), "cash": round(idx, 2)}
+    return None
+
+
+def cash_line(open_now, basis: dict | None) -> str | None:
+    """Telegram line with the open signal's levels moved to the cash index (US100)."""
+    opens = open_now if isinstance(open_now, list) else [open_now] if open_now else []
+    if not basis or not opens:
+        return None
+    b = basis["basis"]
+    parts = [f"{'LONG' if o['side'] == 'long' else 'SHORT'} giriş {o['entry'] - b:.2f}, stop {o['stop'] - b:.2f}, "
+             f"hedef {o['target'] - b:.2f}" for o in opens]
+    return (f"US100 (nakit) karşılığı, yaklaşık: {'; '.join(parts)}. "
+            f"Yukarıdaki rakamlar vadeli kontrat fiyatıdır, US100 şu an {b:.0f} puan aşağıda.")
 
 
 def closed_bars(h1: pd.DataFrame, now: datetime) -> pd.DataFrame:
@@ -274,6 +319,12 @@ def main() -> None:
     now = datetime.now(timezone.utc)
     h1 = fetch_1h()
     print(f"{SYMBOL}: {len(h1)} 1h bars {h1.index[0]} -> {h1.index[-1]}, last close {h1['close'].iloc[-1]:.2f}")
+    try:
+        basis = cash_basis(h1, fetch_cash_daily(), now)
+    except Exception as e:  # noqa: BLE001 - the cash price is only for display; tracking must go on without it
+        print(f"cash index not available: {e}")
+        basis = None
+    print(f"future minus cash: {basis}")
     lines = [("frozen", OUT_DIR, HEADER, lambda st: run_once(h1, st, now))]
     for name, (cfg, title) in VARIANTS.items():
         lines.append((name, OUT_DIR.with_name(f"{OUT_DIR.name}_{name}"),
@@ -289,12 +340,19 @@ def main() -> None:
         print(f"[{name}] trades {len(state['trades'])} ({total:+.2f}R), open {state.get('open')}")
         for m in msgs[-10:]:
             print("  " + m)
+        if any(m.startswith(("YENİ SİNYAL", "GİRİŞ DOLDU")) for m in msgs):
+            extra = cash_line(state.get("open"), basis)
+            if extra:
+                msgs.append(extra)
+                print("  " + extra)
         if a.check:
             continue
         save(state, out_dir)
         notify(msgs, header)
     if not a.check:
         save_bars(h1, now)
+        if basis:  # keep the last known value when Yahoo has no cash price this hour
+            (OUT_DIR / "basis.json").write_text(json.dumps(basis), encoding="utf-8")
 
 
 if __name__ == "__main__":
