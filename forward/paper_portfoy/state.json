@@ -4,19 +4,19 @@
  "base_usdt": 10000.0,
  "risk_per_trade": 0.0025,
  "fitil_risk_unit": 0.04,
- "last_event": "2026-11-11T00:30:00+00:00",
- "equity": 9937.21,
- "return_pct": -0.628,
+ "last_event": "2026-11-11T03:45:00+00:00",
+ "equity": 9920.38,
+ "return_pct": -0.796,
  "max_dd_pct": 2.029,
- "trades_closed": 27,
- "trades_open": 1,
+ "trades_closed": 28,
+ "trades_open": 0,
  "wins": 10,
  "by_strategy": {
   "Fitil": {
-   "closed": 18,
-   "open": 1,
+   "closed": 19,
+   "open": 0,
    "wins": 6,
-   "pnl_usdt": -102.08
+   "pnl_usdt": -118.92
   },
   "Derin Fitil": {
    "closed": 4,
@@ -155,17 +155,12 @@
   {
    "t": "2026-11-10T18:45:00+00:00",
    "eq": 9937.21
-  }
- ],
- "open": [
+  },
   {
-   "strategy": "Fitil",
-   "symbol": "ONE",
-   "side": "long",
-   "entry_time": "2026-11-11T00:30:00+00:00",
-   "unit": "%",
-   "equity_at_entry": 9937.21
+   "t": "2026-11-11T03:45:00+00:00",
+   "eq": 9920.38
   }
  ],
+ "open": [],
  "note": "Sadece kayıtlı işlemler toplanır; emir yok. Açık işlemler kasaya kapanınca yazılır."
 }
