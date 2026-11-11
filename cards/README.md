@@ -23,6 +23,7 @@ Her stratejinin **kodlanmadan önce** bir kartı olur. Kart, stratejinin "kimlik
 | [fvg_ob](fvg_ob.md) | candidate (emeklilik önerildi) | 15 dk yapı kırılımı + Order Block, 3 dk FVG'nin ortasına limit emir, hedef karşı likidite (ilk elemede başarısız, masrafsız bile eksi). |
 | [sfp_sweep](sfp_sweep.md) | candidate (emeklilik önerildi) | 5 dk mum 15 dk tepe/dibi iğneyle delip geri kapanınca ters yöne girer (ilk elemede başarısız, masrafsız bile eksi). |
 | [vwap_reversion](vwap_reversion.md) | candidate (emeklilik önerildi) | 5 dk fiyat VWAP ve EMA20'den uzaklaşıp RSI aşırıyken dönüş mumuyla geri döner (ilk elemede başarısız, masrafsız bile eksi). |
+| [sepet](sepet.md) | candidate (kod yok) | Her hafta coinleri son 90 günün getirisine (son 7 gün hariç) göre sıralar, en güçlü 3'te long (en zayıf 3'te short ayrı varyant) tutar, sepetten düşünce çıkar. |
 
 ## Strateji eklemek
 1. `_SABLON.md` dosyasını kopyala, `cards/<strateji_adi>.md` olarak kaydet ve doldur (ya da Claude'a "şu fikirle yeni bir strateji kartı aç" de).
