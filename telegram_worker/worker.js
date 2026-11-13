@@ -9,6 +9,7 @@ export const HELP = [
   "",
   "/durum: Nasdaq botunun açık işlemleri ve toplam sonucu",
   "/gecmis: Nasdaq botunun son kapanan işlemleri",
+  "/total: toplam kâr/zarar, kaç günde, kasa ne oldu",
   "/grafik: Nasdaq grafiği (long/short, giriş, stop, hedef)",
   "/panel: canlı sonuç paneli (tüm işlemler, kazanma oranı, açık işlemler)",
   "/fiyat BTC: güncel fiyat",
@@ -66,9 +67,10 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
   if (cmd === "/start" || cmd === "/yardim" || cmd === "/help") return HELP;
   if (cmd === "/panel") return env.PANEL_URL ? `Canlı sonuç paneli: ${env.PANEL_URL}` : "Panel adresi henüz yok.";
   if (cmd === "/grafik") return env.PANEL_URL ? `Nasdaq grafiği (giriş, stop, hedef): ${env.PANEL_URL}/nasdaq` : "Grafik adresi henüz yok.";
-  if (cmd === "/durum" || cmd === "/gecmis") {
+  if (cmd === "/durum" || cmd === "/gecmis" || cmd === "/total" || cmd === "/toplam") {
     try {
       const data = await loadNasdaq(fetchFn);
+      if (cmd === "/total" || cmd === "/toplam") return nasdaqTotal(data, new Date());
       return cmd === "/durum" ? nasdaqStatus(data, env.PANEL_URL) : nasdaqHistory(data);
     } catch (e) {
       return `Nasdaq kaydı okunamadı: ${String(e.message || e).slice(0, 150)}`;
@@ -146,6 +148,30 @@ export function nasdaqHistory(data) {
     }
   }
   out.push("", data.basis === null ? "Fiyatlar: vadeli fiyat. Saatler Türkiye saati." : "Fiyatlar: US100, yaklaşık. Saatler Türkiye saati.");
+  return out.join("\n");
+}
+
+// /total: the paper result as money. Paper account assumption (owner asked for a money view, 2026-11-13):
+// start 10,000 $, 1% of the current balance risked per trade, so a trade of r R changes the balance by r %.
+// Closed trades only, in exit order, after costs. This is arithmetic on the log, not a broker balance.
+export const PAPER_START = 10000;
+export const PAPER_RISK = 0.01;
+const usd = (v) => v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export function nasdaqTotal(data, now = new Date()) {
+  const out = [`Nasdaq botu toplam (kâğıt takip, gerçek para yok)`, ""];
+  for (const { name, state } of data.lines) {
+    const trades = [...(state.trades || [])].sort((a, b) => String(a.t_out).localeCompare(String(b.t_out)));
+    let bal = PAPER_START;
+    for (const t of trades) bal *= 1 + PAPER_RISK * (t.net_r || 0);
+    const pnl = bal - PAPER_START;
+    const days = Math.max(0, Math.floor((now.getTime() - new Date(state.started).getTime()) / 86400e3));
+    const wins = trades.filter((t) => (t.net_r || 0) > 0).length;
+    out.push(`${name}: ${pnl >= 0 ? "+" : "-"}${usd(Math.abs(pnl))} $ ${pnl >= 0 ? "kâr" : "zarar"}, ${days} gün içinde. Toplam kasa ${usd(bal)} $`);
+    out.push(`  ${trades.length} kapanan işlem (${wins} kazanan), toplam ${fmtR(sumR(trades))}`);
+  }
+  out.push("", `Varsayım: ${PAPER_START.toLocaleString("tr-TR")} $ başlangıç, işlem başına kasanın %${PAPER_RISK * 100}'i risk. Açık işlemler dahil değil.`);
+  out.push("Ana bot asıl kuraldır; Gevşek 1 ve 2 sadece karşılaştırma içindir.");
   return out.join("\n");
 }
 

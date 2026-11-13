@@ -1,7 +1,7 @@
 // Run: node --test telegram_worker/
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import worker, { answer, HELP, dueBots, startBots, servePanel, nasdaqStatus, nasdaqHistory } from "./worker.js";
+import worker, { answer, HELP, dueBots, startBots, servePanel, nasdaqStatus, nasdaqHistory, nasdaqTotal } from "./worker.js";
 
 const env = { TELEGRAM_CHAT_ID: "42", TELEGRAM_GROUP_ID: "-100", WEBHOOK_SECRET: "w", GH_DISPATCH_TOKEN: "t" };
 
@@ -183,4 +183,20 @@ test("/gecmis lists closed Nasdaq trades; without basis the futures price is sho
   const data = { lines: [{ name: "Ana bot", state: noBasis["paper_aslan_nas_nobias/state.json"] }], basis: null };
   assert.match(nasdaqStatus(data), /giriş 28\.359.*\n\nFiyatlar: vadeli fiyat/);
   assert.match(nasdaqHistory(data), /Fiyatlar: vadeli fiyat/);
+});
+
+test("/total turns the closed paper trades into money: 10,000 $ start, 1% risk, compounded", async () => {
+  const text = await answer(env, 42, "/total", fakeRaw(nasFiles));
+  assert.match(text, /Ana bot: \+/);
+  const st = (trades) => ({ started: "2026-11-05T20:04:13+00:00", trades, open: null });
+  const data = { basis: null, lines: [
+    { name: "Ana bot", state: st([{ t_out: "2026-11-12T13:00:00+00:00", net_r: 1.987 }, { t_out: "2026-11-10T13:00:00+00:00", net_r: -1.02 }]) },
+    { name: "Gevşek 1", state: st([{ t_out: "2026-11-12T13:00:00+00:00", net_r: -1.0 }]) },
+    { name: "Gevşek 2", state: st([]) } ] };
+  const out = nasdaqTotal(data, new Date("2026-11-18T21:00:00Z"));
+  // 10000 * (1 - 0.0102) * (1 + 0.01987) = 10094.67
+  assert.match(out, /Ana bot: \+94,67 \$ kâr, 13 gün içinde\. Toplam kasa 10\.094,67 \$\n  2 kapanan işlem \(1 kazanan\), toplam \+0\.97R/);
+  assert.match(out, /Gevşek 1: -100,00 \$ zarar, 13 gün içinde\. Toplam kasa 9\.900,00 \$/);
+  assert.match(out, /Gevşek 2: \+0,00 \$ kâr, 13 gün içinde\. Toplam kasa 10\.000,00 \$\n  0 kapanan işlem/);
+  assert.match(out, /10\.000 \$ başlangıç, işlem başına kasanın %1'i risk/);
 });
