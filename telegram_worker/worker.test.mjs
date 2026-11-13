@@ -1,7 +1,7 @@
 // Run: node --test telegram_worker/
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import worker, { answer, HELP, dueBots, startBots, servePanel } from "./worker.js";
+import worker, { answer, HELP, dueBots, startBots, servePanel, nasdaqStatus, nasdaqHistory } from "./worker.js";
 
 const env = { TELEGRAM_CHAT_ID: "42", TELEGRAM_GROUP_ID: "-100", WEBHOOK_SECRET: "w", GH_DISPATCH_TOKEN: "t" };
 
@@ -14,11 +14,11 @@ function fakeGitHub(calls = [], status = 204) {
 
 test("account commands start the GitHub job with who asked and where", async () => {
   const calls = [];
-  assert.match(await answer(env, 42, "/durum", fakeGitHub(calls)), /Bakıyorum/);
+  assert.match(await answer(env, 42, "/fiyat btc", fakeGitHub(calls)), /Bakıyorum/);
   assert.equal(calls[0].url, "https://api.github.com/repos/traxguo/ASGO.ai/actions/workflows/telegram_command.yml/dispatches");
   assert.equal(calls[0].opts.headers.Authorization, "Bearer t");
   assert.deepEqual(JSON.parse(calls[0].opts.body),
-    { ref: "main", inputs: { cmd: "/durum", arg: "", chat: "42", sender: "42" } });
+    { ref: "main", inputs: { cmd: "/fiyat", arg: "btc", chat: "42", sender: "42" } });
 });
 
 test("strangers learn only their own id in private and nothing in groups", async () => {
@@ -43,8 +43,10 @@ test("owner can ask an unknown group for its id; others cannot", async () => {
 });
 
 test("problems are reported, not thrown", async () => {
-  assert.match(await answer(env, 42, "/gecmis", fakeGitHub([], 401)), /Bir sorun oldu: GitHub 401 Bad credentials/);
-  assert.match(await answer({ ...env, GH_DISPATCH_TOKEN: "none" }, 42, "/durum", fakeGitHub()), /GH_DISPATCH_TOKEN/);
+  assert.match(await answer(env, 42, "/fiyat btc", fakeGitHub([], 401)), /Bir sorun oldu: GitHub 401 Bad credentials/);
+  assert.match(await answer({ ...env, GH_DISPATCH_TOKEN: "none" }, 42, "/fiyat btc", fakeGitHub()), /GH_DISPATCH_TOKEN/);
+  const down = async () => ({ ok: false, status: 404 });
+  assert.match(await answer(env, 42, "/durum", down), /Nasdaq kaydı okunamadı/);
 });
 
 test("help, missing coin and the group stays quiet on unknown text", async () => {
@@ -142,4 +144,43 @@ test("/grafik gives the Nasdaq chart address and the worker serves that page", a
   assert.equal(page.status, 200);
   assert.match(await page.text(), /^<!doctype html>/);
   assert.equal(asked[0], "https://raw.githubusercontent.com/traxguo/asgo.ai/main/dashboard/canli/nasdaq.html");
+});
+
+// ---- /durum and /gecmis read the Nasdaq paper logs (no GitHub job, no Bitget)
+const shortTrade = { side: "short", t_in: "2026-11-11T21:00:00+00:00", entry: 28484.25, stop: 28697, target: 28058.75,
+  t_out: "2026-11-12T13:00:00+00:00", exit: 28058.75, net_r: 1.987, why: "hedef" };
+const openLong = { status: "pozisyon", side: "long", sig_t: "2026-11-12T14:00:00+00:00", entry: 28359, stop: 28027.31, target: 29022.38 };
+const nasFiles = {
+  "paper_aslan_nas/state.json": { trades: [shortTrade], open: null, last_bar: "2026-11-13T06:00:00+00:00" },
+  "paper_aslan_nas_nobias/state.json": { trades: [shortTrade], open: [openLong], last_bar: "2026-11-13T06:00:00+00:00" },
+  "paper_aslan_nas_maxopen2/state.json": { trades: [], open: [], last_bar: "2026-11-13T06:00:00+00:00" },
+  "paper_aslan_nas/basis.json": { basis: 99.06 },
+};
+function fakeRaw(files, calls = []) {
+  return async (url) => {
+    calls.push(url);
+    const key = url.split("/forward/")[1];
+    return key in files ? { ok: true, status: 200, json: async () => files[key] } : { ok: false, status: 404 };
+  };
+}
+
+test("/durum shows the Nasdaq paper lines in US100 prices without starting a GitHub job", async () => {
+  const calls = [];
+  const text = await answer({ ...env, PANEL_URL: "https://x/panel" }, 42, "/durum", fakeRaw(nasFiles, calls));
+  assert.ok(calls.every((u) => u.startsWith("https://raw.githubusercontent.com/traxguo/asgo.ai/main/forward/")));
+  assert.match(text, /Ana bot: 1 kapanan işlem, toplam \+1\.99R\n  Açık işlem yok\./);
+  assert.match(text, /Gevşek 1: 1 kapanan işlem.*\n  AÇIK LONG: giriş 28\.260, stop 27\.928, hedef 28\.923/);
+  assert.match(text, /Gevşek 2: 0 kapanan işlem, toplam \+0\.00R/);
+  assert.match(text, /US100, yaklaşık\. Son bakılan mum: 11-13 09:00 \(TR\)/);
+  assert.match(text, /https:\/\/x\/panel\/nasdaq/);
+});
+
+test("/gecmis lists closed Nasdaq trades; without basis the futures price is shown and said", async () => {
+  const text = await answer(env, -100, "/gecmis", fakeRaw(nasFiles), 7, "group");
+  assert.match(text, /Ana bot:\n  11-12 00:00 SHORT 28\.385 → 27\.960 \(hedef\) \+1\.99R/);
+  assert.match(text, /Gevşek 2:\n  Henüz kapanan işlem yok\./);
+  const { ["paper_aslan_nas/basis.json"]: _, ...noBasis } = nasFiles;
+  const data = { lines: [{ name: "Ana bot", state: noBasis["paper_aslan_nas_nobias/state.json"] }], basis: null };
+  assert.match(nasdaqStatus(data), /giriş 28\.359.*\n\nFiyatlar: vadeli fiyat/);
+  assert.match(nasdaqHistory(data), /Fiyatlar: vadeli fiyat/);
 });

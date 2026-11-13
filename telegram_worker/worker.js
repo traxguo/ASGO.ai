@@ -5,19 +5,19 @@
 // Owner guide (Turkish): docs/telegram_cloudflare_kurulum.md
 
 export const HELP = [
-  "ASGO demo botu (Bitget demo hesabı, oyun parası).",
+  "ASGO botu. Nasdaq (US100) kâğıt takibi: gerçek para yok.",
   "",
-  "/durum: bakiye ve açık işlemler",
-  "/gecmis: son kapanan işlemler",
+  "/durum: Nasdaq botunun açık işlemleri ve toplam sonucu",
+  "/gecmis: Nasdaq botunun son kapanan işlemleri",
+  "/grafik: Nasdaq grafiği (long/short, giriş, stop, hedef)",
+  "/panel: canlı sonuç paneli (tüm işlemler, kazanma oranı, açık işlemler)",
   "/fiyat BTC: güncel fiyat",
   "/yorum ETH: canlı veriyle piyasa yorumu (sinyal değildir)",
   "/kapat NEAR: o coindeki demo işlemini hemen kapat",
   "/sor ...: yapay zekâya serbest soru (sohbet; sinyal veya seviye vermez)",
-  "/panel: canlı sonuç paneli (tüm işlemler, kazanma oranı, açık işlemler)",
-  "/grafik: Nasdaq grafiği (long/short, giriş, stop, hedef)",
   "/yardim: bu mesaj",
   "",
-  "Not: Bot kendi kafasına göre alım/stop seviyesi söylemez; işlemleri sadece Pusula açar.",
+  "Not: seviyeler sadece test edilmiş kuraldan gelir; bot kendi kafasına göre seviye söylemez.",
 ].join("\n");
 
 // ------------------------------------------------------------------ GitHub hand-off
@@ -27,7 +27,7 @@ export const HELP = [
 
 const REPO = "traxguo/ASGO.ai";
 const WORKFLOW = "telegram_command.yml";
-const REMOTE = new Set(["/durum", "/gecmis", "/fiyat", "/yorum", "/kapat", "/sor"]);
+const REMOTE = new Set(["/fiyat", "/yorum", "/kapat", "/sor"]);
 
 export async function startCommand(env, cmd, arg, chatId, fromId, fetchFn = fetch) {
   if (!env.GH_DISPATCH_TOKEN || env.GH_DISPATCH_TOKEN === "none") return "Kurulum eksik: GH_DISPATCH_TOKEN secret'ı yok (docs/telegram_cloudflare_kurulum.md).";
@@ -66,6 +66,14 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
   if (cmd === "/start" || cmd === "/yardim" || cmd === "/help") return HELP;
   if (cmd === "/panel") return env.PANEL_URL ? `Canlı sonuç paneli: ${env.PANEL_URL}` : "Panel adresi henüz yok.";
   if (cmd === "/grafik") return env.PANEL_URL ? `Nasdaq grafiği (giriş, stop, hedef): ${env.PANEL_URL}/nasdaq` : "Grafik adresi henüz yok.";
+  if (cmd === "/durum" || cmd === "/gecmis") {
+    try {
+      const data = await loadNasdaq(fetchFn);
+      return cmd === "/durum" ? nasdaqStatus(data, env.PANEL_URL) : nasdaqHistory(data);
+    } catch (e) {
+      return `Nasdaq kaydı okunamadı: ${String(e.message || e).slice(0, 150)}`;
+    }
+  }
   if (cmd === "/kapat" && !ownerSpeaking) return "İşlem kapatmayı sadece hesap sahibi yapabilir.";
   if (cmd === "/fiyat" && !arg) return "Hangi coin? Örnek: /fiyat BTC";
   if (cmd === "/yorum" && !arg) return "Hangi coin? Örnek: /yorum ETH";
@@ -79,6 +87,66 @@ export async function answer(env, chatId, text, fetchFn = fetch, fromId = chatId
     }
   }
   return ownerChat ? "Bu komutu tanımıyorum. /yardim yaz." : null;
+}
+
+// ------------------------------------------------------------------ Nasdaq paper status
+// 2026-11-13: the project trades only Nasdaq on paper (docs/decisions.md 2026-11-10) and the Bitget demo
+// account is empty, so /durum and /gecmis read the Aslan Nasdaq paper logs (forward/paper_aslan_nas*)
+// from the repo's main branch. Read-only. Levels are shown as US100 (cash): futures price minus basis.json.
+
+const FWD = "https://raw.githubusercontent.com/traxguo/asgo.ai/main/forward/";
+export const NAS_LINES = [["paper_aslan_nas", "Ana bot"], ["paper_aslan_nas_nobias", "Gevşek 1"], ["paper_aslan_nas_maxopen2", "Gevşek 2"]];
+
+export async function loadNasdaq(fetchFn = fetch) {
+  const get = async (path) => {
+    const res = await fetchFn(FWD + path, { cf: { cacheTtl: 60 } });
+    if (!res.ok) throw new Error(`${path} ${res.status}`);
+    return res.json();
+  };
+  const lines = [];
+  for (const [dir, name] of NAS_LINES) lines.push({ name, state: await get(`${dir}/state.json`) });
+  let basis = null;
+  try { basis = (await get("paper_aslan_nas/basis.json")).basis; } catch (e) { basis = null; }
+  return { lines, basis: Number.isFinite(basis) ? basis : null };
+}
+
+const px = (v, basis) => Math.round(v - (basis || 0)).toLocaleString("tr-TR");
+const trTime = (iso) => new Date(new Date(iso).getTime() + 3 * 3600e3).toISOString().slice(5, 16).replace("T", " ");
+const openList = (state) => (Array.isArray(state.open) ? state.open : state.open ? [state.open] : []);
+const sumR = (trades) => trades.reduce((a, t) => a + (t.net_r || 0), 0);
+const fmtR = (r) => `${r >= 0 ? "+" : ""}${r.toFixed(2)}R`;
+
+export function nasdaqStatus(data, panelUrl) {
+  const unit = data.basis === null ? "vadeli fiyat" : "US100, yaklaşık";
+  const out = ["Nasdaq botu (kâğıt takip, gerçek para yok)", ""];
+  for (const { name, state } of data.lines) {
+    const trades = state.trades || [];
+    out.push(`${name}: ${trades.length} kapanan işlem, toplam ${fmtR(sumR(trades))}`);
+    const open = openList(state);
+    if (!open.length) out.push("  Açık işlem yok.");
+    for (const o of open) {
+      const kind = o.status === "pozisyon" ? "AÇIK" : "BEKLEYEN EMİR";
+      out.push(`  ${kind} ${o.side === "long" ? "LONG" : "SHORT"}: giriş ${px(o.entry, data.basis)}, stop ${px(o.stop, data.basis)}, hedef ${px(o.target, data.basis)}`);
+    }
+  }
+  out.push("", `Fiyatlar: ${unit}. Son bakılan mum: ${trTime(data.lines[0].state.last_bar)} (TR).`);
+  out.push("Ana bot asıl kuraldır; Gevşek 1 ve 2 sadece karşılaştırma içindir.");
+  if (panelUrl) out.push(`Grafik: ${panelUrl}/nasdaq`);
+  return out.join("\n");
+}
+
+export function nasdaqHistory(data) {
+  const out = ["Nasdaq botu: son kapanan işlemler (kâğıt takip)", ""];
+  for (const { name, state } of data.lines) {
+    const trades = (state.trades || []).slice(-5);
+    out.push(`${name}:`);
+    if (!trades.length) out.push("  Henüz kapanan işlem yok.");
+    for (const t of trades) {
+      out.push(`  ${trTime(t.t_in)} ${t.side === "long" ? "LONG" : "SHORT"} ${px(t.entry, data.basis)} → ${px(t.exit, data.basis)} (${t.why}) ${fmtR(t.net_r || 0)}`);
+    }
+  }
+  out.push("", data.basis === null ? "Fiyatlar: vadeli fiyat. Saatler Türkiye saati." : "Fiyatlar: US100, yaklaşık. Saatler Türkiye saati.");
+  return out.join("\n");
 }
 
 // ------------------------------------------------------------------ demo bot clock
