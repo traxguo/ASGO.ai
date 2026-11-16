@@ -1,6 +1,6 @@
 # Pusula kâğıt takibi (para yok, emir yok)
 
-Güncelleme: 2026-11-09 07:29 UTC. Son veri mumu: 2026-11-07 20:00 UTC.
+Güncelleme: 2026-11-16 06:55 UTC. Son veri mumu: 2026-11-14 20:00 UTC.
 16 coin, en fazla 3 işlem, başlangıç 2026-10-01. Dondurulmuş `PusulaTrendLong` hiç değişmez; `PusulaV2` arka plan turlarında kabul edilen geliştirmeleri taşır.
 
 ## GUO'ya not
@@ -33,98 +33,98 @@ Güncelleme: 2026-11-09 07:29 UTC. Son veri mumu: 2026-11-07 20:00 UTC.
 | BNB | 2026-10-27 16:00 | 749.67 | 2026-10-29 20:00 | stop | -1.10 |
 
 
-## Haftalık ek kontroller (2026-11-09)
+## Haftalık ek kontroller (2026-11-16)
 
-**Veri:** 16 coinin verisi data.binance.vision'dan güncellendi; son saatlik mum 2026-11-07 23:00 UTC, son kapanmış 4 saatlik mum 2026-11-07 20:00 UTC (8 Kasım'ın günlük arşivi henüz yayınlanmadı). Geçen haftanın Ekim/Kasım "henüz yok" işaretleri silinip yeniden indirildi. Ekim'in aylık arşivi artık yayında (fiyat, mark price ve funding), o yüzden bu hafta günlük-günlük yardımcıya gerek kalmadı. **28 Ekim boşluğu hâlâ dolmadı:** Binance Ekim'in aylık arşivini de 28 Ekim olmadan yayınladı (16 coinin hepsi, saatlik/4 saatlik/günlük); 28 Ekim'in günlük dosyası hâlâ yok. Mark price'ta 28 ve 29 Ekim eksik. Bu boşluk Binance tarafında kalıcı olabilir. Strateji kodu değişmedi.
+**Veri:** 16 coinin verisi data.binance.vision'dan güncellendi; son saatlik mum 2026-11-14 23:00 UTC, son kapanmış 4 saatlik mum 2026-11-14 20:00 UTC (15 Kasım'ın günlük arşivi henüz yayınlanmadı). Geçen haftanın 8 Kasım "henüz yok" işaretleri silinip yeniden indirildi; 8-14 Kasım arası eksiksiz geldi. Bilinen boşluklar aynı: 28 Ekim fiyat verisi 16 coinin hepsinde yok, mark price'ta 28 ve 29 Ekim yok. Bunların dışında 1 Ekim'den beri saatlik veride boşluk yok. Strateji kodu değişmedi.
 
-**Toplam neden -5,29R'den -5,35R'ye indi:** Bu hafta yeni işlem açılmadı ve kapanmadı. Fark, Ekim funding verisinin gelmesinden: geçen hafta funding 0 sayılıyordu, şimdi gerçek ödemeler dahil. BNB (3 Ekim) -1,05 → -1,07R, LTC -1,03 → -1,04R, BNB (27 Ekim) -1,08 → -1,10R; iki BTC işlemi aynı. İki sürüm de aynı: 5 işlem, beşi de stop, **-5,35R**. Şu an açık işlem yok.
+**Sonuç:** Bu hafta yeni işlem açılmadı ve kapanmadı; şu an açık işlem yok. İki sürüm de aynı: 5 işlem, beşi de stop, toplam **-5,35R** (geçen hafta da -5,35R). Kasım'ın funding verisi ay bitince gelecek; bu ay işlem olmadığı için toplam değişmeyecek.
 
-**BNB işlemi (27 Ekim, 749,67):** Giriş, stop (731,87) ve çıkış zamanı (29 Ekim 20:00) değişmedi; sadece funding yüzünden -1,08R → -1,10R oldu. 28 Ekim verisi hâlâ olmadığı için test bu günü göremiyor. Teşhis için Binance'in spot (vadeli değil) BNB verisine baktım: 28 Ekim'de spot en düşük 742,0, en yüksek 762,2. Bu stop'un (731,87) yaklaşık %1,4 üstünde ve 2R seviyesinin (yaklaşık 785) çok altında; yani o gün büyük ihtimalle ne stop ne başka bir şey tetiklendi, sonuç büyük ihtimalle doğru. Kesin değil: vadeli fiyat spot'tan biraz farklı olabilir ve boşluk günü başka bir coinde giriş olup olmadığını bilemiyoruz.
+**Piyasa:** Hafta sert düşüşle geçti. Bitcoin'in son 4 saatlik kapanışı 64.130,5 (geçen hafta 75.836,0, yaklaşık %-15). Diğer coinler de %10-20 arası düştü.
 
-**Tetiğe en yakın coinler:** Şu an hiçbir coin long'a yakın değil. Bitcoin puanı +1'den -1'e indi (günlük kapanış 50 günlük ortalamanın yaklaşık %5 altında); kural gereği Bitcoin tekrar +1 veya üstüne çıkmadan hiçbir coinde long açılmaz. +3 coin yok. En yakınlar: BNB (-1, kapanış ortalamanın %4,3 altında) ve BTC (-1, %5,0 altında); ikisinde de 90 günlük değişim artıda, ama +3 için hem kapanışın 50 günlük ortalamanın üstüne çıkması hem 20 günlük ortalamanın 50 günlüğü yukarı kesmesi gerekir. BCH +1'e indi (geçen hafta +3'tü; kapanış ortalamanın %5 altında, son 4 saatlik kapanış 249,49). ADA, TRX ve XLM -3'te (güçlü düşüş), ama bu sürüm short açmıyor.
+**Tetiğe en yakın coinler:** Hiçbir coin long'a yakın değil; geçen haftadan daha uzak. Bitcoin puanı -1'de kaldı (günlük kapanış 50 günlük ortalamanın %12,6 altında); kural gereği Bitcoin +1 veya üstüne çıkmadan hiçbir coinde long açılmaz. +3 veya +1 coin yok. Testin kullandığı son günlük mumda (13 Kasım) 11 coin -1'de, 5 coin -3'te (DOGE, ADA, TRX, ATOM, XLM). Ortalamaya en yakın olanlar AVAX (-1, kapanış ortalamanın %8 altında, 90 günlük değişim +%27), BNB (-1, %11,5 altında) ve LTC (-1, %12,2 altında). 14 Kasım'ın günlük kapanışı (test bunu 15 Kasım'dan itibaren görür) daha da kötü: 13 coin -3'e indi, sadece BTC, LTC ve AVAX -1'de kaldı; hepsi ortalamanın %17-20 altında. Bitcoin'in 90 günlük değişimi +%2'ye indi; eksiye geçerse Bitcoin puanı -3 olur. Bu sürüm short açmadığı için -3 coinlerde işlem yok.
 
-**Düşük komisyon senaryosu (sadece teşhis):** Emir başına %0,1 yerine %0,03 maliyetle aynı 5 işlem: her iki sürüm de **-5,13R** (normal hesapta -5,35R). İşlem başına fark yaklaşık 0,02-0,06R; sonucu belirleyen yine komisyon değil, beş stop.
+**Düşük komisyon senaryosu (sadece teşhis):** Emir başına %0,1 yerine %0,03 maliyetle aynı 5 işlem: her iki sürüm de **-5,13R** (normal hesapta -5,35R), geçen haftayla aynı. İşlem başına fark yaklaşık 0,02-0,06R; sonucu belirleyen yine komisyon değil, beş stop.
 
-**Bitget demo:** Demo hesapta hâlâ hiç Pusula dolumu yok. `forward/bitget_demo/events.csv` hem bu dalda hem `origin/main`'de 10 Ekim'deki NEAR deneme işlemiyle bitiyor; `dashboard/canli/demo_gercek_kontrol.csv`'de de Pusula satırı yok (sadece Fitil). Pusula demo botu 29 Ekim'den beri her çalışmada başarılı (son 100 çalışmanın hepsi başarılı, en sonuncusu 9 Kasım 06:00 UTC). 29 Ekim'den beri kâğıt testte de yeni Pusula girişi olmadığı için botun açmadığı bir işlem yok; karşılaştırılacak dolum yok.
+**Demo:** Kripto demo botları 2026-11-10'da kapatıldı; proje Nasdaq'a geçti. Bu yüzden demo karşılaştırması artık yapılmıyor. Pusula kâğıt takibi 2026-11-30'a kadar sessizce devam ediyor. Botların kapandığı tarihe kadar kâğıt testte 29 Ekim'den sonra yeni Pusula girişi olmadığı için botun kaçırdığı bir işlem de yoktu.
 
 ## Coinlerin şu anki durumu (son kapanmış 4 saatlik mum)
 
 BTC (4s): kararsız (-1/3).  
-Son günlük kapanış 75.810,1, günlük 50 ortalama 79.773,3, 90 günlük değişim %17. Son 4 saatlik kapanış 75.836,0.  
+Son günlük kapanış 68.279,8, günlük 50 ortalama 78.160,2, 90 günlük değişim %8. Son 4 saatlik kapanış 64.130,5.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 ETH (4s): kararsız (-1/3).  
-Son günlük kapanış 2.237,6, günlük 50 ortalama 2.399,1, 90 günlük değişim %17. Son 4 saatlik kapanış 2.239,0.  
+Son günlük kapanış 1.929,2, günlük 50 ortalama 2.319,3, 90 günlük değişim %3. Son 4 saatlik kapanış 1.768,4.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 SOL (4s): kararsız (-1/3).  
-Son günlük kapanış 90,1, günlük 50 ortalama 101,98, 90 günlük değişim %22. Son 4 saatlik kapanış 89,77.  
+Son günlük kapanış 78,17, günlük 50 ortalama 97,57, 90 günlük değişim %4. Son 4 saatlik kapanış 70,23.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 XRP (4s): kararsız (-1/3).  
-Son günlük kapanış 1,179, günlük 50 ortalama 1,326, 90 günlük değişim %15. Son 4 saatlik kapanış 1,163.  
+Son günlük kapanış 1,011, günlük 50 ortalama 1,264, 90 günlük değişim %1. Son 4 saatlik kapanış 0,9136.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 BNB (4s): kararsız (-1/3).  
-Son günlük kapanış 694,08, günlük 50 ortalama 725,20, 90 günlük değişim %17. Son 4 saatlik kapanış 696,77.  
+Son günlük kapanış 630,67, günlük 50 ortalama 712,49, 90 günlük değişim %4. Son 4 saatlik kapanış 582,12.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
-DOGE (4s): kararsız (-1/3).  
-Son günlük kapanış 0,07238, günlük 50 ortalama 0,08122, 90 günlük değişim %4. Son 4 saatlik kapanış 0,0716.  
+DOGE (4s): güçlü düşüş (-3/3).  
+Son günlük kapanış 0,0645, günlük 50 ortalama 0,07799, 90 günlük değişim %-8. Son 4 saatlik kapanış 0,05735.  
 Bitcoin puanı -1/3.  
-İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
+İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 ADA (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,184, günlük 50 ortalama 0,2136, 90 günlük değişim %-8. Son 4 saatlik kapanış 0,1816.  
+Son günlük kapanış 0,1685, günlük 50 ortalama 0,2041, 90 günlük değişim %-6. Son 4 saatlik kapanış 0,1476.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 LINK (4s): kararsız (-1/3).  
-Son günlük kapanış 10,85, günlük 50 ortalama 11,91, 90 günlük değişim %33. Son 4 saatlik kapanış 10,83.  
+Son günlük kapanış 9,852, günlük 50 ortalama 11,52, 90 günlük değişim %10. Son 4 saatlik kapanış 8,879.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 LTC (4s): kararsız (-1/3).  
-Son günlük kapanış 52,59, günlük 50 ortalama 58,04, 90 günlük değişim %16. Son 4 saatlik kapanış 52,16.  
+Son günlük kapanış 49,35, günlük 50 ortalama 56,2, 90 günlük değişim %13. Son 4 saatlik kapanış 44,47.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 DOT (4s): kararsız (-1/3).  
-Son günlük kapanış 0,913, günlük 50 ortalama 1,047, 90 günlük değişim %12. Son 4 saatlik kapanış 0,8978.  
+Son günlük kapanış 0,8182, günlük 50 ortalama 0,9986, 90 günlük değişim %7. Son 4 saatlik kapanış 0,7062.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 AVAX (4s): kararsız (-1/3).  
-Son günlük kapanış 8,339, günlük 50 ortalama 9,147, 90 günlük değişim %30. Son 4 saatlik kapanış 8,226.  
+Son günlük kapanış 8,23, günlük 50 ortalama 8,947, 90 günlük değişim %27. Son 4 saatlik kapanış 7,097.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 TRX (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,318, günlük 50 ortalama 0,3294, 90 günlük değişim %-3. Son 4 saatlik kapanış 0,3198.  
+Son günlük kapanış 0,3118, günlük 50 ortalama 0,3263, 90 günlük değişim %-6. Son 4 saatlik kapanış 0,3066.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
-ATOM (4s): kararsız (-1/3).  
-Son günlük kapanış 1,387, günlük 50 ortalama 1,628, 90 günlük değişim %2. Son 4 saatlik kapanış 1,374.  
+ATOM (4s): güçlü düşüş (-3/3).  
+Son günlük kapanış 1,373, günlük 50 ortalama 1,567, 90 günlük değişim %-9. Son 4 saatlik kapanış 1,259.  
 Bitcoin puanı -1/3.  
-İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
+İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
-BCH (4s): kararsız (+1/3).  
-Son günlük kapanış 263,66, günlük 50 ortalama 278,21, 90 günlük değişim %23. Son 4 saatlik kapanış 249,49.  
+BCH (4s): kararsız (-1/3).  
+Son günlük kapanış 221,42, günlük 50 ortalama 267,05, 90 günlük değişim %8. Son 4 saatlik kapanış 201,20.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 ETC (4s): kararsız (-1/3).  
-Son günlük kapanış 7,019, günlük 50 ortalama 7,749, 90 günlük değişim %8. Son 4 saatlik kapanış 6,911.  
+Son günlük kapanış 6,456, günlük 50 ortalama 7,487, 90 günlük değişim %4. Son 4 saatlik kapanış 5,803.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: trend yönü belli değil. Long için puanın +3, short için -3 olması gerekir.
 
 XLM (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,1533, günlük 50 ortalama 0,1808, 90 günlük değişim %-5. Son 4 saatlik kapanış 0,1512.  
+Son günlük kapanış 0,1461, günlük 50 ortalama 0,1726, 90 günlük değişim %-8. Son 4 saatlik kapanış 0,1354.  
 Bitcoin puanı -1/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
