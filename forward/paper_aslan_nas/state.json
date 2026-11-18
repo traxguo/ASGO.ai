@@ -16,12 +16,12 @@
   }
  ],
  "open": {
-  "status": "sinyal",
+  "status": "pozisyon",
   "side": "short",
   "sig_t": "2026-11-18T01:00:00+00:00",
-  "entry": 27225.5,
+  "entry": 27144.5,
   "stop": 27563.5,
-  "target": 26549.5
+  "target": 26306.5
  },
- "last_bar": "2026-11-18T01:00:00+00:00"
+ "last_bar": "2026-11-18T02:00:00+00:00"
 }
