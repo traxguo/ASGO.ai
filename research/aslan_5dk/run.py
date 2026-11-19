@@ -226,7 +226,7 @@ class HTF:
                 conf = np.r_[last[2:], np.full(2, n + 10)]
                 self.sw4 = {1: (H[sw_h], last[sw_h], conf[sw_h]), -1: (L[sw_l], last[sw_l], conf[sw_l])}
         for s_ in (1, -1):
-            f = pd.concat(self.fvg[s_], ignore_index=True).sort_values("t").reset_index(drop=True)
+            f = pd.concat(self.fvg[s_], ignore_index=True).sort_values("t", kind="stable").reset_index(drop=True)
             self.fvg[s_] = (f.bot.to_numpy(), f.top.to_numpy(), f.formed.to_numpy(), f.t.to_numpy())
         h, lo = x.h, x.lo
         self.bull5 = np.zeros(n, bool)
@@ -416,7 +416,7 @@ def summarise(tr: pd.DataFrame) -> pd.DataFrame:
         for unit, gu in (("long", g[g.side > 0]), ("short", g[g.side < 0]), ("both", g)):
             row = {"cell": cell, "primary": bool(g.primary.iloc[0]), "unit": unit}
             for p in ("dev", "val"):
-                gp = gu[gu.period == p].sort_values("t_out")
+                gp = gu[gu.period == p].sort_values("t_out", kind="stable")
                 r, r2 = gp.r1.to_numpy(), gp.r2.to_numpy()
                 pos, neg = r[r > 0].sum(), -r[r < 0].sum()
                 row.update({f"{p}_n": len(r), f"{p}_avg_r": r.mean() if len(r) else np.nan,
