@@ -56,11 +56,12 @@ beklemediğini) yazdı; yani bu test onun sırasını ölçmedi (aşağıda not)
 
 | Birim | Gel. işlem | Gel. R/işlem | Gel. PF | Doğ. işlem | Doğ. R/işlem | Doğ. PF | Kontrol p | Sonuç |
 |---|---|---|---|---|---|---|---|---|
-| Long | 476 | -0.097 | 0.85 | 128 | -0.206 | 0.67 | 0.69 | geçmedi |
-| Short | 496 | -0.196 | 0.71 | 142 | +0.082 | 1.15 | 0.90 | geçmedi |
+| Long | 472 | -0.078 | 0.88 | 128 | -0.217 | 0.65 | 0.60 | geçmedi |
+| Short | 494 | -0.191 | 0.72 | 142 | +0.079 | 1.14 | 0.88 | geçmedi |
 
-- Ayda ~16 işlem (long + short). %1 riskle gel. düşüşü long %44, short %66.
-- Rastgele girişin ortalaması long -0.061R, short -0.101R; gerçek kural ikisinde de daha kötü.
+- Ayda ~16 işlem (long + short). %1 riskle gel. düşüşü long %40, short %65.
+- Rastgele girişin ortalaması long -0.059R, short -0.101R; gerçek kural ikisinde de daha kötü.
+- Tekrarlanabilirlik düzeltmesi: ilk iki çalıştırma, aynı mumda iki tetik olduğunda sıralama runner işlemcisine göre değiştiği için biraz farklı çıktı (long -0.097 / -0.080R). Sıralama kararlı yapıldı (aynı mumda önce gelen kırılım); tablo son, tekrarlanabilir çalıştırma. Karar her üçünde aynı.
 - Bilgi ızgarası (seçim yapılmaz): iFVG şartını kaldırmak, sıkışmayı 24 muma çıkarmak, genişliği %0.15 / %0.30
   yapmak veya hedefi sabit 2R yapmak hiçbir birimi iki dönemde birden artıya getirmedi (`summary.csv`).
 - Huni (`funnel.csv`): 13034 kırılım, 4303 giriş tetiği, 1242 işlem (en büyük eleme saat penceresi ve aynı anda

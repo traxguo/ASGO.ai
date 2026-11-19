@@ -127,7 +127,7 @@ def setups(x: efb.Inst, min_n: int, width: float, need_ifvg: bool, f15: dict) ->
                 break
         if not done:
             stats["expired"] += 1
-    df = pd.DataFrame(rows, columns=["k", "side", "stop", "ext"]).sort_values("k").reset_index(drop=True)
+    df = pd.DataFrame(rows, columns=["k", "side", "stop", "ext"]).sort_values("k", kind="stable").reset_index(drop=True)
     return df, stats
 
 

@@ -17,10 +17,10 @@ iyi giriştir. Proje sahibinin onayıyla (2026-11-19, "Yaptır") 4. fikir hakkı
 - Stop: kırılımdan girişe kadarki en düşük iğne. Hedef, saat, NY açılışı, büyük zaman dilimi: `aslan_5dk` ile aynı.
 
 ## Durum: reddedildi (2026-11-19) — kâğıt takip yok
-- Long: gel. -0.097R (476), doğ. -0.206R (128); short: gel. -0.196R (496), doğ. +0.082R (142).
-- Rastgele girişten kötü (p 0.69 / 0.90). Bilgi ızgarasının hiçbir hali iki dönemde artı değil.
-- Sonradan Aslan girişin kırılım mumunun kapanışı olduğunu, iFVG'nin kırılımdan önce bant içinde geldiğini yazdı;
-  bu sıra test edilmedi.
+- Long: gel. -0.078R (472), doğ. -0.217R (128); short: gel. -0.191R (494), doğ. +0.079R (142).
+- Rastgele girişten kötü (p 0.60 / 0.88). Bilgi ızgarasının hiçbir hali iki dönemde artı değil.
+- Sonradan Aslan MSP'nin bandın kendi direnci/desteği olduğunu, girişin kırılım mumunun kapanışı olduğunu yazdı;
+  o hali ayrıca test edildi: `cards/aslan_bant.md` (o da geçmedi).
 
 ## Tekrar edilmez
 Kırılım → geri çekilme iFVG → MSP sırası; bant genişliği %0.15-%0.30, 12-48 mum; sabit 2R hedefli hali.
