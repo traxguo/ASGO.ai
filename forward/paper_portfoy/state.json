@@ -4,12 +4,12 @@
  "base_usdt": 10000.0,
  "risk_per_trade": 0.0025,
  "fitil_risk_unit": 0.04,
- "last_event": "2026-11-18T15:45:00+00:00",
- "equity": 9918.25,
- "return_pct": -0.818,
+ "last_event": "2026-11-19T00:00:00+00:00",
+ "equity": 9893.24,
+ "return_pct": -1.068,
  "max_dd_pct": 2.282,
- "trades_closed": 31,
- "trades_open": 1,
+ "trades_closed": 32,
+ "trades_open": 0,
  "wins": 11,
  "by_strategy": {
   "Fitil": {
@@ -37,10 +37,10 @@
    "pnl_usdt": -158.71
   },
   "Aslan NAS": {
-   "closed": 1,
-   "open": 1,
+   "closed": 2,
+   "open": 0,
    "wins": 1,
-   "pnl_usdt": 49.15
+   "pnl_usdt": 24.14
   }
  },
  "curve": [
@@ -171,17 +171,12 @@
   {
    "t": "2026-11-18T15:45:00+00:00",
    "eq": 9918.25
-  }
- ],
- "open": [
+  },
   {
-   "strategy": "Aslan NAS",
-   "symbol": "NASDAQ",
-   "side": "short",
-   "entry_time": "2026-11-18T01:00:00+00:00",
-   "unit": "R",
-   "equity_at_entry": 9943.91
+   "t": "2026-11-19T00:00:00+00:00",
+   "eq": 9893.24
   }
  ],
+ "open": [],
  "note": "Sadece kayıtlı işlemler toplanır; emir yok. Açık işlemler kasaya kapanınca yazılır."
 }
