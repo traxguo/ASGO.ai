@@ -90,3 +90,44 @@ Kod: `research/aslan_5dk/run.py`. İş akışı: `.github/workflows/aslan_5dk.ym
 CSV'lerini bu klasöre commit'ler).
 
 ---
+
+## 2. Sonuçlar (2026-11-19, gerçek veri, GitHub sunucusunda çalıştı)
+
+### GUO'ya not
+- Aslan'ın 5 dakikalık kuralı, bilgisayarın yazabildiği haliyle, **geçmedi**. Long da short da sıfırın biraz altında.
+- Kural rastgele zamanlarda aynı stop ve hedefle açılan işlemlerden **daha iyi değil**. Yani giriş anı bir avantaj taşımıyor.
+- Bu, "Aslan kötü trader" demek değil. Aslan'ın göz kararı seçimi (hangi kurulumu atlayacağı, seviyenin gücü) koda tam
+  geçmiyor. Bilgisayar ayda ~45 işlem açtı. Aslan bunların çok küçük bir kısmını seçiyordur.
+- Planın 3 fikir hakkı bitti, üçü de geçmedi. Plan gereği dördüncü fikir aranmaz. Aslan Nasdaq (1 sa) canlı takibi sürüyor.
+
+### Ana ayar (yargılanan satırlar)
+
+| Yön | Geliştirme: işlem / ort. R / PF / kazanma | Doğrulama: işlem / ort. R / PF / kazanma | 2x masraf (gel. / doğ.) | Rastgele kontrol (gel.) | Düşüş %1 risk (gel. / doğ.) | Sonuç |
+|---|---|---|---|---|---|---|
+| Long | 1295 / -0.033 / 0.95 / %41 | 305 / -0.015 / 0.98 / %39 | -0.090 / -0.079 | -0.027R, p 0.56 | %60 / %30 | **geçmedi** |
+| Short | 1450 / -0.109 / 0.85 / %34 | 386 / -0.007 / 0.99 / %36 | -0.172 / -0.080 | -0.089R, p 0.68 | %90 / %44 | **geçmedi** |
+
+Ortalama stop %0.25 (bugünkü fiyatla ~65 puan), ortalama hedef 2.7R. Ayda ~45 işlem (iki yön). Çıkış: 2134 stop
+(-1.09R), 1227 hedef (+1.65R), 75 süre doldu. Al-tut (NAS100): geliştirme +%142 (düşüş %38), doğrulama +%9 (düşüş %26).
+
+Yıllara göre (toplam R, short / long): 2020 +33 / +15, 2021 -59 / -4, 2022 -26 / -12, 2023 -64 / +9, 2024 -43 / -51,
+2025 -32 / -17, 2026 Q1 +30 / +12. Tutarlı bir artı yıl dizisi yok.
+
+### Filtrelerin etkisi (huni, ana ayar)
+12.288 yapı kırılımı → saat dışı 4.759, NY açılışı 352, stop çok dar/geniş 676, yakın likidite (8b) 164, hedef yok 375,
+büyük zaman dilimi engeli + onay yok (8c) 114, açık işlem varken 2.412 → **3.436 işlem**. 8c'de engel 1.574 kez çıktı;
+1.460'ında 5 dk FVG/iFVG onayı vardı. Yani onay neredeyse her zaman var ve filtre pek bir şey elemiyor.
+
+### Bilgi ızgarası (seçim yapılmaz)
+Hiçbir hücre iki dönemde birden artı değil. En iyi görünen sabit 2R long (gel. +0.041, doğ. -0.014) ve 8b kapalı long
+(gel. -0.031, doğ. +0.015): ikisi de sıfır civarı. Sadece New York saatleri (TR 16:30 - 22:00) en kötüsü (gel. -0.16R).
+8c'nin (büyük zaman dilimi kuralı) olduğu ve olmadığı hal neredeyse aynı (gel. -0.073 / -0.065).
+
+### Ne öğrendik
+- Saf 5 dk yapı kırılımı (tepe-dip dizisi bozulunca gir, stop son uçta), masraftan önce bile sıfır civarı:
+  masrafsız ortalama yaklaşık geliştirmede -0.03R, doğrulamada +0.03R. Masraf işlem başına ~0.04R.
+- Kural rastgele girişle aynı sonucu veriyor (p 0.56 / 0.68). Avantaj, eğer varsa, Aslan'ın kodlanamayan seçiminde.
+- Bunu ölçmenin tek dürüst yolu: Aslan'ın **kendi** işlemlerini ileriye dönük, giriş anında kaydetmesi (ekran görüntüsü +
+  giriş/stop/hedef, kazanan ve kaybeden hepsi). 30 işlemlik böyle bir kayıt, bir backtest'in söyleyemediğini söyler.
+
+Dosyalar: `summary.csv`, `pass.csv`, `funnel.csv`, `yearly.csv`, `trades_main.csv`, `buy_hold.csv`, `run_log.txt`.

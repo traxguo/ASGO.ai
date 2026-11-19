@@ -27,7 +27,7 @@ rastgele giriş kontrolü p < 0.05, 2x masrafta artı, doğrulamada ≥ 30 işle
 
 **Nasdaq'ta daha önce denenip elenenler (tekrar edilmez):** açılış aralığı kırılımı, limit ile ters işlem, RSI(2) (5 dk ve
 günlük), Donchian / EMA kesişimi / 4s geri çekilme trendi, gece kayması, ay dönümü, açılış boşluğu doldurma, üst üste 3 gün,
-Londra kırılımı, haber sonrası ilk tepkiyi takip, ilk yarım saat → son yarım saat momentumu, Aslan kuralının diğer endeksleri ve birleşik gevşetmesi.
+Londra kırılımı, haber sonrası ilk tepkiyi takip, ilk yarım saat → son yarım saat momentumu, 5 dk saf yapı kırılımı (Aslan 5 dk), Aslan kuralının diğer endeksleri ve birleşik gevşetmesi.
 
 **Henüz denenmemiş, Nasdaq'a özgü bir sebebi olan alanlar (öneri; GUO/Aslan onayından sonra ön kayıt yazılır):**
 1. Büyük haber günleri (Fed kararı, enflasyon, istihdam): haber sonrası ilk yönün devamı veya dönüşü. Takvim: `strategies/common/news_calendar.py`.
@@ -35,6 +35,7 @@ Londra kırılımı, haber sonrası ilk tepkiyi takip, ilk yarım saat → son y
 3. Aslan'ın getireceği tek somut kural.
 
 **Durum (2026-11-11):** 1 ve 2 test edildi, ikisi de geçmedi (`results/2026-11-11_nasdaq_batch/README.md`). Kalan tek hak 3. madde.
+**Durum (2026-11-19):** 3. madde (Aslan'ın 5 dk kuralı) test edildi, geçmedi (`results/2026-11-19_aslan_5dk/README.md`). Üç hak bitti.
 Adım 2 (XM koşulları) ertelendi: demo hesap açılamadı; ölçüm gerçek para kararından hemen önce yapılır. Adım 3 (fiyat farkı) tamam:
 grafik ve Telegram seviyeleri US100 (nakit) karşılığıyla gösterir.
 
