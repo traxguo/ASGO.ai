@@ -12,6 +12,78 @@
    "why": "open",
    "exit_day": null,
    "exit": null
+  },
+  {
+   "symbol": "ARTYUSDT",
+   "listed": "2026-11-18",
+   "pair": "ARTY/USDT:USDT",
+   "entry_day": "2026-11-19",
+   "entry": 61.96,
+   "stop": 86.744,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
+  },
+  {
+   "symbol": "CCJUSDT",
+   "listed": "2026-11-18",
+   "pair": "CCJ/USDT:USDT",
+   "entry_day": "2026-11-19",
+   "entry": 62.76,
+   "stop": 87.86399999999999,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
+  },
+  {
+   "symbol": "ETNUSDT",
+   "listed": "2026-11-18",
+   "pair": "ETN/USDT:USDT",
+   "entry_day": "2026-11-19",
+   "entry": 338.7,
+   "stop": 474.17999999999995,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
+  },
+  {
+   "symbol": "IBITUSDT",
+   "listed": "2026-11-18",
+   "pair": "IBIT/USDT:USDT",
+   "entry_day": "2026-11-19",
+   "entry": 35.587,
+   "stop": 49.8218,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
+  },
+  {
+   "symbol": "IGVUSDT",
+   "listed": "2026-11-18",
+   "pair": "IGV/USDT:USDT",
+   "entry_day": "2026-11-19",
+   "entry": 97.48,
+   "stop": 136.472,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
+  },
+  {
+   "symbol": "SOXXUSDT",
+   "listed": "2026-11-18",
+   "pair": "SOXX/USDT:USDT",
+   "entry_day": "2026-11-19",
+   "entry": 143.26,
+   "stop": 200.56399999999996,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
   }
  ],
  "equity": 10000.0,
@@ -105,6 +177,7 @@
   "ARKUSDT",
   "ARMUSDT",
   "ARPAUSDT",
+  "ARTYUSDT",
   "ARUSDT",
   "ARXUSDT",
   "ASMLUSDT",
@@ -208,6 +281,7 @@
   "CATIUSDT",
   "CATUSDT",
   "CBRSUSDT",
+  "CCJUSDT",
   "CCUSDT",
   "CEGUSDT",
   "CELOUSDT",
@@ -321,6 +395,7 @@
   "ETHFIUSDT",
   "ETHUSDT",
   "ETHWUSDT",
+  "ETNUSDT",
   "EULUSDT",
   "EVAAUSDT",
   "EWJUSDT",
@@ -420,6 +495,7 @@
   "HYPERUSDT",
   "HYPEUSDT",
   "HYUNDAIUSDT",
+  "IBITUSDT",
   "IBKRUSDT",
   "IBMUSDT",
   "ICNTUSDT",
@@ -428,6 +504,7 @@
   "IDEXUSDT",
   "IDOLUSDT",
   "IDUSDT",
+  "IGVUSDT",
   "ILVUSDT",
   "IMXUSDT",
   "INITUSDT",
@@ -755,6 +832,7 @@
   "SOPHUSDT",
   "SOXLUSDT",
   "SOXSUSDT",
+  "SOXXUSDT",
   "SPACEUSDT",
   "SPCXUSDT",
   "SPELLUSDT",
@@ -942,5 +1020,5 @@
   "\u725b\u6765USDT",
   "\u9f99\u867eUSDT"
  ],
- "last_run": "2026-11-19T00:31:19.385222+00:00"
+ "last_run": "2026-11-19T15:53:47.818991+00:00"
 }
