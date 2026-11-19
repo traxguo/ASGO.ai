@@ -1,0 +1,74 @@
+# Aslan 5 dk kuralı (Nasdaq'ta son fikir hakkı)
+
+## 1. Ön kayıt (getiriler hesaplanmadan ÖNCE yazıldı ve commit edildi, 2026-11-19)
+
+Bu bölüm hiçbir getiri hesaplanmadan önce yazıldı; sonradan değiştirilmez. Sonuçlar 2. bölüme eklenir.
+
+**Kaynak:** Aslan'ın 2026-11-16/17 tarihli 4 gerçek işleminin ekran görüntüleri (2 kazanç, 2 kayıp) ve proje sahibi
+üzerinden verdiği cevaplar (2026-11-19, proje konusu). Kural Türkçe olarak proje sahibine yazıldı (7 madde); bu
+dosya onun bilgisayar için kesin halidir. Planın (`docs/nasdaq_plan.md`) **3. ve son** fikir hakkıdır.
+Daha önce denenen Aslan kuralları (1 sa / 15 dk / 1 dk, likidite alımı + MSS, günlük yön filtresi) tekrar değildir:
+bu kuralda likidite alımı ve yön filtresi yok, giriş saf 5 dk yapı kırılımı, hedef bir seviye.
+
+**Veri:** HistData NAS100 (nsxusd) 5 dk mumlar, sadece alış fiyatı (`research/endeks_forex/fetch.py`,
+`research/endeks_forex/batch.py::load` ile aynı temizlik). Hacim yok. **Kasa (2026-04 → 2026-09) yüklenmez.**
+
+**Dönemler:** geliştirme 2020-01-01 → 2024-12-31, doğrulama 2025-01-01 → 2026-03-31 (giriş zamanına göre).
+
+**Puan → yüzde:** Aslan puanla konuşuyor (fiyat ~27.000 iken). Fiyat 2020'de ~9.000 olduğu için eşikler yüzde ile
+sabitlenir: 20 puan ≈ %0.075, 30 puan ≈ %0.11, 5 puan ≈ %0.02, 10 puan ≈ %0.04.
+
+### Kural (short; long tam simetrik)
+1. **Salınım (tepe/dip):** 5 dk mum i, solundaki 2 ve sağındaki 2 mumdan kesin yüksek tepeye sahipse tepe
+   (kesin alçak dipse dip). i+2 mumu kapanınca onaylanır; ondan önce kullanılmaz.
+2. **Trend:** k mumu kapandığında onaylı son iki tepe yükseliyor (T2 > T1) ve onaylı son iki dip yükseliyor (D2 > D1).
+3. **Tetik (MSP):** k mumu son onaylı dibin (D2) **altında kapatır** ve k-1 mumu D2'nin altında kapatmamıştır.
+4. **Saat:** k mumunun kapanışı TR 09:00 - 22:00 arasında (UTC 06:00 - 19:00, sabit).
+5. **Giriş:** k mumunun kapanış fiyatı.
+6. **Stop:** T2 mumundan k mumuna kadar en yüksek iğne (son tepenin iğne ucu; onaylanmamış daha yüksek bir iğne
+   varsa o). Risk = stop − giriş; risk %0.04'ten küçük veya %0.6'dan büyükse işlem yok.
+7. **Hedef (en yakın alınmamış seviye):** girişin altındaki adaylar, k anında **alınmamış** olanlar:
+   önceki işlem gününün dibi (işlem günü New York 17:00 → 17:00), bugünün Asya seansı dibi (TR 02:00 - 09:00,
+   seans bittiyse), bugünün Londra seansı dibi (TR 10:00 - 15:00, seans bittiyse), son 5 günün 1 saatlik onaylı dipleri
+   (1 sa mumlar, 2/2 salınım). "Alınmamış" = oluştuğu andan k'ya kadar hiçbir mumun iğnesi o seviyeye değmemiş.
+   Girişten en az %0.075 aşağıdaki adaylardan **en yakını** seçilir. Kâr al emri o seviyenin %0.02 önüne konur
+   (short'ta seviyenin biraz üstü). Aday yoksa işlem yok. R'ye bakılmaz.
+8. **Girmez:** (a) k mumunun kapanışı New York 09:30 - 09:45 (dahil) arasında; (b) girişin %0.11 **üstünde veya
+   daha yakınında** alınmamış bir yukarı seviye varsa (7. maddedeki adayların tepe karşılıkları: önceki gün tepesi,
+   Asya tepesi, Londra tepesi, 1 sa tepeler). Long'ta: girişin %0.11 altında alınmamış dip varsa girmez.
+9. **Çıkış:** her 5 dk mumda önce stop, sonra hedef kontrol edilir (aynı mumda ikisi de değerse stop). Stop
+   boşlukla geçilirse mumun açılışından çıkılır. 24 saat içinde ikisi de olmazsa o mumun kapanışından çıkılır.
+10. **Aynı anda tek işlem.** İşlem kapanınca sonraki mumdan itibaren yeniden aranır. Long ve short aynı mumda
+    tetiklenirse o mumda işlem yok.
+
+**Masraf:** gidiş-dönüş %0.010 + New York 17:00'yi geçen her gece için gecelik finansman (long yıllık %5, short
+yıllık %2.5, `research/endeks_forex/batch.py` ile aynı). Her şey bir de 2 kat masrafla. Sonuç **R** cinsinden
+(net getiri / risk yüzdesi); düşüş işlem başı %1 risk ile bileşik hesaplanır.
+
+**Rastgele kontrol:** her gerçek işlem için aynı dönemden, TR 09:00 - 22:00 içinde rastgele bir 5 dk mum kapanışı;
+aynı yön, aynı stop ve hedef uzaklığı (yüzde), aynı çıkış kuralları. 2000 set;
+p = (1 + rastgele ortalama R'nin gerçek ortalamaya eşit/üstünde olduğu set) / 2001.
+
+**Yargı birimi:** long ve short **ayrı ayrı**.
+
+### Bilgi ızgarası (sadece bilgi, seçim yapılmaz)
+Sabit hedef 1R / 1.5R / 2R (7. madde yerine); 8(b) filtresi kapalı; sadece New York saatleri (TR 16:30 - 22:00).
+
+### Geçme çıtası (`docs/decisions.md` 2026-11-09; ana ayar, yargı birimi başına, hepsi gerekli)
+1. Net ortalama R > 0 ve kâr faktörü (PF) ≥ 1.2, hem geliştirmede hem doğrulamada.
+2. Geliştirmede rastgele kontrolden iyi: p < 0.05.
+3. 2 kat masrafla net ortalama R > 0, hem geliştirmede hem doğrulamada.
+4. Doğrulamada ≥ 30 işlem.
+5. İşlem başı %1 riskle en büyük düşüş ≤ %25, hem geliştirmede hem doğrulamada.
+
+Kazanma oranı sadece bilgi. Al-tut kıyası raporlanır. Geçerse kâğıt takibe alınır (gerçek emir yok); Aslan Nasdaq
+1 sa hattının yerine geçmez, yanına eklenir. Geçmezse dördüncü fikir aranmaz (plan). Kötü sonuç gizlenmez.
+
+**Bilinen sınır:** Aslan'ın "seviyenin gücü", "hacim çok fazla", "manipülasyona müsait" gibi göz kararı yargıları
+kodlanamaz; 7 ve 8. maddeler bunların sade yaklaşığıdır. Kural geçmezse bu "Aslan'ın yöntemi çalışmıyor" değil,
+"yöntemin yazılabilen kısmı tek başına yetmiyor" demektir.
+
+Kod: `research/aslan_5dk/run.py`. İş akışı: `.github/workflows/aslan_5dk.yml` (GitHub sunucusunda çalışır, sonuç
+CSV'lerini bu klasöre commit'ler).
+
+---
