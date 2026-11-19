@@ -4,11 +4,11 @@
  "base_usdt": 10000.0,
  "risk_per_trade": 0.0025,
  "fitil_risk_unit": 0.04,
- "last_event": "2026-11-19T00:00:00+00:00",
- "equity": 9893.24,
- "return_pct": -1.068,
+ "last_event": "2026-11-19T14:00:00+00:00",
+ "equity": 9868.03,
+ "return_pct": -1.32,
  "max_dd_pct": 2.282,
- "trades_closed": 32,
+ "trades_closed": 33,
  "trades_open": 0,
  "wins": 11,
  "by_strategy": {
@@ -37,10 +37,10 @@
    "pnl_usdt": -158.71
   },
   "Aslan NAS": {
-   "closed": 2,
+   "closed": 3,
    "open": 0,
    "wins": 1,
-   "pnl_usdt": 24.14
+   "pnl_usdt": -1.06
   }
  },
  "curve": [
@@ -175,6 +175,10 @@
   {
    "t": "2026-11-19T00:00:00+00:00",
    "eq": 9893.24
+  },
+  {
+   "t": "2026-11-19T14:00:00+00:00",
+   "eq": 9868.03
   }
  ],
  "open": [],
