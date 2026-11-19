@@ -5,7 +5,7 @@ name: Aslan 5dk (research)
 on:
   push:
     branches: ["claude/**"]
-    paths: ["research/aslan_5dk/**", ".github/workflows/aslan_5dk.yml"]
+    paths: ["research/aslan_5dk/run.py", ".github/workflows/aslan_5dk.yml"]
   workflow_dispatch:
 
 permissions:
