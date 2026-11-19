@@ -51,8 +51,26 @@ p = (1 + rastgele ortalama R'nin gerçek ortalamaya eşit/üstünde olduğu set)
 
 **Yargı birimi:** long ve short **ayrı ayrı**.
 
+### Ek (2026-11-19 17:14 UTC, Aslan'ın ek kuralı; hiçbir sonuç görülmeden eklendi)
+İlk test çalıştırması bu ek geldiği için iptal edildi (17:16 UTC); hiçbir sonuç dosyası oluşmadı ve okunmadı.
+Aslan: "büyük zaman dilimindeki destek/direnç veya FVG'lere dikkat; 1 sa / 4 sa önemli seviyelerde FVG/iFVG onayı ve
+MSP olmalı; yoksa 4 sa FVG'ye iğne atıp döner, ters köşede kalırız." Ana ayara eklenen madde:
+
+8. (c) **Büyük zaman dilimi engeli → 5 dk onay şart.** Engel = (i) 1 sa veya 4 sa grafikte son 10 günde oluşmuş,
+   henüz kapatılmamış **ters yönlü FVG** (long için düşüş FVG'si, short için yükseliş FVG'si), ya da (ii) 4 sa grafikte
+   onaylı, alınmamış bir **tepe** (long için) / **dip** (short için). Girişin bu engelin içinde olması veya engelin
+   yakın kenarının işlem yönünde girişe %0.11'den yakın olması durumunda işlem **sadece 5 dk onay varsa** açılır.
+   5 dk onay = stop mumundan k mumuna kadarki dönüş hareketinde işlem yönünde bir 5 dk FVG oluşmuş olması, **veya**
+   ters yönlü bir 5 dk FVG'nin (stop mumundan en fazla 20 mum önce ile k arasında oluşmuş) üstünde (short'ta altında)
+   kapanış (iFVG). Onay yoksa işlem yok.
+   Tanımlar: yükseliş FVG = 3 mumda üçüncünün dibi birincinin tepesinden yüksek (bölge arası boşluk); düşüş FVG tersi.
+   FVG, bir 5 dk mum uzak kenarının ötesinde kapatınca "kapatılmış" sayılır. 4 sa mumlar New York 17:00'den başlar
+   (17-21-01-05-09-13), 1 sa mumlar saat başı. Büyük zaman dilimi FVG'si ve tepesi, ilgili mumlar kapandıktan sonra
+   kullanılır.
+
 ### Bilgi ızgarası (sadece bilgi, seçim yapılmaz)
-Sabit hedef 1R / 1.5R / 2R (7. madde yerine); 8(b) filtresi kapalı; sadece New York saatleri (TR 16:30 - 22:00).
+Sabit hedef 1R / 1.5R / 2R (7. madde yerine); 8(b) filtresi kapalı; 8(c) kapalı (ekten önceki kural);
+sadece New York saatleri (TR 16:30 - 22:00).
 
 ### Geçme çıtası (`docs/decisions.md` 2026-11-09; ana ayar, yargı birimi başına, hepsi gerekli)
 1. Net ortalama R > 0 ve kâr faktörü (PF) ≥ 1.2, hem geliştirmede hem doğrulamada.
