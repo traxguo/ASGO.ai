@@ -1,0 +1,18 @@
+NAS100 5m bars 418206, cleaned 5, 2020-01-01 23:00:00+00:00 -> 2026-03-31 23:55:00+00:00
+structure-break triggers: 12288 (long 6117, short 6171)
+         triggers  window  ny_open  ...  busy  trades  htf_confirmed
+main        12288    4759      352  ...  2412    3436           1460
+fix1R       12288    4759      352  ...  1931    4220           1766
+fix1.5R     12288    4759      352  ...  2316    3887           1628
+fix2R       12288    4759      352  ...  2623    3610           1499
+no_near     12288    4759      352  ...  2475    3532           1511
+no_htf      12288    4759      352  ...  2459    3511              0
+ny_only     12288    9171      352  ...   534    1397            477
+
+[7 rows x 10 columns]
+long: real dev -0.0331R, control -0.0265R, p 0.5557 -> FAIL: net, PF, kontrol, 2x masraf, düşüş
+short: real dev -0.1092R, control -0.0885R, p 0.6777 -> FAIL: net, PF, kontrol, 2x masraf, düşüş
+   cell  primary   unit  dev_n  dev_avg_r  dev_pf  dev_win_pct  dev_total_r  dev_avg2x_r  dev_dd_pct  dev_avg_risk_pct  dev_avg_tp_r  dev_trades_per_month  val_n  val_avg_r  val_pf  val_win_pct  val_total_r  val_avg2x_r  val_dd_pct  val_avg_risk_pct  val_avg_tp_r  val_trades_per_month
+0  main     True   long   1295     -0.033   0.947       41.390      -42.911       -0.090      59.671             0.266         2.366                21.583    305     -0.015   0.977       39.016       -4.597       -0.079      30.221             0.248         2.372                20.333
+1  main     True  short   1450     -0.109   0.847       33.724     -158.347       -0.172      90.270             0.240         3.080                24.167    386     -0.007   0.990       35.751       -2.632       -0.080      44.356             0.194         3.315                25.733
+2  main     True   both   2745     -0.073   0.891       37.341     -201.258       -0.134      95.240             0.253         2.743                45.750    691     -0.010   0.985       37.192       -7.229       -0.080      56.787             0.218         2.899                46.067
