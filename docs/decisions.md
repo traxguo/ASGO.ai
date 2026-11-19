@@ -207,4 +207,9 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 
 ## 2026-11-19 — Aslan sıkışma kırılımı (proje sahibinin onayıyla 4. fikir): geçmedi
 - Karar: reddedildi, kâğıt takip yok.
-- Gerekçe: long gel. -0.097R / doğ. -0.206R, short gel. -0.196R / doğ. +0.082R; rastgele kontrol p 0.69 / 0.90; bilgi ızgarasında iki dönemde artı hal yok. Aslan sonradan girişin kırılım mumunun kapanışı olduğunu yazdı (test edilen sıra kırılım → iFVG → MSP idi). O sıra ancak yeni ön kayıt, Aslan'ın yazılı onayı ve proje sahibinin onayıyla, son deneme olarak test edilir. Rapor `results/2026-11-19_aslan_sikisma/README.md`, kart `cards/aslan_sikisma.md`.
+- Gerekçe: long gel. -0.078R / doğ. -0.217R, short gel. -0.191R / doğ. +0.079R; rastgele kontrol p 0.60 / 0.88; bilgi ızgarasında iki dönemde artı hal yok. Aslan sonradan girişin kırılım mumunun kapanışı olduğunu yazdı (test edilen sıra kırılım → iFVG → MSP idi). O sıra ancak yeni ön kayıt, Aslan'ın yazılı onayı ve proje sahibinin onayıyla, son deneme olarak test edilir. Rapor `results/2026-11-19_aslan_sikisma/README.md`, kart `cards/aslan_sikisma.md`.
+
+## 2026-11-19 — Aslan bant kırılımı (5. ve son Nasdaq fikri, proje sahibi onayı): geçmedi; kodlanmış Aslan ailesi kapandı
+- Karar: reddedildi, kâğıt takip yok. Aslan'ın yöntemi için yeni kodlama denemesi yapılmaz.
+- Gerekçe: MSP = bandın kendi direnci/desteği, giriş kırılım mumunun kapanışı, stop en yakın FVG altı, hedef 40-80 puan. Long gel. -0.081R / doğ. -0.117R, short gel. -0.066R / doğ. -0.049R; rastgele kontrol p 0.76 / 0.12; her yıl iki yönde de eksi; bilgi ızgarasında artı hal yok. Öneri (karar değil): Aslan'ın kendi işlemlerini giriş anında kaydetmesi. Rapor `results/2026-11-19_aslan_bant/README.md`, kart `cards/aslan_bant.md`.
+- Ayrıca: araştırma kodunda sıralama kararlı yapıldı (numpy sıralaması eşit anahtarlarda runner işlemcisine göre değişiyordu); sıkışma sonuçları küçük farkla güncellendi, karar aynı.

@@ -38,3 +38,23 @@ Aslan'ın kendi işlemlerini giriş anında kaydetmesi.
 Kod: `research/aslan_5dk/bant.py`. İş akışı: `.github/workflows/aslan_bant.yml`.
 
 ---
+
+## 2. Sonuç (2026-11-19, GitHub runner, dev + doğrulama; kasa yüklenmedi)
+
+**GUO'ya not:** Aslan'ın tarif ettiği MSP ile (bandın kendi direnci/desteği) test edildi ve **geçmedi**. Long da short
+da her yıl eksi; rastgele girişten farksız. Bu son denemeydi; Aslan'ın yöntemi kodla yakalanamıyor.
+
+| Birim | Gel. işlem | Gel. R/işlem | Gel. PF | Doğ. işlem | Doğ. R/işlem | Doğ. PF | Kontrol p | Sonuç |
+|---|---|---|---|---|---|---|---|---|
+| Long | 2685 | -0.081 | 0.88 | 695 | -0.117 | 0.83 | 0.76 | geçmedi |
+| Short | 2206 | -0.066 | 0.90 | 588 | -0.049 | 0.92 | 0.12 | geçmedi |
+
+- Ayda ~80 işlem (long + short); kazanma oranı %40, ortalama hedef 1.6R, ortalama stop ~44 puan (24000 seviyesinde).
+- Rastgele giriş ortalaması long -0.063R, short -0.096R; masraf işlem başı ~0.05R, yani masrafsız da sıfır civarı.
+- Yıllar (`yearly.csv`): 2020-2026 her yıl long ve short eksi.
+- Bilgi ızgarası (seçim yapılmaz): 8c kuralı yok, sabit 60 puan hedef, bant en az 24 mum, bant en fazla %0.30, stop
+  bandın öbür ucunda: hiçbiri iki dönemde artı değil (en iyisi stop bandın ucunda: long -0.033 / -0.034R).
+- Kod iki kez çalıştı (biri tekrarlanabilirlik düzeltmesinden sonra); sonuç birebir aynı.
+
+**Karar:** reddedildi; kâğıt takip yok. Kodlanmış Aslan ailesi kapandı (1 sa, 15 dk, 1 dk, 5 dk, sıkışma, bant).
+Aslan'ın avantajı varsa, kodlanamayan göz kararında; ölçmenin yolu kendi işlemlerinin giriş anında kaydıdır.
