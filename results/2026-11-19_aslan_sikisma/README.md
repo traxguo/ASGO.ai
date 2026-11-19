@@ -47,3 +47,29 @@ yöntemi için öneri, Aslan'ın kendi işlemlerini giriş anında kaydetmesidir
 Kod: `research/aslan_5dk/sikisma.py`. İş akışı: `.github/workflows/aslan_sikisma.yml`.
 
 ---
+
+## 2. Sonuç (2026-11-19, GitHub runner, dev + doğrulama; kasa yüklenmedi)
+
+**GUO'ya not:** Sıkışma kırılımı geçmedi. Long da short da eski yıllarda zararda, rastgele girişten kötü.
+Önceki 5 dk testinden de kötü. Aslan sonradan, girişi kırılım mumunun kendisinde yaptığını (geri çekilmeyi
+beklemediğini) yazdı; yani bu test onun sırasını ölçmedi (aşağıda not).
+
+| Birim | Gel. işlem | Gel. R/işlem | Gel. PF | Doğ. işlem | Doğ. R/işlem | Doğ. PF | Kontrol p | Sonuç |
+|---|---|---|---|---|---|---|---|---|
+| Long | 476 | -0.097 | 0.85 | 128 | -0.206 | 0.67 | 0.69 | geçmedi |
+| Short | 496 | -0.196 | 0.71 | 142 | +0.082 | 1.15 | 0.90 | geçmedi |
+
+- Ayda ~16 işlem (long + short). %1 riskle gel. düşüşü long %44, short %66.
+- Rastgele girişin ortalaması long -0.061R, short -0.101R; gerçek kural ikisinde de daha kötü.
+- Bilgi ızgarası (seçim yapılmaz): iFVG şartını kaldırmak, sıkışmayı 24 muma çıkarmak, genişliği %0.15 / %0.30
+  yapmak veya hedefi sabit 2R yapmak hiçbir birimi iki dönemde birden artıya getirmedi (`summary.csv`).
+- Huni (`funnel.csv`): 13034 kırılım, 4303 giriş tetiği, 1242 işlem (en büyük eleme saat penceresi ve aynı anda
+  tek işlem).
+- Yıllar (`yearly.csv`): short 2020, 2021, 2023, 2024 zararda; long sadece 2022 açıkça artıda.
+
+**Karar:** reddedildi; kâğıt takip yok.
+
+**Sonradan gelen not (sonuçtan sonra, kuralı değiştirmez):** Aslan 1. örnek grafik için şunu yazdı: iFVG'ler bandın
+içinde kırılımdan önce oluşur, giriş direnci gövdeyle kıran mumun kapanışıdır; stop girişin altındaki en yakın FVG'nin
+biraz altıdır; o örnekteki bant ~100 puan ve ~4 saatti. Bu sıra burada test edilmedi. Test edilecekse yeni ön kayıtla,
+Aslan'ın yazılı onayıyla ve proje sahibinin onayıyla, son deneme olarak yapılır.
