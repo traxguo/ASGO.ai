@@ -39,6 +39,8 @@ NEAR = 0.0011                    # untaken opposite level within ~30 points: ski
 RISK_MIN, RISK_MAX = 0.0004, 0.006
 MAX_HOLD = 24 * HOUR
 H1_LOOKBACK = 5 * 24 * HOUR      # 1h swings of the last 5 days
+HTF_FVG_AGE = 10 * 24 * HOUR     # 1h / 4h FVGs of the last 10 days
+IFVG_BACK = 20                   # 5m bars before the stop bar searched for an inversed FVG
 
 
 # ------------------------------------------------------------------ range queries
@@ -188,15 +190,109 @@ class Levels:
         return out
 
 
+# ------------------------------------------------------------------ higher-timeframe obstacles (addendum 8c)
+
+def htf_bars(x: efb.Inst, key: np.ndarray) -> tuple:
+    n = len(x.c)
+    g = pd.DataFrame({"k": key, "h": x.h, "l": x.lo, "i": np.arange(n)}).groupby("k").agg(
+        h=("h", "max"), l=("l", "min"), last=("i", "max"), first=("i", "min"))
+    return g.h.to_numpy(), g.l.to_numpy(), g["last"].to_numpy(), x.start[g["first"].to_numpy()]
+
+
+class HTF:
+    """1h / 4h FVGs and 4h swings, and the 5m FVG / iFVG confirmation."""
+
+    def __init__(self, x: efb.Inst):
+        self.x = x
+        n = len(x.c)
+        self.cmax, self.cmin = sparse(x.c, np.maximum), sparse(x.c, np.minimum)
+        self.hmax, self.lmin = sparse(x.h, np.maximum), sparse(x.lo, np.minimum)
+        ny = pd.DatetimeIndex(x.start).tz_localize("UTC").tz_convert(NY).tz_localize(None) + pd.Timedelta(hours=7)
+        k1 = x.start // HOUR
+        k4 = ny.asi8 // (4 * HOUR)               # 4h blocks starting 17:00 New York
+        self.fvg = {1: [], -1: []}               # +1 bullish (support), -1 bearish (resistance)
+        for key in (k1, k4):
+            H, L, last, t0 = htf_bars(x, key)
+            j = np.arange(2, len(H))
+            bull = j[L[j] > H[j - 2]]
+            bear = j[H[j] < L[j - 2]]
+            self.fvg[1].append(pd.DataFrame({"bot": H[bull - 2], "top": L[bull], "formed": last[bull], "t": t0[bull]}))
+            self.fvg[-1].append(pd.DataFrame({"bot": H[bear], "top": L[bear - 2], "formed": last[bear], "t": t0[bear]}))
+            if key is k4:
+                sw_h = np.zeros(len(H), bool)
+                sw_l = np.zeros(len(H), bool)
+                sw_h[2:-2] = (H[2:-2] > H[:-4]) & (H[2:-2] > H[1:-3]) & (H[2:-2] > H[3:-1]) & (H[2:-2] > H[4:])
+                sw_l[2:-2] = (L[2:-2] < L[:-4]) & (L[2:-2] < L[1:-3]) & (L[2:-2] < L[3:-1]) & (L[2:-2] < L[4:])
+                conf = np.r_[last[2:], np.full(2, n + 10)]
+                self.sw4 = {1: (H[sw_h], last[sw_h], conf[sw_h]), -1: (L[sw_l], last[sw_l], conf[sw_l])}
+        for s_ in (1, -1):
+            f = pd.concat(self.fvg[s_], ignore_index=True).sort_values("t").reset_index(drop=True)
+            self.fvg[s_] = (f.bot.to_numpy(), f.top.to_numpy(), f.formed.to_numpy(), f.t.to_numpy())
+        h, lo = x.h, x.lo
+        self.bull5 = np.zeros(n, bool)
+        self.bear5 = np.zeros(n, bool)
+        self.bull5[2:] = lo[2:] > h[:-2]
+        self.bear5[2:] = h[2:] < lo[:-2]
+
+    def obstacle(self, k: int, side: int, e: float) -> bool:
+        """An opposing 1h/4h FVG or an untaken 4h swing level at or just ahead of the entry."""
+        x = self.x
+        bot, top, formed, t = self.fvg[-side]       # long meets bearish FVGs above, short bullish below
+        a = np.searchsorted(t, x.start[k] - HTF_FVG_AGE)
+        for q in range(a, len(t)):
+            if formed[q] >= k:
+                if t[q] > x.start[k]:
+                    break
+                continue
+            f = int(formed[q])
+            if side > 0:
+                if rq(self.cmax, f + 1, k, max) > top[q]:
+                    continue                          # mitigated
+                if bot[q] <= e <= top[q] or (bot[q] > e and bot[q] - e <= NEAR * e):
+                    return True
+            else:
+                if rq(self.cmin, f + 1, k, min) < bot[q]:
+                    continue
+                if bot[q] <= e <= top[q] or (top[q] < e and e - top[q] <= NEAR * e):
+                    return True
+        vals, formed4, conf4 = self.sw4[side]          # long: 4h highs above, short: 4h lows below
+        for v, f, cf in zip(vals, formed4, conf4):
+            if cf > k or f >= k:
+                continue
+            if side > 0:
+                if v >= e and v - e <= NEAR * e and rq(self.hmax, int(f) + 1, k, max) < v:
+                    return True
+            else:
+                if v <= e and e - v <= NEAR * e and rq(self.lmin, int(f) + 1, k, min) > v:
+                    return True
+        return False
+
+    def confirmed(self, k: int, side: int, ext: int) -> bool:
+        """5m FVG in the trade direction inside the reversal move, or a close through an opposing 5m FVG (iFVG)."""
+        x = self.x
+        same, opp = (self.bull5, self.bear5) if side > 0 else (self.bear5, self.bull5)
+        if ext + 2 <= k and same[ext + 2:k + 1].any():
+            return True
+        for i in np.flatnonzero(opp[max(ext - IFVG_BACK, 2):k + 1]) + max(ext - IFVG_BACK, 2):
+            if i >= k:
+                continue
+            if side > 0 and rq(self.cmax, int(i) + 1, k, max) > x.lo[i - 2]:
+                return True
+            if side < 0 and rq(self.cmin, int(i) + 1, k, min) < x.h[i - 2]:
+                return True
+        return False
+
+
 # ------------------------------------------------------------------ the rule
 
-CELLS = {  # name: (primary, target mode, near filter, window UTC minutes [a, b])
-    "main": (True, "level", True, (6 * 60, 19 * 60)),
-    "fix1R": (False, 1.0, True, (6 * 60, 19 * 60)),
-    "fix1.5R": (False, 1.5, True, (6 * 60, 19 * 60)),
-    "fix2R": (False, 2.0, True, (6 * 60, 19 * 60)),
-    "no_near": (False, "level", False, (6 * 60, 19 * 60)),
-    "ny_only": (False, "level", True, (13 * 60 + 30, 19 * 60)),
+CELLS = {  # name: (primary, target mode, near filter, window UTC minutes [a, b], higher-timeframe rule 8c)
+    "main": (True, "level", True, (6 * 60, 19 * 60), True),
+    "fix1R": (False, 1.0, True, (6 * 60, 19 * 60), True),
+    "fix1.5R": (False, 1.5, True, (6 * 60, 19 * 60), True),
+    "fix2R": (False, 2.0, True, (6 * 60, 19 * 60), True),
+    "no_near": (False, "level", False, (6 * 60, 19 * 60), True),
+    "no_htf": (False, "level", True, (6 * 60, 19 * 60), False),
+    "ny_only": (False, "level", True, (13 * 60 + 30, 19 * 60), True),
 }
 
 
@@ -208,7 +304,6 @@ def triggers(x: efb.Inst) -> pd.DataFrame:
     sl = np.zeros(n, bool)
     sh[2:-2] = (h[2:-2] > h[:-4]) & (h[2:-2] > h[1:-3]) & (h[2:-2] > h[3:-1]) & (h[2:-2] > h[4:])
     sl[2:-2] = (lo[2:-2] < lo[:-4]) & (lo[2:-2] < lo[1:-3]) & (lo[2:-2] < lo[3:-1]) & (lo[2:-2] < lo[4:])
-    hi_t, lo_t = sparse(h, np.maximum), sparse(lo, np.minimum)
     H = []  # confirmed swing highs (index)
     L = []
     rows = []
@@ -228,22 +323,25 @@ def triggers(x: efb.Inst) -> pd.DataFrame:
         if short and long_:
             continue
         if short:
-            rows.append((k, -1, rq(hi_t, t2, k, max)))
+            ext = t2 + int(np.argmax(h[t2:k + 1]))
+            rows.append((k, -1, h[ext], ext))
         elif long_:
-            rows.append((k, 1, rq(lo_t, d2, k, min)))
-    return pd.DataFrame(rows, columns=["k", "side", "stop"])
+            ext = d2 + int(np.argmin(lo[d2:k + 1]))
+            rows.append((k, 1, lo[ext], ext))
+    return pd.DataFrame(rows, columns=["k", "side", "stop", "ext"])
 
 
-def run_cell(x: efb.Inst, lv: Levels, trig: pd.DataFrame, cell: str, funnel: dict) -> pd.DataFrame:
-    primary, mode, near, (wa, wb) = CELLS[cell]
+def run_cell(x: efb.Inst, lv: Levels, htf: HTF, trig: pd.DataFrame, cell: str, funnel: dict) -> pd.DataFrame:
+    primary, mode, near, (wa, wb), use_htf = CELLS[cell]
     end = x.start + 5 * MIN
     mins = (end // MIN) % 1440
     ny = pd.DatetimeIndex(end).tz_localize("UTC").tz_convert(NY)
     ny_min = (ny.hour * 60 + ny.minute).to_numpy()
-    f = {"triggers": 0, "window": 0, "ny_open": 0, "risk": 0, "near": 0, "no_target": 0, "busy": 0, "trades": 0}
+    f = {"triggers": 0, "window": 0, "ny_open": 0, "risk": 0, "near": 0, "no_target": 0, "htf_no_confirm": 0, "busy": 0,
+         "trades": 0, "htf_confirmed": 0}
     out = []
     free_after = -1
-    for k, side, stop in trig.itertuples(index=False):
+    for k, side, stop, ext in trig.itertuples(index=False):
         f["triggers"] += 1
         if not (wa <= mins[k] <= wb):
             f["window"] += 1
@@ -280,6 +378,11 @@ def run_cell(x: efb.Inst, lv: Levels, trig: pd.DataFrame, cell: str, funnel: dic
                 tp = min(cand) * (1 - TP_PAD)
         else:
             tp = e + side * mode * abs(stop - e)
+        if use_htf and htf.obstacle(int(k), int(side), e):
+            if not htf.confirmed(int(k), int(side), int(ext)):
+                f["htf_no_confirm"] += 1
+                continue
+            f["htf_confirmed"] += 1
         j, px, why = simulate(x.start, x.o, x.h, x.lo, x.c, int(k), int(side), float(stop), float(tp), MAX_HOLD)
         free_after = j
         f["trades"] += 1
@@ -357,10 +460,11 @@ def main() -> None:
     print(f"NAS100 5m bars {len(x.start)}, cleaned {efb.CLEAN.get('NAS100')}, "
           f"{pd.Timestamp(x.start[0], tz='UTC')} -> {pd.Timestamp(x.start[-1], tz='UTC')}")
     lv = Levels(x)
+    htf = HTF(x)
     trig = triggers(x)
     print(f"structure-break triggers: {len(trig)} (long {(trig.side > 0).sum()}, short {(trig.side < 0).sum()})")
     funnel: dict = {}
-    tr = pd.concat([run_cell(x, lv, trig, c, funnel) for c in CELLS], ignore_index=True)
+    tr = pd.concat([run_cell(x, lv, htf, trig, c, funnel) for c in CELLS], ignore_index=True)
     pd.DataFrame(funnel).T.to_csv(a.out / "funnel.csv")
     print(pd.DataFrame(funnel).T)
     summ = summarise(tr)
