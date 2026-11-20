@@ -312,8 +312,21 @@
    "ret_pct": -4.13,
    "pnl_usdt": -83.95,
    "size": 2032.6860000000001
+  },
+  {
+   "pair": "ZIL/USDT:USDT",
+   "mode": "derin",
+   "hour": "2026-11-20T05:00:00+00:00",
+   "limit_price": 0.00087768,
+   "fill_time": "2026-11-20T06:00:00+00:00",
+   "entry": 0.00087768,
+   "exit_time": null,
+   "exit": null,
+   "ret_pct": null,
+   "pnl_usdt": null,
+   "size": 2015.896
   }
  ],
  "equity": 10079.48,
- "done_until": "2026-11-20T05:00:00+00:00"
+ "done_until": "2026-11-20T06:00:00+00:00"
 }
