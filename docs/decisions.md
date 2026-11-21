@@ -213,3 +213,8 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - Karar: reddedildi, kâğıt takip yok. Aslan'ın yöntemi için yeni kodlama denemesi yapılmaz.
 - Gerekçe: MSP = bandın kendi direnci/desteği, giriş kırılım mumunun kapanışı, stop en yakın FVG altı, hedef 40-80 puan. Long gel. -0.081R / doğ. -0.117R, short gel. -0.066R / doğ. -0.049R; rastgele kontrol p 0.76 / 0.12; her yıl iki yönde de eksi; bilgi ızgarasında artı hal yok. Öneri (karar değil): Aslan'ın kendi işlemlerini giriş anında kaydetmesi. Rapor `results/2026-11-19_aslan_bant/README.md`, kart `cards/aslan_bant.md`.
 - Ayrıca: araştırma kodunda sıralama kararlı yapıldı (numpy sıralaması eşit anahtarlarda runner işlemcisine göre değişiyordu); sıkışma sonuçları küçük farkla güncellendi, karar aynı.
+
+## 2026-11-21 — Nasdaq 5 dk "harita": hiçbir fiyat durumu yön bilgisi taşımıyor; 5 dk fiyat kalıbı aranmaz
+- Karar: proje sahibinin "Aslan'ı kopyalama, en iyi senaryoyu ara" yönlendirmesiyle önce ölçüm yapıldı. 8 olay × seans/trend/oynaklık × 1-4 saat = 400 hücre, Bonferroni çıtası: 0 hücre geçti; t dağılımı şans dağılımı (sd 0.93). Nasdaq 5 dk fiyat kalıplarıyla yeni kural yazılmaz.
+- Gerekçe: rapor `results/2026-11-21_nasdaq_harita/README.md`. Öneri (karar değil): fiyat dışı bilgi ve uzun günlük geçmişle aynı yöntem.
+- Not: bir günde birden çok olayın ortalaması geleceğe bakan ağırlık yaratır (rastgele veride sahte t ≈ -4.8); her gün ilk olay kullanılır.

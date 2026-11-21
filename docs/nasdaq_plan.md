@@ -36,6 +36,7 @@ Londra kırılımı, haber sonrası ilk tepkiyi takip, ilk yarım saat → son y
 
 **Durum (2026-11-11):** 1 ve 2 test edildi, ikisi de geçmedi (`results/2026-11-11_nasdaq_batch/README.md`). Kalan tek hak 3. madde.
 **Durum (2026-11-19):** 3. madde (Aslan'ın 5 dk kuralı) test edildi, geçmedi (`results/2026-11-19_aslan_5dk/README.md`). Üç hak bitti. Proje sahibi 4. bir hak açtı (Aslan sıkışma kırılımı): o da geçmedi (`results/2026-11-19_aslan_sikisma/README.md`). 5. ve son hak (Aslan bant kırılımı) da geçmedi (`results/2026-11-19_aslan_bant/README.md`). Yeni fikir hakkı yok.
+**Durum (2026-11-21):** Proje sahibi yöntemi değiştirdi: kural tahmin etmek yerine önce ölçüm. 5 dk "harita" 400 hücrede aday bulmadı (`results/2026-11-21_nasdaq_harita/README.md`).
 Adım 2 (XM koşulları) ertelendi: demo hesap açılamadı; ölçüm gerçek para kararından hemen önce yapılır. Adım 3 (fiyat farkı) tamam:
 grafik ve Telegram seviyeleri US100 (nakit) karşılığıyla gösterir.
 

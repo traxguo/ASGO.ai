@@ -44,3 +44,24 @@ geçme çıtasıyla (PF ≥ 1.2 iki dönemde, rastgele kontrol, 2x masraf, düş
 Kod: `research/harita/scan.py`. İş akışı: `.github/workflows/nasdaq_harita.yml`.
 
 ---
+
+## 2. Sonuç (2026-11-21, GitHub runner)
+
+**GUO'ya not:** Net bir sonuç çıktı: ölçtüğümüz 8 durumun (bant kırılımı, dünün/seansın tepe-dibinin alınması, FVG,
+iFVG) hiçbiri, hiçbir seans/trend/oynaklık koşulunda, sonrasında fiyatı tek yöne götürmüyor. Gerçek Nasdaq 5 dk bu
+açıdan rastgele yürüyüşten ayırt edilemiyor. Bu yüzden kurala geçilecek aday yok.
+
+- 400 hücre ölçüldü; geliştirmede eleme geçen **0**, doğrulamaya giden 0.
+- t değerlerinin dağılımı tam şans dağılımı: standart sapma 0.93 (rastgele verideki 1.06'ya benzer), |t| > 2 olan 13
+  hücre (şansla ~20 beklenir), en büyük |t| 3.04 ve o hücrede sadece 33 gün var.
+- Olay sayıları (2020-2026 Mart): bant 1-4 sa 14794, bant 4-8 sa 6457, dünün tepe/dip süpürmesi 664, kırılımı 1723,
+  seans süpürmesi 1838, kırılımı 3915, FVG dokunuşu 37875, iFVG 54445.
+- Ayrıntı: `cells.csv` (her hücre), `run_log.txt` (en büyük 25 |t|).
+
+**Yorum:** Bu, önceki 25'ten fazla 5 dk kural testinin neden hep sıfır civarında çıktığını açıklıyor: Nasdaq'ın 5 dk
+fiyat kalıplarında, masrafı karşılayacak bir yön bilgisi yok. Kodlanmış Aslan kurallarının tutmaması kuralların yanlış
+yazılmasından değil, bu bilginin fiyat grafiğinde bulunmamasından.
+
+**Karar:** 5 dk fiyat kalıplarıyla yeni kural aranmaz. Sonraki adım için öneri: fiyat dışı bilgi (oynaklık endeksi VIX
+ve vade yapısı, Fed/enflasyon günleri, ay sonu, haftanın günü) ve çok daha uzun geçmiş (günlük veri, 20+ yıl) ile aynı
+"önce ölç" yöntemi.
