@@ -1,0 +1,36 @@
+NAS100 5m bars 418206
+band_1_4h 14794
+band_4_8h 6457
+pd_fade 664
+pd_break 1723
+sess_fade 1838
+sess_break 3915
+fvg_respect 37875
+ifvg 54445
+cells tested: 400, dev survivors: 0, val pass: 0
+           event  horizon_bars                                cell  dev_n_days  dev_mean  dev_t  dev_years_same_sign  dev_survives
+270      pd_fade            48     sess=nyam|trend=against|vol=low          33    -0.212 -3.036                    5         False
+393         ifvg            48        sess=nyam|trend=with|vol=low         515     0.057  2.568                    5         False
+383         ifvg            48                             vol=low         676    -0.019 -2.539                    5         False
+153  fvg_respect            12                           sess=nyam        1122    -0.020 -2.410                    4         False
+13     band_1_4h            12     sess=london|trend=with|vol=high         507    -0.014 -2.410                    5         False
+70       pd_fade            12     sess=nyam|trend=against|vol=low          33    -0.094 -2.376                    4         False
+105    sess_fade            12                          trend=with         588    -0.017 -2.255                    5         False
+122    sess_fade            12        sess=nypm|trend=with|vol=low          22    -0.125 -2.220                    4         False
+57       pd_fade            12                            vol=high         194     0.028  2.102                    4         False
+376         ifvg            48                           sess=asia        1269    -0.011 -2.100                    4         False
+134   sess_break            12       sess=asia|trend=with|vol=high         134     0.022  2.088                    4         False
+269      pd_fade            48    sess=nyam|trend=against|vol=high          20     0.201  2.036                    3         False
+279     pd_break            48                           sess=nypm         204     0.052  2.005                    4         False
+345   sess_break            48     sess=nyam|trend=against|vol=low         196    -0.080 -1.995                    5         False
+370  fvg_respect            48     sess=nyam|trend=against|vol=low         406    -0.049 -1.929                    4         False
+111    sess_fade            12    sess=asia|trend=against|vol=high          48    -0.028 -1.926                    4         False
+218    band_1_4h            48        sess=nyam|trend=with|vol=low         284     0.052  1.905                    5         False
+247    band_4_8h            48        sess=nypm|trend=with|vol=low          73     0.064  1.893                    4         False
+231    band_4_8h            48                       trend=against         971    -0.017 -1.886                    5         False
+25     band_4_8h            12                                 all        1179    -0.005 -1.856                    4         False
+289     pd_break            48      sess=london|trend=with|vol=low          71    -0.075 -1.799                    4         False
+4      band_1_4h            12                           sess=nypm        1008     0.011  1.795                    3         False
+140   sess_break            12  sess=london|trend=against|vol=high         288     0.015  1.791                    5         False
+264      pd_fade            48      sess=london|trend=with|vol=low          29    -0.104 -1.777                    4         False
+69       pd_fade            12    sess=nyam|trend=against|vol=high          20     0.112  1.762                    4         False
