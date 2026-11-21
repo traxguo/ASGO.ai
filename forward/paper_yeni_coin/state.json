@@ -84,6 +84,42 @@
    "why": "open",
    "exit_day": null,
    "exit": null
+  },
+  {
+   "symbol": "AMDLUSDT",
+   "listed": "2026-11-20",
+   "pair": "AMDL/USDT:USDT",
+   "entry_day": "2026-11-21",
+   "entry": 32.8,
+   "stop": 45.919999999999995,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
+  },
+  {
+   "symbol": "JNJUSDT",
+   "listed": "2026-11-20",
+   "pair": "JNJ/USDT:USDT",
+   "entry_day": "2026-11-21",
+   "entry": 270.56,
+   "stop": 378.784,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
+  },
+  {
+   "symbol": "NIOUSDT",
+   "listed": "2026-11-20",
+   "pair": "NIO/USDT:USDT",
+   "entry_day": "2026-11-21",
+   "entry": 2.481,
+   "stop": 3.4734,
+   "notional": 250.0,
+   "why": "open",
+   "exit_day": null,
+   "exit": null
   }
  ],
  "equity": 10000.0,
@@ -155,6 +191,7 @@
   "AMATUSDT",
   "AMBUSDT",
   "AMCUSDT",
+  "AMDLUSDT",
   "AMDUSDT",
   "AMGNUSDT",
   "AMZNUSDT",
@@ -526,6 +563,7 @@
   "JASMYUSDT",
   "JCTUSDT",
   "JELLYJELLYUSDT",
+  "JNJUSDT",
   "JOEUSDT",
   "JPMUSDT",
   "JSTUSDT",
@@ -653,6 +691,7 @@
   "NFPUSDT",
   "NIGHTUSDT",
   "NILUSDT",
+  "NIOUSDT",
   "NKEUSDT",
   "NKNUSDT",
   "NMRUSDT",
@@ -1020,5 +1059,5 @@
   "\u725b\u6765USDT",
   "\u9f99\u867eUSDT"
  ],
- "last_run": "2026-11-21T00:02:43.542065+00:00"
+ "last_run": "2026-11-21T14:47:36.855424+00:00"
 }
