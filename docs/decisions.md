@@ -218,3 +218,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 - Karar: proje sahibinin "Aslan'ı kopyalama, en iyi senaryoyu ara" yönlendirmesiyle önce ölçüm yapıldı. 8 olay × seans/trend/oynaklık × 1-4 saat = 400 hücre, Bonferroni çıtası: 0 hücre geçti; t dağılımı şans dağılımı (sd 0.93). Nasdaq 5 dk fiyat kalıplarıyla yeni kural yazılmaz.
 - Gerekçe: rapor `results/2026-11-21_nasdaq_harita/README.md`. Öneri (karar değil): fiyat dışı bilgi ve uzun günlük geçmişle aynı yöntem.
 - Not: bir günde birden çok olayın ortalaması geleceğe bakan ağırlık yaratır (rastgele veride sahte t ≈ -4.8); her gün ilk olay kullanılır.
+
+## 2026-11-26 — Nasdaq öğrenen model (yıl yıl sınav): geçmedi
+- Karar: proje sahibinin "öğrenen model kendi bulsun" önerisi dürüst haliyle test edildi (model sınandığı yılı görmez). 54 girdi (FVG/iFVG, bant, seviyeler, 1 sa/4 sa FVG kimliği, seans, trend, oynaklık), gradyan artırmalı ağaçlar, 2022-2024 sınav yılları: long 2x masrafla -0.011 ATR (t -2.5), short -0.002 (t -0.4), kazanma %49. Reddedildi; 5 dk fiyat/seviye bilgisiyle başka model denenmez.
+- Gerekçe: rapor `results/2026-11-26_nasdaq_ogrenen/README.md`; harita sonucuyla (2026-11-21) uyumlu. Öneri: fiyat dışı bilgi + uzun günlük geçmiş.
