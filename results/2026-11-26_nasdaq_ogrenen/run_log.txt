@@ -1,0 +1,10 @@
+NAS100 5m bars 418206
+/home/runner/work/ASGO.ai/ASGO.ai/research/ogrenen/ml.py:85: Pandas4Warning: DatetimeIndex.weekday is deprecated and will be removed in a future version. Use DatetimeIndex.day_of_week instead.
+  f["weekday"] = pd.DatetimeIndex(x.start).tz_localize("UTC").tz_convert(run.NY).weekday.to_numpy().astype(float)
+samples 78932, features 54
+2022 961 {-1: 0.0214, 1: -0.0118}
+2023 726 {-1: -0.0046, 1: -0.0021}
+2024 992 {-1: -0.0075, 1: -0.001}
+    unit  dev_trades  dev_net1_mean_atr  dev_net2_mean_atr  dev_t_net2  dev_win_pct  net2_2022  net2_2023  net2_2024  dev_pass
+0   long        1573            -0.0052            -0.0113     -2.5369      49.3325    -0.0159    -0.0089    -0.0087     False
+1  short        1106             0.0038            -0.0022     -0.4088      49.6383     0.0175    -0.0114    -0.0150     False
