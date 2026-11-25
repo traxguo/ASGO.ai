@@ -1,6 +1,6 @@
 # Pusula kâğıt takibi (para yok, emir yok)
 
-Güncelleme: 2026-11-24 13:09 UTC. Son veri mumu: 2026-11-23 20:00 UTC.
+Güncelleme: 2026-11-25 12:05 UTC. Son veri mumu: 2026-11-24 20:00 UTC.
 16 coin, en fazla 3 işlem, başlangıç 2026-10-01. Dondurulmuş `PusulaTrendLong` hiç değişmez; `PusulaV2` arka plan turlarında kabul edilen geliştirmeleri taşır.
 
 ## GUO'ya not
@@ -38,81 +38,81 @@ Güncelleme: 2026-11-24 13:09 UTC. Son veri mumu: 2026-11-23 20:00 UTC.
 ## Coinlerin şu anki durumu (son kapanmış 4 saatlik mum)
 
 BTC (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 61.236,9, günlük 50 ortalama 73.446,0, 90 günlük değişim %-22. Son 4 saatlik kapanış 61.239,9.  
+Son günlük kapanış 61.239,9, günlük 50 ortalama 72.967,3, 90 günlük değişim %-22. Son 4 saatlik kapanış 59.801,3.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 ETH (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 1.723,3, günlük 50 ortalama 2.146,3, 90 günlük değişim %-31. Son 4 saatlik kapanış 1.709,8.  
+Son günlük kapanış 1.709,8, günlük 50 ortalama 2.129,2, 90 günlük değişim %-30. Son 4 saatlik kapanış 1.679,4.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 SOL (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 70,69, günlük 50 ortalama 89,71, 90 günlük değişim %-29. Son 4 saatlik kapanış 71,98.  
+Son günlük kapanış 71,98, günlük 50 ortalama 89,01, 90 günlük değişim %-25. Son 4 saatlik kapanış 69,65.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 XRP (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,9284, günlük 50 ortalama 1,167, 90 günlük değişim %-37. Son 4 saatlik kapanış 0,9401.  
+Son günlük kapanış 0,9401, günlük 50 ortalama 1,158, 90 günlük değişim %-34. Son 4 saatlik kapanış 0,9244.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 BNB (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 559,53, günlük 50 ortalama 671,00, 90 günlük değişim %-21. Son 4 saatlik kapanış 556,68.  
+Son günlük kapanış 556,68, günlük 50 ortalama 666,51, 90 günlük değişim %-20. Son 4 saatlik kapanış 548,94.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 DOGE (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,05532, günlük 50 ortalama 0,0717, 90 günlük değişim %-39. Son 4 saatlik kapanış 0,05636.  
+Son günlük kapanış 0,05636, günlük 50 ortalama 0,0711, 90 günlük değişim %-34. Son 4 saatlik kapanış 0,05529.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 ADA (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,1446, günlük 50 ortalama 0,1873, 90 günlük değişim %-35. Son 4 saatlik kapanış 0,1485.  
+Son günlük kapanış 0,1485, günlük 50 ortalama 0,1858, 90 günlük değişim %-29. Son 4 saatlik kapanış 0,1444.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 LINK (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 8,817, günlük 50 ortalama 10,73, 90 günlük değişim %-24. Son 4 saatlik kapanış 9,009.  
+Son günlük kapanış 9,009, günlük 50 ortalama 10,67, 90 günlük değişim %-20. Son 4 saatlik kapanış 8,848.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 LTC (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 40,18, günlük 50 ortalama 52,13, 90 günlük değişim %-22. Son 4 saatlik kapanış 41,44.  
+Son günlük kapanış 41,44, günlük 50 ortalama 51,71, 90 günlük değişim %-17. Son 4 saatlik kapanış 40,87.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 DOT (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,6615, günlük 50 ortalama 0,9073, 90 günlük değişim %-26. Son 4 saatlik kapanış 0,6757.  
+Son günlük kapanış 0,6757, günlük 50 ortalama 0,8982, 90 günlük değişim %-21. Son 4 saatlik kapanış 0,6524.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 AVAX (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 6,685, günlük 50 ortalama 8,332, 90 günlük değişim %-11. Son 4 saatlik kapanış 6,786.  
+Son günlük kapanış 6,786, günlük 50 ortalama 8,271, 90 günlük değişim %-7. Son 4 saatlik kapanış 6,572.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 TRX (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,3055, günlük 50 ortalama 0,3202, 90 günlük değişim %-11. Son 4 saatlik kapanış 0,3099.  
+Son günlük kapanış 0,3099, günlük 50 ortalama 0,3198, 90 günlük değişim %-8. Son 4 saatlik kapanış 0,3081.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 ATOM (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 1,174, günlük 50 ortalama 1,473, 90 günlük değişim %-23. Son 4 saatlik kapanış 1,283.  
+Son günlük kapanış 1,283, günlük 50 ortalama 1,465, 90 günlük değişim %-16. Son 4 saatlik kapanış 1,248.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 BCH (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 199,37, günlük 50 ortalama 248,20, 90 günlük değişim %-26. Son 4 saatlik kapanış 200,39.  
+Son günlük kapanış 200,39, günlük 50 ortalama 246,32, 90 günlük değişim %-25. Son 4 saatlik kapanış 197,44.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 ETC (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 5,689, günlük 50 ortalama 6,963, 90 günlük değişim %-27. Son 4 saatlik kapanış 5,902.  
+Son günlük kapanış 5,902, günlük 50 ortalama 6,921, 90 günlük değişim %-23. Son 4 saatlik kapanış 5,757.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
 
 XLM (4s): güçlü düşüş (-3/3).  
-Son günlük kapanış 0,1277, günlük 50 ortalama 0,1607, 90 günlük değişim %-34. Son 4 saatlik kapanış 0,13.  
+Son günlük kapanış 0,13, günlük 50 ortalama 0,1595, 90 günlük değişim %-29. Son 4 saatlik kapanış 0,1241.  
 Bitcoin puanı -3/3.  
 İşlem önermiyorum: düşüş trendinde bekliyorum (short tarafı testlerde kâr getirmedi).
