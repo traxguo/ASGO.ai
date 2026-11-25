@@ -39,3 +39,23 @@ sıradaki adım fiyat dışı bilgi (VIX, haber günleri) ve uzun günlük geçm
 Kod: `research/ogrenen/ml.py`. İş akışı: `.github/workflows/nasdaq_ogrenen.yml`.
 
 ---
+
+## 2. Sonuç (2026-11-26, GitHub runner)
+
+**GUO'ya not:** Öğrenen model de **geçmedi**. FVG, iFVG, bant, seviyeler, 1 sa / 4 sa FVG'ler, seans, trend, oynaklık:
+54 bilginin hepsini birlikte kullanıp hangisinin önemli olduğunu kendisi seçti, ama görmediği yıllarda işlemlerinin
+%49'u kazandı; yani yazı tura. Sonuç, rastgele veride aldığımız sonuçla neredeyse aynı.
+
+| Birim | İşlem (2022-24) | 1x masraf | 2x masraf | t (2x) | Kazanan % | 2022 | 2023 | 2024 | Sonuç |
+|---|---|---|---|---|---|---|---|---|---|
+| Long | 1573 | -0.005 | -0.011 | -2.5 | 49.3 | -0.016 | -0.009 | -0.009 | geçmedi |
+| Short | 1106 | +0.004 | -0.002 | -0.4 | 49.6 | +0.018 | -0.011 | -0.015 | geçmedi |
+
+(Ortalamalar günlük ATR cinsinden, işlem başına; 78932 örnek, 54 girdi.) Doğrulama verisine bakılmadı.
+
+**Yorum:** Harita testinin (2026-11-21) sonucunu ikinci, bağımsız bir yolla doğruluyor: Nasdaq 5 dk fiyat ve seviye
+bilgisi, birleşik halde bile, 1 saatlik yönü masrafı karşılayacak kadar tahmin etmiyor. Model "önemli FVG'yi" bulamadıysa
+sebebi modelin zayıflığı değil, bu bilginin geçmiş fiyatta olmaması (en azından masrafı aşacak büyüklükte).
+
+**Karar:** reddedildi. 5 dk fiyat/seviye bilgisiyle başka model denenmez (daha büyük model aynı veride sadece daha çok
+ezberler). Sıradaki öneri: fiyat dışı bilgi (VIX ve vade yapısı, haber günleri) ve 20+ yıllık günlük veri.
