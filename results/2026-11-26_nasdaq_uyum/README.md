@@ -33,3 +33,22 @@ p 0.29; kazanma ~%36, 2R hedefle beklenen ~%33).
 Kod: `research/uyum/score.py`. İş akışı: `.github/workflows/nasdaq_uyum.yml`.
 
 ---
+
+## 2. Sonuç (2026-11-26, GitHub runner)
+
+**GUO'ya not:** Uyum puanı **geçmedi**. Kriter sayısını artırmak başarı oranını artırmadı: 4 kriter uyunca da, 6 kriter
+uyunca da işlemlerin kabaca %30-40'ı kazandı (2R hedefle başa baş için %33-34 gerekir). Sonuç rastgele girişle aynı.
+
+| Birim (ana: puan ≥ 4) | Gel. işlem | Gel. R/işlem | Gel. PF | Gel. kazanan % | Doğ. işlem | Doğ. R/işlem | Kontrol p | Sonuç |
+|---|---|---|---|---|---|---|---|---|
+| Long | 1266 | +0.029 | 1.05 | 39.3 | 282 | -0.055 | 0.52 | geçmedi |
+| Short | 897 | -0.065 | 0.90 | 32.6 | 255 | -0.014 | 0.52 | geçmedi |
+
+- Rastgele girişin ortalaması long +0.031R, short -0.063R: kural rastgeleyle **aynı** (p 0.52). Long'daki küçük artı
+  Nasdaq'ın genel yükselişinden geliyor, kriterlerden değil.
+- Puan eşiği (bilgi): ≥ 3 long +0.011 / -0.094R, ≥ 5 long +0.026 / -0.115R, ≥ 6 long +0.066 / -0.378R (gel. / doğ.).
+  Puan arttıkça doğrulama kötüleşiyor; "daha çok uyum = daha iyi" görülmüyor.
+- Yıllar (`yearly.csv`): long 2020-2022 artı, 2023-2026 eksi; short çoğu yıl eksi.
+- Kriterlerin ne sıklıkla uyduğu: `criteria_share.csv`.
+
+**Karar:** reddedildi; kâğıt takip yok. Elle yazılmış uyum kuralı, öğrenen modelle (2026-11-26) aynı sonucu verdi.

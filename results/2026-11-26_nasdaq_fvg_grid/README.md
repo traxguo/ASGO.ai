@@ -47,3 +47,6 @@ FVG'nin ortasına kadar gelip geri dönünce, sonraki 1 saatte hafif bir şekild
 değip dönme, 24 saate kadar yaş, trend filtresi yok, 1 saat ufuk) hiç bakılmamış doğrulama döneminde **tek bir kez**
 sınanır (`research/harita/fvg_val.py`): t ≥ 2.0 ve 2x masraf sonrası ortalama > 0 gerekir. Geçse bile sadece "aday"
 sayılır; işlem kuralı yazılıp ayrı test ve kâğıt takipten geçmesi gerekir. Başka hücre bu şekilde sınanmaz.
+
+**Ek sınavın sonucu:** geçmedi. Geliştirmede t 3.21 (1081 gün) olan hücre doğrulamada t -0.05 (283 gün); 2x masraf
+sonrası ortalama -0.014 ATR. Geliştirmedeki etki şansmış. **FVG ailesi (5 dk - 4 sa) kapandı.**
