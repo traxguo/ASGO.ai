@@ -222,3 +222,7 @@ Her karar: tarih + karar + gerekçe. En yeni en üstte.
 ## 2026-11-26 — Nasdaq öğrenen model (yıl yıl sınav): geçmedi
 - Karar: proje sahibinin "öğrenen model kendi bulsun" önerisi dürüst haliyle test edildi (model sınandığı yılı görmez). 54 girdi (FVG/iFVG, bant, seviyeler, 1 sa/4 sa FVG kimliği, seans, trend, oynaklık), gradyan artırmalı ağaçlar, 2022-2024 sınav yılları: long 2x masrafla -0.011 ATR (t -2.5), short -0.002 (t -0.4), kazanma %49. Reddedildi; 5 dk fiyat/seviye bilgisiyle başka model denenmez.
 - Gerekçe: rapor `results/2026-11-26_nasdaq_ogrenen/README.md`; harita sonucuyla (2026-11-21) uyumlu. Öneri: fiyat dışı bilgi + uzun günlük geçmiş.
+
+## 2026-11-26 — FVG ızgarası (288 çeşit) ve uyum puanı: ikisi de geçmedi; FVG ailesi kapandı
+- Karar: proje sahibinin "kriterleri değiştir, genişlet, FVG'leri ara; birçok kriter uyunca gir" isteği, kriteri tek tek değiştirip tutana kadar denemek yerine tek seferde ve şans payı hesaba katılarak test edildi. FVG ızgarası (5 dk/15 dk/1 sa/4 sa × büyüklük × giriş × yaş × trend × ufuk): 0/288; en güçlü hücre (1 sa FVG ortaya değip dönme, gel. t 3.2) açıkça eklenen tek doğrulama sınavında t -0.05. Uyum puanı (7 kriter, puan ≥ 4): long +0.03R / -0.06R, short -0.07R / -0.01R, rastgeleyle aynı (p 0.52); puan arttıkça doğrulama kötüleşiyor. İkisi de reddedildi.
+- Gerekçe: raporlar `results/2026-11-26_nasdaq_fvg_grid/README.md`, `results/2026-11-26_nasdaq_uyum/README.md`. Harita ve öğrenen model sonuçlarıyla uyumlu: Nasdaq 5 dk-4 sa fiyat/seviye yapısında masrafı aşan yön bilgisi bulunamadı.

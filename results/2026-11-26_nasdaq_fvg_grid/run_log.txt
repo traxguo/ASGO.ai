@@ -1,0 +1,96 @@
+NAS100 5m bars 418206
+5m all respect fresh 31961
+5m all respect old 38370
+5m all mid fresh 27685
+5m all mid old 35967
+5m all inverse fresh 37510
+5m all inverse old 60339
+5m mid respect fresh 984
+5m mid respect old 1205
+5m mid mid fresh 502
+5m mid mid old 845
+5m mid inverse fresh 463
+5m mid inverse old 1118
+5m big respect fresh 152
+5m big respect old 179
+5m big mid fresh 27
+5m big mid old 68
+5m big inverse fresh 27
+5m big inverse old 99
+15m all respect fresh 10738
+15m all respect old 12701
+15m all mid fresh 9588
+15m all mid old 12191
+15m all inverse fresh 14299
+15m all inverse old 21267
+15m mid respect fresh 1050
+15m mid respect old 1232
+15m mid mid fresh 641
+15m mid mid old 959
+15m mid inverse fresh 636
+15m mid inverse old 1352
+15m big respect fresh 180
+15m big respect old 211
+15m big mid fresh 79
+15m big mid old 121
+15m big inverse fresh 64
+15m big inverse old 138
+1h all respect fresh 2657
+1h all respect old 3266
+1h all mid fresh 2389
+1h all mid old 3273
+1h all inverse fresh 4020
+1h all inverse old 6118
+1h mid respect fresh 697
+1h mid respect old 893
+1h mid mid fresh 489
+1h mid mid old 843
+1h mid inverse fresh 625
+1h mid inverse old 1435
+1h big respect fresh 192
+1h big respect old 261
+1h big mid fresh 81
+1h big mid old 207
+1h big inverse fresh 81
+1h big inverse old 321
+4h all respect fresh 799
+4h all respect old 922
+4h all mid fresh 785
+4h all mid old 950
+4h all inverse fresh 1364
+4h all inverse old 1834
+4h mid respect fresh 462
+4h mid respect old 535
+4h mid mid fresh 419
+4h mid mid old 528
+4h mid inverse fresh 631
+4h mid inverse old 964
+4h big respect fresh 218
+4h big respect old 257
+4h big mid fresh 150
+4h big mid old 219
+4h big inverse fresh 213
+4h big inverse old 395
+cells tested: 288, dev survivors: 0, val pass: 0
+t sd 1.026, |t|>2: 13, |t|>3: 1
+      tf size    entry    age trend  horizon_bars  dev_n_days  dev_mean  dev_t  dev_years_same_sign  dev_survives
+156   1h  all      mid    old  none            12        1081     0.014  3.210                    4         False
+158   1h  all      mid    old  with            12         825     0.015  2.830                    5         False
+152   1h  all      mid  fresh  none            12         967     0.011  2.575                    4         False
+162   1h  all  inverse  fresh  with            12         866    -0.015 -2.504                    4         False
+163   1h  all  inverse  fresh  with            48         838    -0.027 -2.491                    5         False
+75   15m  all  respect  fresh  with            48        1203     0.016  2.376                    4         False
+200   1h  big      mid  fresh  none            12          55     0.077  2.336                    4         False
+166   1h  all  inverse    old  with            12         994    -0.013 -2.335                    4         False
+182   1h  mid      mid    old  with            12         290     0.030  2.312                    3         False
+167   1h  all  inverse    old  with            48         963    -0.022 -2.155                    3         False
+160   1h  all  inverse  fresh  none            12        1139    -0.009 -2.103                    4         False
+79   15m  all  respect    old  with            48        1228     0.012  2.044                    5         False
+204   1h  big      mid    old  none            12         138     0.039  2.009                    4         False
+180   1h  mid      mid    old  none            12         473     0.016  1.963                    5         False
+210   1h  big  inverse  fresh  with            12          25    -0.122 -1.948                    4         False
+2     5m  all  respect  fresh  with            12        1270    -0.005 -1.930                    4         False
+197   1h  big  respect    old  none            48         174     0.051  1.920                    5         False
+268   4h  big  respect    old  none            12         161     0.026  1.910                    3         False
+198   1h  big  respect    old  with            12          95     0.038  1.890                    4         False
+196   1h  big  respect    old  none            12         171     0.028  1.878                    4         False

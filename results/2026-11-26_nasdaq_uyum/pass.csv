@@ -1,0 +1,3 @@
+unit,p_dev,real_dev_r,ctrl_mean_r,pass,failed
+long,0.5162,0.0293,0.0313,False,"net, PF, kontrol, 2x masraf, düşüş"
+short,0.5242,-0.0651,-0.063,False,"net, PF, kontrol, 2x masraf, düşüş"
