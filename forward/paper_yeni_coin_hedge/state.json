@@ -8,34 +8,58 @@
    "entry_day": "2026-11-20",
    "why": "skipped",
    "note": "not in top 100 by volume"
+  },
+  {
+   "symbol": "ARTYUSDT",
+   "listed": "2026-11-18",
+   "pair": "ARTY/USDT:USDT",
+   "entry_day": "2026-11-26",
+   "why": "skipped",
+   "note": "not in top 100 by volume"
+  },
+  {
+   "symbol": "CCJUSDT",
+   "listed": "2026-11-18",
+   "pair": "CCJ/USDT:USDT",
+   "entry_day": "2026-11-26",
+   "why": "skipped",
+   "note": "not in top 100 by volume"
+  },
+  {
+   "symbol": "ETNUSDT",
+   "listed": "2026-11-18",
+   "pair": "ETN/USDT:USDT",
+   "entry_day": "2026-11-26",
+   "why": "skipped",
+   "note": "not in top 100 by volume"
+  },
+  {
+   "symbol": "IBITUSDT",
+   "listed": "2026-11-18",
+   "pair": "IBIT/USDT:USDT",
+   "entry_day": "2026-11-26",
+   "why": "skipped",
+   "note": "not in top 100 by volume"
+  },
+  {
+   "symbol": "IGVUSDT",
+   "listed": "2026-11-18",
+   "pair": "IGV/USDT:USDT",
+   "entry_day": "2026-11-26",
+   "why": "skipped",
+   "note": "not in top 100 by volume"
+  },
+  {
+   "symbol": "SOXXUSDT",
+   "listed": "2026-11-18",
+   "pair": "SOXX/USDT:USDT",
+   "entry_day": "2026-11-26",
+   "why": "skipped",
+   "note": "not in top 100 by volume"
   }
  ],
  "equity": 10000.0,
  "pending": [
-  {
-   "symbol": "ARTYUSDT",
-   "listed": "2026-11-18"
-  },
-  {
-   "symbol": "CCJUSDT",
-   "listed": "2026-11-18"
-  },
-  {
-   "symbol": "ETNUSDT",
-   "listed": "2026-11-18"
-  },
-  {
-   "symbol": "IBITUSDT",
-   "listed": "2026-11-18"
-  },
-  {
-   "symbol": "IGVUSDT",
-   "listed": "2026-11-18"
-  },
-  {
-   "symbol": "SOXXUSDT",
-   "listed": "2026-11-18"
-  },
   {
    "symbol": "AMDLUSDT",
    "listed": "2026-11-20"
@@ -984,5 +1008,5 @@
   "\u725b\u6765USDT",
   "\u9f99\u867eUSDT"
  ],
- "last_run": "2026-11-25T17:24:25.147945+00:00"
+ "last_run": "2026-11-26T01:50:33.910933+00:00"
 }

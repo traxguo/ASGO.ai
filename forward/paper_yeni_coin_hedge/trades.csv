@@ -1,2 +1,8 @@
 symbol,pair,listed,entry_day,entry,stop,btc_entry,notional,exit_day,exit,btc_exit,why,coin_ret_pct,btc_ret_pct,ret_pct,pnl_usdt,note
 FRHCUSDT,FRHC/USDT:USDT,2026-11-12,2026-11-20,,,,,,,,skipped,,,,,not in top 100 by volume
+ARTYUSDT,ARTY/USDT:USDT,2026-11-18,2026-11-26,,,,,,,,skipped,,,,,not in top 100 by volume
+CCJUSDT,CCJ/USDT:USDT,2026-11-18,2026-11-26,,,,,,,,skipped,,,,,not in top 100 by volume
+ETNUSDT,ETN/USDT:USDT,2026-11-18,2026-11-26,,,,,,,,skipped,,,,,not in top 100 by volume
+IBITUSDT,IBIT/USDT:USDT,2026-11-18,2026-11-26,,,,,,,,skipped,,,,,not in top 100 by volume
+IGVUSDT,IGV/USDT:USDT,2026-11-18,2026-11-26,,,,,,,,skipped,,,,,not in top 100 by volume
+SOXXUSDT,SOXX/USDT:USDT,2026-11-18,2026-11-26,,,,,,,,skipped,,,,,not in top 100 by volume
