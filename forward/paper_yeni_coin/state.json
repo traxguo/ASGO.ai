@@ -9,9 +9,12 @@
    "entry": 159.5,
    "stop": 223.29999999999998,
    "notional": 250.0,
-   "why": "open",
-   "exit_day": null,
-   "exit": null
+   "why": "time",
+   "exit_day": "2026-11-26",
+   "exit": 174.87,
+   "funding_pct": 0.095,
+   "ret_pct": -9.742,
+   "pnl_usdt": -24.35
   },
   {
    "symbol": "ARTYUSDT",
@@ -122,7 +125,7 @@
    "exit": null
   }
  ],
- "equity": 10000.0,
+ "equity": 9975.65,
  "pending": [],
  "known": [
   "0GUSDT",
@@ -1059,5 +1062,5 @@
   "\u725b\u6765USDT",
   "\u9f99\u867eUSDT"
  ],
- "last_run": "2026-11-26T17:04:32.250611+00:00"
+ "last_run": "2026-11-27T01:47:41.332574+00:00"
 }
